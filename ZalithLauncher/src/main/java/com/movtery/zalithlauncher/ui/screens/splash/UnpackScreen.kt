@@ -132,6 +132,13 @@ private fun ActionMenu(
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.splash_screen_unofficial_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         ScalingActionButton(

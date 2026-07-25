@@ -130,6 +130,7 @@
     <string name="splash_screen_unpack_desc">啟動器需要安裝這些內容，才能確保 Minecraft 能夠正常啟動。這些內容已包含在應用程式中，需要解壓縮後才能正常使用，點擊下方按鈕，開始解壓縮並更新這些內容。</string>
     <string name="splash_screen_installing">啟動器正在解壓縮這些內容，解壓縮完成後將自動進入主介面，請耐心等候。</string>
     <string name="splash_screen_agree">同意並安裝</string>
+    <string name="splash_screen_unofficial_warning">⚠️ 這是一個非官方修改版本。它與官方開發者無關，也未獲得官方認可。使用風險自負。</string>
     <!--  通知  -->
     <string name="notification_title">檢查通知權限</string>
     <string name="notification_request">請求權限</string>

@@ -67,9 +67,9 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         var instance: ZLApplication? = null
             private set
 
-        const val UMENG_APPKEY = "69e0f1b36f259537c79a2e80"
+        const val UMENG_APPKEY = "6a65eb27d679c36d9c7dc574"
         const val UMENG_CHANNEL = "GitHub"
-        const val UMENG_MESSAGE_SECRET = "1853c4972a25c98245161c0bc6593e08"
+        const val UMENG_MESSAGE_SECRET = "4890e5af9c2530d9b72215b5e3015979"
 
         fun initUmeng(context: Context) {
             UMConfigure.init(

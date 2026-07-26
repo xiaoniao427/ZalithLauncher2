@@ -58,6 +58,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- 友盟U-App集成测试：扫码唤起App实时调试 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="um.6a65eb27d679c36d9c7dc574" />
+            </intent-filter>
         </activity>
 
         <activity-alias

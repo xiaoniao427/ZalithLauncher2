@@ -30,3 +30,9 @@ include(":LWJGL")
 include(":LayerController")
 include(":ColorPicker")
 include(":Terracotta")
+
+buildCache {
+    local {
+        isEnabled = true
+    }
+}

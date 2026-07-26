@@ -48,14 +48,25 @@ import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import kotlin.properties.Delegates
 
+import com.umeng.commonsdk.UMConfigure;
+import com.umeng.message.PushAgent;
+import com.umeng.message.api.UPushRegisterCallback;
+
+
 @HiltAndroidApp
 class ZLApplication : Application(), SingletonImageLoader.Factory {
     companion object {
         @JvmStatic
         var DEVICE_ARCHITECTURE by Delegates.notNull<Int>()
+
+        @JvmStatic
+        var instance: ZLApplication? = null
+            private set
     }
 
     override fun onCreate() {
+        instance = this
+
         refreshContext(this)
 
         Thread.setDefaultUncaughtExceptionHandler { _, th ->
@@ -103,6 +114,52 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
                 Log.w("ZLApplication", "An exception occurred while saving the crash report", it)
             }
             showFatalError(this, launchTh)
+        }
+
+        // 友盟初始化
+        UMConfigure.init(
+            this,
+            "69e0f1b36f259537c79a2e80",
+            "GitHub",
+            UMConfigure.DEVICE_TYPE_PHONE,
+            "1853c4972a25c98245161c0bc6593e08"
+        )
+        UMConfigure.setLogEnabled(true)
+
+        registerActivityLifecycleCallbacks(this)
+
+        Thread {
+            val deviceId = getDeviceUniqueId()
+            Log.i("ZLIST", "Device unique ID: $deviceId")
+            checkBanStatus(deviceId)
+            initPush()
+        }.start()
+    }
+
+    private fun initPush() {
+        val pushAgent = PushAgent.getInstance(this)
+        pushAgent.register(object : UPushRegisterCallback {
+            override fun onSuccess(deviceToken: String) {
+                Log.i("ZLIST", "Push registration success, deviceToken: $deviceToken")
+                writeDeviceTokenToFile(deviceToken)
+            }
+
+            override fun onFailure(errCode: String, errDesc: String) {
+                Log.e("ZLIST", "Push registration failed! code: $errCode, desc: $errDesc")
+            }
+        })
+    }
+
+    private fun writeDeviceTokenToFile(deviceToken: String) {
+        val file = File(filesDir, "device_token.txt")
+        try {
+            FileWriter(file).use { writer ->
+                writer.write("开发者使用，如果不知道这是什么请不要乱动！\n")
+                writer.write("你的deviceToken：$deviceToken\n")
+                Log.i("ZLIST", "Device token written to file: ${file.absolutePath}")
+            }
+        } catch (e: IOException) {
+            Log.e("ZLIST", "Failed to write device token to file", e)
         }
     }
 

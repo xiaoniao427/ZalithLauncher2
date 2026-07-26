@@ -40,6 +40,7 @@ import com.movtery.zalithlauncher.components.jre.Jre
 import com.movtery.zalithlauncher.components.jre.UnpackJnaTask
 import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.umeng.message.PushAgent
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.splash.SplashScreen
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
@@ -74,6 +75,9 @@ class SplashActivity : BaseAppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // 友盟推送：活跃统计（必须在同意隐私政策后调用）
+        PushAgent.getInstance(this).onAppStart()
 
         initUnpackItems()
         checkAllTask()

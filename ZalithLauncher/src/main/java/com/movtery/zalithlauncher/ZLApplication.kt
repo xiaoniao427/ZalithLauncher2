@@ -46,7 +46,7 @@ import com.movtery.zalithlauncher.utils.writeCrashFile
 import com.tencent.mmkv.MMKV
 import com.umeng.commonsdk.UMConfigure
 import com.umeng.message.PushAgent
-import com.umeng.message.UPushRegisterCallback
+import com.umeng.message.api.UPushRegisterCallback
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import java.io.File
@@ -55,7 +55,7 @@ import java.io.IOException
 import kotlin.properties.Delegates
 
 @HiltAndroidApp
-class ZLApplication : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
+class ZLApplication : Application(), SingletonImageLoader.Factory {
     companion object {
         @JvmStatic
         var DEVICE_ARCHITECTURE by Delegates.notNull<Int>()
@@ -63,12 +63,54 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
         @JvmStatic
         var instance: ZLApplication? = null
             private set
+
+        const val UMENG_APPKEY = "69e0f1b36f259537c79a2e80"
+        const val UMENG_CHANNEL = "GitHub"
+        const val UMENG_MESSAGE_SECRET = "1853c4972a25c98245161c0bc6593e08"
+
+        fun initUmeng(context: Context) {
+            UMConfigure.init(
+                context,
+                UMENG_APPKEY,
+                UMENG_CHANNEL,
+                UMConfigure.DEVICE_TYPE_PHONE,
+                UMENG_MESSAGE_SECRET
+            )
+
+            val pushAgent = PushAgent.getInstance(context)
+            pushAgent.register(object : UPushRegisterCallback {
+                override fun onSuccess(deviceToken: String) {
+                    Log.i(TAG, "Push registration success, deviceToken: $deviceToken")
+                    writeDeviceTokenToFile(context, deviceToken)
+                }
+
+                override fun onFailure(errCode: String, errDesc: String) {
+                    Log.e(TAG, "Push registration failed! code: $errCode, desc: $errDesc")
+                }
+            })
+        }
+
+        private fun writeDeviceTokenToFile(context: Context, deviceToken: String) {
+            val file = File(context.filesDir, "device_token.txt")
+            try {
+                FileWriter(file).use { writer ->
+                    writer.write("开发者使用，如果不知道这是什么请不要乱动！\n")
+                    writer.write("你的deviceToken：$deviceToken\n")
+                    Log.i(TAG, "Device token written to file: ${file.absolutePath}")
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to write device token to file", e)
+            }
+        }
     }
 
     override fun onCreate() {
         instance = this
 
         refreshContext(this)
+
+        // 友盟预初始化（合规要求：必须在 super.onCreate 之前，不采集设备信息）
+        UMConfigure.preInit(this, UMENG_APPKEY, UMENG_CHANNEL)
 
         Thread.setDefaultUncaughtExceptionHandler { _, th ->
             //停止所有任务
@@ -91,6 +133,9 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
         }
 
         super.onCreate()
+
+        UMConfigure.setLogEnabled(true)
+
         runCatching {
             Fishnet.init(this, PathManager.DIR_NATIVE_LOGS.absolutePath)
 
@@ -117,53 +162,20 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
             showFatalError(this, launchTh)
         }
 
-        // 友盟初始化
-        UMConfigure.init(
-            this,
-            "69e0f1b36f259537c79a2e80",
-            "GitHub",
-            UMConfigure.DEVICE_TYPE_PHONE,
-            "1853c4972a25c98245161c0bc6593e08"
-        )
-        UMConfigure.setLogEnabled(true)
-
-        registerActivityLifecycleCallbacks(this)
-
+        // 友盟正式初始化 + 推送注册（建议在子线程中执行）
         Thread {
-            initPush()
+            initUmeng(this)
         }.start()
-    }
-
-    private fun initPush() {
-        val pushAgent = PushAgent.getInstance(this)
-        pushAgent.register(object : UPushRegisterCallback {
-            override fun onSuccess(deviceToken: String) {
-                Log.i("ZLIST", "Push registration success, deviceToken: $deviceToken")
-                writeDeviceTokenToFile(deviceToken)
-            }
-
-            override fun onFailure(errCode: String, errDesc: String) {
-                Log.e("ZLIST", "Push registration failed! code: $errCode, desc: $errDesc")
-            }
-        })
-    }
-
-    private fun writeDeviceTokenToFile(deviceToken: String) {
-        val file = File(filesDir, "device_token.txt")
-        try {
-            FileWriter(file).use { writer ->
-                writer.write("开发者使用，如果不知道这是什么请不要乱动！\n")
-                writer.write("你的deviceToken：$deviceToken\n")
-                Log.i("ZLIST", "Device token written to file: ${file.absolutePath}")
-            }
-        } catch (e: IOException) {
-            Log.e("ZLIST", "Failed to write device token to file", e)
-        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         refreshContext(this)
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        UMConfigure.onKillProcess(this)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
@@ -194,13 +206,4 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
         AccountsManager.initialize(this)
         GamePathManager.initialize(this)
     }
-
-    // ActivityLifecycleCallbacks 空实现
-    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
-    override fun onActivityStarted(activity: android.app.Activity) {}
-    override fun onActivityResumed(activity: android.app.Activity) {}
-    override fun onActivityPaused(activity: android.app.Activity) {}
-    override fun onActivityStopped(activity: android.app.Activity) {}
-    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
-    override fun onActivityDestroyed(activity: android.app.Activity) {}
 }

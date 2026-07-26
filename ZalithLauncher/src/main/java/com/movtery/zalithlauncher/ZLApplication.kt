@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher
 
 import android.app.Application
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Process
 import android.util.Log
@@ -57,6 +58,8 @@ import kotlin.properties.Delegates
 @HiltAndroidApp
 class ZLApplication : Application(), SingletonImageLoader.Factory {
     companion object {
+        private const val TAG = "ZLApplication"
+
         @JvmStatic
         var DEVICE_ARCHITECTURE by Delegates.notNull<Int>()
 
@@ -175,7 +178,6 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onTerminate() {
         super.onTerminate()
-        UMConfigure.onKillProcess(this)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

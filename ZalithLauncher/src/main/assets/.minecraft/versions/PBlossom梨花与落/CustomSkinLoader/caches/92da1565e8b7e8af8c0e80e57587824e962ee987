@@ -1,0 +1,9 @@
+{
+  "id" : "8635a826229e4396a00a5e10d184566f",
+  "name" : "Ayi",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTg1Mjg2MCwKICAicHJvZmlsZUlkIiA6ICI4NjM1YTgyNjIyOWU0Mzk2YTAwYTVlMTBkMTg0NTY2ZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBeWkiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODNjMjYxMzMzZDZmNGIzNTE2YzQ5NTRlZmI1ZjY2OTVjODhjODRlNjFiYWNkZjJkZmI4YWM3YWJmNWE3YjZhZCIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

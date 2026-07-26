@@ -1,0 +1,9 @@
+{
+  "id" : "b6c50b4160f9456ab61de8eda05e31e1",
+  "name" : "JM_JuMao",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk3MTcwMDU0MywKICAicHJvZmlsZUlkIiA6ICJiNmM1MGI0MTYwZjk0NTZhYjYxZGU4ZWRhMDVlMzFlMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJKTV9KdU1hbyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lY2IwNDg2NjFlNDMyZmM1ZmQzYjQwY2VlZDU3YWM0MjJhNmJjYjk3NjI1N2FmMjA5ZDgzMDMzNTQwYWY3MWUiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

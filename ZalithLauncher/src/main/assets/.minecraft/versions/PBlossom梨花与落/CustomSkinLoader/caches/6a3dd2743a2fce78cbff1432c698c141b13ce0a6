@@ -1,0 +1,9 @@
+{
+  "id" : "3c23cef0a4c94ba5a7c47ade48dc152b",
+  "name" : "CalmWinner58948",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2MDM0MTI1OCwKICAicHJvZmlsZUlkIiA6ICIzYzIzY2VmMGE0Yzk0YmE1YTdjNDdhZGU0OGRjMTUyYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJDYWxtV2lubmVyNTg5NDgiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2E4ZjY3OGY5MGE4ZjgyN2U2YWQwNzViZmZlZDQ0MmRhZGFjMGU4NzQzM2ZlYWUxNjZiZDRhN2ZhNzRhZmNkNSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

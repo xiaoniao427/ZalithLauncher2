@@ -1,0 +1,9 @@
+{
+  "id" : "f54bc935a52c4ea0bac23d66caae75eb",
+  "name" : "Manygo",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0ODMwMDg4OSwKICAicHJvZmlsZUlkIiA6ICJmNTRiYzkzNWE1MmM0ZWEwYmFjMjNkNjZjYWFlNzVlYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNYW55Z28iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTNiZDE2MDc5Zjc2NGNkNTQxZTA3MmU4ODhmZTQzODg1ZTcxMWY5ODY1ODMyM2RiMGY5YTYwNDVkYTkxZWU3YSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

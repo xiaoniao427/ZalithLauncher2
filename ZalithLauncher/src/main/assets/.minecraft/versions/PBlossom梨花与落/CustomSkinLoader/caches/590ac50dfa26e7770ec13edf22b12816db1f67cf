@@ -1,0 +1,9 @@
+{
+  "id" : "d136f4bc7262492cb4e83b71f84e4bc4",
+  "name" : "xuwu11",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0ODI1ODUxOCwKICAicHJvZmlsZUlkIiA6ICJkMTM2ZjRiYzcyNjI0OTJjYjRlODNiNzFmODRlNGJjNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJ4dXd1MTEiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZjYjQ4NDE2NmNkY2EwZWI3NGNlMDI3YmYzYjI0Mzc0NmQ1MGU0ZGE2OTZlMzQ1MzM0Y2IyMGYxZmZhNGM0MCIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

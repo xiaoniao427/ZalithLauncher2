@@ -1,0 +1,9 @@
+{
+  "id" : "2f6c97d588c649dcbea5496e8af2f7af",
+  "name" : "ChangHe_YiSe",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTUyNzA1NzkzNywKICAicHJvZmlsZUlkIiA6ICIyZjZjOTdkNTg4YzY0OWRjYmVhNTQ5NmU4YWYyZjdhZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJDaGFuZ0hlX1lpU2UiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU0NjI3YWEzODMyZjkzOGE5MTRiMGUxZGM3NjFlMGI5NDExYmI0MWQzN2M2YTMwZmFiYmJiMWFmY2VhYjYwMyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

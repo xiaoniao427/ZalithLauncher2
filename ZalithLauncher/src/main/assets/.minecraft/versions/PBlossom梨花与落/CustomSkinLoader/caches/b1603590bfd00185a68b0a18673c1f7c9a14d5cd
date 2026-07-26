@@ -1,0 +1,9 @@
+{
+  "id" : "d9f68f74b42c4834bbe3b59cfb3a03d7",
+  "name" : "Away",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc2NzAxMTY0OTA1OSwKICAicHJvZmlsZUlkIiA6ICJkOWY2OGY3NGI0MmM0ODM0YmJlM2I1OWNmYjNhMDNkNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJBd2F5IiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2I2NmJjODBmMDAyYjEwMzcxZTJmYTIzZGU2ZjIzMGRkNWUyZjNhZmZjMmUxNTc4NmY2NWJjOWJlNGM2ZWI3MWEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

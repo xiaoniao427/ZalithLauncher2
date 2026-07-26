@@ -35,6 +35,7 @@ import com.movtery.zalithlauncher.SplashException
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
+import com.movtery.zalithlauncher.components.UnpackMinecraftTask
 import com.movtery.zalithlauncher.components.jre.Jre
 import com.movtery.zalithlauncher.components.jre.UnpackJnaTask
 import com.movtery.zalithlauncher.components.jre.UnpackJreTask
@@ -146,6 +147,16 @@ class SplashActivity : BaseAppCompatActivity() {
                     "JNA",
                     getString(R.string.unpack_screen_jna),
                     jnaTask
+                )
+            )
+        }
+        val minecraftTask = UnpackMinecraftTask(this@SplashActivity)
+        if (!minecraftTask.isCheckFailed()) {
+            unpackItems.add(
+                InstallableItem(
+                    ".minecraft",
+                    getString(R.string.unpack_screen_minecraft),
+                    minecraftTask
                 )
             )
         }

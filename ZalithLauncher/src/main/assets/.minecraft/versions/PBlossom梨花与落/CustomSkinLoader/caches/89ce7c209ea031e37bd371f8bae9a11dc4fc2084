@@ -1,0 +1,9 @@
+{
+  "id" : "0944c98b61514f2081a7806e849cb0a2",
+  "name" : "hapekopekopeko",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU1OTg0Njc0NSwKICAicHJvZmlsZUlkIiA6ICIwOTQ0Yzk4YjYxNTE0ZjIwODFhNzgwNmU4NDljYjBhMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJoYXBla29wZWtvcGVrbyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84NmUxYjNmMmYwYjE3ODgzN2JhYzc5MzRiMjQ4Y2QwM2Y0M2EzM2I1NzNlY2UyN2UxODgyY2E5Yzg2ZDNiZjJmIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

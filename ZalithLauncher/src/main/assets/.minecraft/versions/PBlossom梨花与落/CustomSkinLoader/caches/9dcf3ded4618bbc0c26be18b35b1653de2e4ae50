@@ -1,0 +1,9 @@
+{
+  "id" : "c71ef4892ad9467c8f1346a9fe53eb1a",
+  "name" : "GongJiu",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE3NjI5ODY1MSwKICAicHJvZmlsZUlkIiA6ICJjNzFlZjQ4OTJhZDk0NjdjOGYxMzQ2YTlmZTUzZWIxYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJHb25nSml1IiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQwMDJjMDAzMDI4NWZmNmYyOTEyOWRlZDdiZmU0ZTE5YzM3MjYzMWM5NWQxMzFkNGVjYjVlZmNhYzNhYjczMjQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

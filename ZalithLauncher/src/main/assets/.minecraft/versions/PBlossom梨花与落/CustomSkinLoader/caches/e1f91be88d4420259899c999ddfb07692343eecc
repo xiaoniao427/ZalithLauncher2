@@ -1,0 +1,9 @@
+{
+  "id" : "6e7476b68e0044e99bf2ec30f8eae0c7",
+  "name" : "zzx",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk1NzYwNjAzMCwKICAicHJvZmlsZUlkIiA6ICI2ZTc0NzZiNjhlMDA0NGU5OWJmMmVjMzBmOGVhZTBjNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJ6engiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTFmN2Y0MzAxZDM2NTE5ZDZjZmFmYTczNDg5ODc1ZDY2YzU0YjU0N2E4YjJmYmJjMmJlMWFmMDUyNTgzNDY3NSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

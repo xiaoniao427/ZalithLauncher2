@@ -1,0 +1,9 @@
+{
+  "id" : "8357ead98a85440ab37b606c3201d97a",
+  "name" : "absan",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc5NTIxODU1NSwKICAicHJvZmlsZUlkIiA6ICI4MzU3ZWFkOThhODU0NDBhYjM3YjYwNmMzMjAxZDk3YSIsCiAgInByb2ZpbGVOYW1lIiA6ICJhYnNhbiIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xYTRhZjcxODQ1NWQ0YWFiNTI4ZTdhNjFmODZmYTI1ZTZhMzY5ZDE3NjhkY2IxM2Y3ZGYzMTlhNzEzZWI4MTBiIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

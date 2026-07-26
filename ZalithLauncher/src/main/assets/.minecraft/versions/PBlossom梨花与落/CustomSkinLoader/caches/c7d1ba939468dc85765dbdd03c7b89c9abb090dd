@@ -1,0 +1,9 @@
+{
+  "id" : "c426a4029c134fcb925921642a61d176",
+  "name" : "Sanguine",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE3MDMyNjQ0NSwKICAicHJvZmlsZUlkIiA6ICJjNDI2YTQwMjljMTM0ZmNiOTI1OTIxNjQyYTYxZDE3NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTYW5ndWluZSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82NjViZDQ1NDFmNWY4OGVmNGI5MTY5ZDA5MmQ2N2M0ZGM1YjhmYzFjYWQzZThhNmM2ZjQwYTllNGNkNGExZmZiIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

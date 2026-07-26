@@ -1,0 +1,9 @@
+{
+  "id" : "e7706e03fa744f51b32cc7604ffc9dc5",
+  "name" : "yachiyo",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyMDg5MzQxOCwKICAicHJvZmlsZUlkIiA6ICJlNzcwNmUwM2ZhNzQ0ZjUxYjMyY2M3NjA0ZmZjOWRjNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJ5YWNoaXlvIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzZjMTYwZmJkMTZhZGJjNGJmZjI0MDllNzAxODBkOTExMDAyYWViY2ZhODExZWI2ZWMzZDEwNDA3NjFhZWE2ZGQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

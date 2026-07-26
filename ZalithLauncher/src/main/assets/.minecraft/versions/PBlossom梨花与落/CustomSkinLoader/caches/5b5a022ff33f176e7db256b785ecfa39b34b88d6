@@ -1,0 +1,9 @@
+{
+  "id" : "78065add83f2493684fb42fbff42f71f",
+  "name" : "L1Z",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY3NzE2NTUwNiwKICAicHJvZmlsZUlkIiA6ICI3ODA2NWFkZDgzZjI0OTM2ODRmYjQyZmJmZjQyZjcxZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJMMVoiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTgxOWZmMTM2OWRmM2QyOTY4MmMzMGFjMTFmOTViYzM0MzZmNjViMWQzY2VhZGFmNzZmYjMwZTRlNWQ2ZGY1NCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

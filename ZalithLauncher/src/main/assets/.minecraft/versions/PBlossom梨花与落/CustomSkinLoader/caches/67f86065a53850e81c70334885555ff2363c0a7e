@@ -1,0 +1,9 @@
+{
+  "id" : "63285b9ff9a1455ba5076eed662b26a7",
+  "name" : "STDY",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg3NDYyMzE3NCwKICAicHJvZmlsZUlkIiA6ICI2MzI4NWI5ZmY5YTE0NTViYTUwNzZlZWQ2NjJiMjZhNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJTVERZIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2M0N2I2YWIxZWU2ZGQ5ZWIwM2UwNTYyZTBiNmFlMzkxZDdlMTA0YmQ5YTFjMGUwNjRmOGY1MDA1ZDU3YTdiOTQiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

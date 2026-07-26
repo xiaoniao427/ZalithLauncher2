@@ -1,0 +1,9 @@
+{
+  "id" : "dfb2379728ae48098b54068a35d71264",
+  "name" : "jianxu",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0NDU4MjA4MCwKICAicHJvZmlsZUlkIiA6ICJkZmIyMzc5NzI4YWU0ODA5OGI1NDA2OGEzNWQ3MTI2NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJqaWFueHUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWJkYjhiMzMxMmM5ZDVlYjlhNTI5ZTZiNmI1ZDFkM2IxNDdjYTk2MGUyNWZlZTU5ODhiOThiOGE4MTk2M2M4ZSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

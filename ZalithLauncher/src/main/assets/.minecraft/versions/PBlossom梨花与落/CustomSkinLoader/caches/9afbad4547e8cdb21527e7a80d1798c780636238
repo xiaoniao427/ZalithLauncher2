@@ -1,0 +1,9 @@
+{
+  "id" : "e0b9ef79e5f84ce4b02f204338fcac9d",
+  "name" : "ciphers",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc3NTc0NDk2MiwKICAicHJvZmlsZUlkIiA6ICJlMGI5ZWY3OWU1Zjg0Y2U0YjAyZjIwNDMzOGZjYWM5ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJjaXBoZXJzIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2YxZDNiMTM2ODMwMWYwNDNjYmRiZjk2MmY1MjUyZDBkZjFlOTQ3OGU4YWM1MTBlYzk1MTVmZjg5ODdhYTEyMSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

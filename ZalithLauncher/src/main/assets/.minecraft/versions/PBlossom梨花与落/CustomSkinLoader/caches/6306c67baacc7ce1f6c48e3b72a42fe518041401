@@ -1,0 +1,9 @@
+{
+  "id" : "f1122cc5b72d4e5680ee0929334069ff",
+  "name" : "Faruna",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0NzQxMTE5MiwKICAicHJvZmlsZUlkIiA6ICJmMTEyMmNjNWI3MmQ0ZTU2ODBlZTA5MjkzMzQwNjlmZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJGYXJ1bmEiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmFjNmNhMjYyZDY3YmNmYjNkYmM5MjRiYTgyMTVhMTgxOTU0OTdjNzgwMDU4YTU3NDlkZTY3NDIxNzcyMTg5MiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

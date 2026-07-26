@@ -1,0 +1,9 @@
+{
+  "id" : "5faf5e8aba414cabbe2123b71f705030",
+  "name" : "mym3",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc4MDk0NjU5NywKICAicHJvZmlsZUlkIiA6ICI1ZmFmNWU4YWJhNDE0Y2FiYmUyMTIzYjcxZjcwNTAzMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJteW0zIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2JjNTJjYWFkN2JhZjVjMTllZjgzMjcwM2Y5YzIwNTVjMGVmNTljYzM2MGZkYjhiYjQxMzczMTJlZTdiMzhjNjYiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

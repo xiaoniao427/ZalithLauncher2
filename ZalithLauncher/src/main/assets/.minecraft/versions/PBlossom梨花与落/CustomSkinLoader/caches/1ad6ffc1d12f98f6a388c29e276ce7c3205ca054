@@ -1,0 +1,9 @@
+{
+  "id" : "19f40a9389974643abdb5dee8ea889e4",
+  "name" : "Lostinchin",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0ODMwMDQ4MiwKICAicHJvZmlsZUlkIiA6ICIxOWY0MGE5Mzg5OTc0NjQzYWJkYjVkZWU4ZWE4ODllNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJMb3N0aW5jaGluIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzVmMWZlNzBiYTNiZTc4YTA0N2RjYmM5NmM4NDllNDBlM2ZlNDExYzUxMDU3YWRhMGZhYzE0NGQ3Y2I1ZDAxYjIiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

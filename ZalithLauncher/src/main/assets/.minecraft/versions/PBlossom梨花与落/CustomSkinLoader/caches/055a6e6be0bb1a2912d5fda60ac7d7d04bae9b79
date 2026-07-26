@@ -1,0 +1,9 @@
+{
+  "id" : "f4446bdbde254bc3ae528b163a247c40",
+  "name" : "1_A",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY4ODU0NTYxMSwKICAicHJvZmlsZUlkIiA6ICJmNDQ0NmJkYmRlMjU0YmMzYWU1MjhiMTYzYTI0N2M0MCIsCiAgInByb2ZpbGVOYW1lIiA6ICIxX0EiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTNiZDE2MDc5Zjc2NGNkNTQxZTA3MmU4ODhmZTQzODg1ZTcxMWY5ODY1ODMyM2RiMGY5YTYwNDVkYTkxZWU3YSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

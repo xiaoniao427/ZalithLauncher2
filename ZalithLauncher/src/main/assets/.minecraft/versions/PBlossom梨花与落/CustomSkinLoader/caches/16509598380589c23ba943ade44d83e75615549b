@@ -1,0 +1,9 @@
+{
+  "id" : "9489759c5c5a4da18df1d477a8f79189",
+  "name" : "Ring",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyMDcyMDc2NywKICAicHJvZmlsZUlkIiA6ICI5NDg5NzU5YzVjNWE0ZGExOGRmMWQ0NzdhOGY3OTE4OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJSaW5nIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2MyMzc0NzI3ZDRmZTZkMDg4NGM3YzIyYzRlNWYxMDU5YjM2ZThjNTU3YjliZWY0YmFlOGJiN2ZiZTI2NzE4MDEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "e77dbf364bd749f2aefa18f94a78a502",
+  "name" : "JJY",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc2NzAxMTYzOTIwOCwKICAicHJvZmlsZUlkIiA6ICJlNzdkYmYzNjRiZDc0OWYyYWVmYTE4Zjk0YTc4YTUwMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKSlkiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDVmOTI5OTkzYzc5ODg0MjYzZTdmMzQ3ZDJhZmRjYTFkM2M0MTc0NDUzNWI1NzMyZjJmZmZiZWEwMDgyOTg2ZiIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

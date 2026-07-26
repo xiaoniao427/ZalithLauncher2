@@ -1,0 +1,9 @@
+{
+  "id" : "a17bd4fe28f842568a48142b9820d4e2",
+  "name" : "NishioYuuka",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDkzMzAwNzI0OSwKICAicHJvZmlsZUlkIiA6ICJhMTdiZDRmZTI4Zjg0MjU2OGE0ODE0MmI5ODIwZDRlMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJOaXNoaW9ZdXVrYSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lNmQ4YmYyNDRjZTVjODMyOWMxMmQ4NTFlNDNlMDE1NzgwMTQ4MGZlOTY1YTk3MWY3YzdlZjU0OTE1NzRjM2ZmIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "04bc0baeb2fa451cb6afb4ddfb251143",
+  "name" : "yuata",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyMDcyMDUyNCwKICAicHJvZmlsZUlkIiA6ICIwNGJjMGJhZWIyZmE0NTFjYjZhZmI0ZGRmYjI1MTE0MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJ5dWF0YSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80MzZjOTRiMDJmMDg5NWU1NTJmZmM4ODA5OWU2MTkyNmI1MjdmZGJlMjA4ODJjMTdhNzMzM2QyMGE3ZjBjNzEyIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

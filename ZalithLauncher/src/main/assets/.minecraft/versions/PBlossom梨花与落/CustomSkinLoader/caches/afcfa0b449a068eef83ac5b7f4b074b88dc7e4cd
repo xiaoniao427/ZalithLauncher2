@@ -1,0 +1,9 @@
+{
+  "id" : "56ab1472358941408b9c891b2fdeaa2f",
+  "name" : "KigiKamiSama",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY3Mjk3MTYxMSwKICAicHJvZmlsZUlkIiA6ICI1NmFiMTQ3MjM1ODk0MTQwOGI5Yzg5MWIyZmRlYWEyZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJLaWdpS2FtaVNhbWEiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmZmOGZjY2IwYmU5ZGVjZjRkNjFhZGYzN2E3Y2QxYTljYWE5YTc0YmU4NmVkNDE0NzgxMWNmYzVmM2YzNzM3ZiIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

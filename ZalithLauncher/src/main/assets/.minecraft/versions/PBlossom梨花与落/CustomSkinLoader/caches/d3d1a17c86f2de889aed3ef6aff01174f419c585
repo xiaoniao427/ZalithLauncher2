@@ -1,0 +1,9 @@
+{
+  "id" : "915e745d46554636a00f885a23866d9e",
+  "name" : "pozhan",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg2MzI2ODY1NiwKICAicHJvZmlsZUlkIiA6ICI5MTVlNzQ1ZDQ2NTU0NjM2YTAwZjg4NWEyMzg2NmQ5ZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJwb3poYW4iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWE0YWY3MTg0NTVkNGFhYjUyOGU3YTYxZjg2ZmEyNWU2YTM2OWQxNzY4ZGNiMTNmN2RmMzE5YTcxM2ViODEwYiIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

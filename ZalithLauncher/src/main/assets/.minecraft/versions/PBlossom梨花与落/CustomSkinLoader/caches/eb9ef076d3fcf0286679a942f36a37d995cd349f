@@ -1,0 +1,9 @@
+{
+  "id" : "7e20b90b699044e790e3c88bb6f8fd5d",
+  "name" : "Adder",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTQ5NzQwMSwKICAicHJvZmlsZUlkIiA6ICI3ZTIwYjkwYjY5OTA0NGU3OTBlM2M4OGJiNmY4ZmQ1ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJBZGRlciIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9kYWYyMTM4NDUzOGMwOTc1MjFkZTEzYTE3ZmUwYmRmNTA3MDllODlkZDE5YTg4YmE2MjE0NTRlY2FkMDQwMTc4IgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

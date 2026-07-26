@@ -1,0 +1,9 @@
+{
+  "id" : "aa4c39aa3c36490c884eb9e9440b7846",
+  "name" : "ovoMC",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNjk4NjYzNywKICAicHJvZmlsZUlkIiA6ICJhYTRjMzlhYTNjMzY0OTBjODg0ZWI5ZTk0NDBiNzg0NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJvdm9NQyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83MTdkYmVmMDM2Zjg2NDVlMjI3MmJkMGRiZjI2Zjc5MTdjNmQzY2I5YWViYTcwYjBkZTFhYzgxNTcxZDNmODNkIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

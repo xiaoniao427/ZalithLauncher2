@@ -1,0 +1,9 @@
+{
+  "id" : "6ac71428bade42afbc23fa10401b512f",
+  "name" : "Sejk",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk0NzEwMzUwMSwKICAicHJvZmlsZUlkIiA6ICI2YWM3MTQyOGJhZGU0MmFmYmMyM2ZhMTA0MDFiNTEyZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTZWprIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E1OTg0YTY1YWIwODIxYTI5OTgwOGNmMTQ3OTlhYTg0ZTQwY2YxODYwNDU0NmExYTA5YTliZGE2MjEzZGQyN2QiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "7c5d910ee9e0402895793305038a1999",
+  "name" : "Persona",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTI5NDAxNSwKICAicHJvZmlsZUlkIiA6ICI3YzVkOTEwZWU5ZTA0MDI4OTU3OTMzMDUwMzhhMTk5OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJQZXJzb25hIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRkOTU3YThmODMxNzczODc5MjcwZjUyZTlmNzZhZTcxYTBlZTM2NjA3OTAyZmVkOTY5NjUyZjE3ZGYyMTMyNjkiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

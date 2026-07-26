@@ -1,0 +1,9 @@
+{
+  "id" : "ca326d5fa64e4285bb35f3a34adc54e8",
+  "name" : "MCTendouAlice",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDgzNjgwNjEzNywKICAicHJvZmlsZUlkIiA6ICJjYTMyNmQ1ZmE2NGU0Mjg1YmIzNWYzYTM0YWRjNTRlOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNQ1RlbmRvdUFsaWNlIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzgzOTRlZWQ4MTg5N2JhOWU1Y2IzODg0NTNjZGUwZjVlNmNiODkwM2E4NTAwYTNhNmRjMGJhNTNmZDFhMTYxNTIiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

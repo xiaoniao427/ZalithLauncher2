@@ -1,0 +1,9 @@
+{
+  "id" : "a08d94fc4d6b4fe0a82b8c99a4757bd4",
+  "name" : "MinecraftCurios",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU2MTE5NzQ1OCwKICAicHJvZmlsZUlkIiA6ICJhMDhkOTRmYzRkNmI0ZmUwYTgyYjhjOTlhNDc1N2JkNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNaW5lY3JhZnRDdXJpb3MiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTE4NTYyZGFiYTY0M2I2NmE4YzI0MTA5MzkyODE5ODZkOTk5M2VmYzRiZDE4NTUyNTRjOWQzYmZiN2U5Y2VmZSIKICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

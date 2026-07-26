@@ -1,0 +1,9 @@
+{
+  "id" : "c7f9fcd49bfe4123a28b0feeec658863",
+  "name" : "Fqwer",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2ODIwNzU5MCwKICAicHJvZmlsZUlkIiA6ICJjN2Y5ZmNkNDliZmU0MTIzYTI4YjBmZWVlYzY1ODg2MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJGcXdlciIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9mMGQwYTY4NzE3ZDdlNTQ0NGQ2Y2E4NDdiYWY3OWNlMTIxZDZiMWU1MzczYWFjN2ZlMTIzOTUxNDljOWYxYTViIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

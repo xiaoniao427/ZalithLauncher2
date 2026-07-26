@@ -1,0 +1,9 @@
+{
+  "id" : "275d6224d95847dfbc18d51c6a5cbe73",
+  "name" : "nb999",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNzg5NDIwMiwKICAicHJvZmlsZUlkIiA6ICIyNzVkNjIyNGQ5NTg0N2RmYmMxOGQ1MWM2YTVjYmU3MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJuYjk5OSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80YzA1YWI5ZTA3YjM1MDVkYzNlYzExMzcwYzNiZGNlNTU3MGFkMmZiMmI1NjJlOWI5ZGQ5Y2YyNzFmODFhYTQ0IgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "10e6c5994ec74b75929663f2b6aa6ffb",
+  "name" : "FUEYU",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc2MDk5NzA5MywKICAicHJvZmlsZUlkIiA6ICIxMGU2YzU5OTRlYzc0Yjc1OTI5NjYzZjJiNmFhNmZmYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJGVUVZVSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jNzNjZjYxZDRiNDhlNWIyOGM3ZDgwMjQ5ZjY3NjUzNTc0MDY2OTZiN2NiMTRkMjI4YTdhYTE5YTcxZmUwNmJmIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
+  } ],
+  "profileActions" : [ ]
+}

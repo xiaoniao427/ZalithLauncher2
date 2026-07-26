@@ -1,0 +1,9 @@
+{
+  "id" : "cf7f45407cb1440096e57d8a755e04b9",
+  "name" : "sjwy6",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg3NTc4Nzk5MCwKICAicHJvZmlsZUlkIiA6ICJjZjdmNDU0MDdjYjE0NDAwOTZlNTdkOGE3NTVlMDRiOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJzand5NiIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jMDNiZDRiYTJmMDQ1ZjU2MDBmNDA3Y2VhMzk4MzIwNTgwZjA1YmJkYWRmMTU4YjE5NGY5NGY5MzgxY2FiMjY0IgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

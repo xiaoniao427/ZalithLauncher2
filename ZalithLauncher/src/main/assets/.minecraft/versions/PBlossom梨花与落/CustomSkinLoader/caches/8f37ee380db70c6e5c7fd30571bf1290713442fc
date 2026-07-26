@@ -1,0 +1,9 @@
+{
+  "id" : "273c892bea074c6da6effc9f83b5a0b5",
+  "name" : "lksj250",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2NTA2MjQwMiwKICAicHJvZmlsZUlkIiA6ICIyNzNjODkyYmVhMDc0YzZkYTZlZmZjOWY4M2I1YTBiNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJsa3NqMjUwIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzIxZmYzMjJiMTA0M2E2ODFmNmVhYzM2NDZkMTdkMDRmNzI1NjQ3Y2QzYzQ1MjMxMDZlZWVmYmQwZGEwMjMxZmEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

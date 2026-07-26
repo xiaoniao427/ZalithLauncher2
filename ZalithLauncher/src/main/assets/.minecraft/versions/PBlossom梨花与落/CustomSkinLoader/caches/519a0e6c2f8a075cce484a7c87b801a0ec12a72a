@@ -1,0 +1,9 @@
+{
+  "id" : "31443d8e0b6d4cdca80e8a069572849b",
+  "name" : "JILA",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNTEwMjIyOCwKICAicHJvZmlsZUlkIiA6ICIzMTQ0M2Q4ZTBiNmQ0Y2RjYTgwZThhMDY5NTcyODQ5YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJKSUxBIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Y4YjZkZGExYzFlYzBhMDdmNDk2ZjM1OWU2ZGY5NTgwNjBiYWYyZGM2M2UxOGJmN2E0MzkzY2QyZjJhZmI2YjQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "f11cd45adc874cc8a5179f2fda159cd7",
+  "name" : "ewwsde3328",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE3NzY1NTEyOSwKICAicHJvZmlsZUlkIiA6ICJmMTFjZDQ1YWRjODc0Y2M4YTUxNzlmMmZkYTE1OWNkNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJld3dzZGUzMzI4IiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzMyMjAzOGNiNTVjM2Y3Njg4ZGYyMDQ3ZmU3OWRjYjFhZWQ4ZDRhNTU2MTc0ZmM1NGFiZDY2MDA0YzYzNzE2ZWYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

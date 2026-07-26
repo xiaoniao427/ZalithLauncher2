@@ -1,0 +1,9 @@
+{
+  "id" : "cf4cfe6a879542d4a80b603c49e6bf7c",
+  "name" : "Doenm",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyMzQ2MjI2NiwKICAicHJvZmlsZUlkIiA6ICJjZjRjZmU2YTg3OTU0MmQ0YTgwYjYwM2M0OWU2YmY3YyIsCiAgInByb2ZpbGVOYW1lIiA6ICJEb2VubSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xNzBkOTZlN2I2YjE1MTBmYmYyZDlhMDU3Y2ZkN2ZiMWYxOTA4ZTFmYWI3MjQ2NzYwYTRlNDdjMDEzNWY2MGYxIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "931e98a891974ec2bded6528d1b79e44",
+  "name" : "device_desuwa",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg0MTAyMTEwNCwKICAicHJvZmlsZUlkIiA6ICI5MzFlOThhODkxOTc0ZWMyYmRlZDY1MjhkMWI3OWU0NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJkZXZpY2VfZGVzdXdhIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2M0Yjc1YjY5NWE2YjNjM2VlNjBhYThhZTIyNDlhYjBhMTIxYmYzMTAyMGJkMGE5ZWIzODUyODUxZTEzZTkxODIiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "58b3f429e95940e79254205cb79dd2bb",
+  "name" : "BaiJieQingYi",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNDcyMDM2OCwKICAicHJvZmlsZUlkIiA6ICI1OGIzZjQyOWU5NTk0MGU3OTI1NDIwNWNiNzlkZDJiYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJCYWlKaWVRaW5nWWkiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzY2MmNmMGVlZTNjMWY2NjVkZmNiYzAwZjcxM2IzNzY0OGJmNjQ3MWM2MzAzMmUyMzdjMTY5NWZjYjAwNDQ3OCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

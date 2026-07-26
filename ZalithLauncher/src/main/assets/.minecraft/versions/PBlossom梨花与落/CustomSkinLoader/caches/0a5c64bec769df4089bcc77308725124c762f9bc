@@ -1,0 +1,9 @@
+{
+  "id" : "e6a7779e11354168ac503acb60cf10af",
+  "name" : "Degun",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTk1NjA2NSwKICAicHJvZmlsZUlkIiA6ICJlNmE3Nzc5ZTExMzU0MTY4YWM1MDNhY2I2MGNmMTBhZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJEZWd1biIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jOGJjNTcwMGQ4MGEwZDVkNzJhYTYwMTcwOTZmY2E2YjlmMDcyMjZhNWQ1YWRhOGZlNjFkOGFhY2EzNTY2NGMyIgogICAgfQogIH0KfQ=="
+  } ],
+  "profileActions" : [ ]
+}

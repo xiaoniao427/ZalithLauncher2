@@ -1,0 +1,9 @@
+{
+  "id" : "048236632a6648daab53b5a5b26aa656",
+  "name" : "Dada",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTUyOTY5MzYzMiwKICAicHJvZmlsZUlkIiA6ICIwNDgyMzY2MzJhNjY0OGRhYWI1M2I1YTViMjZhYTY1NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJEYWRhIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzUwY2ZmNjAwYTUzNjZkNTU2MTQ3YzY2MWU3YjgwOWM0MTVhY2VlN2NjOTEwOTY4YTQ1YzBiOWFlYTExMTA5NWEiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

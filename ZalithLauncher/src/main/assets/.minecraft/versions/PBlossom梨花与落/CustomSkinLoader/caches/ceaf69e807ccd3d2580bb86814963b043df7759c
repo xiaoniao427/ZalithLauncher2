@@ -1,0 +1,9 @@
+{
+  "id" : "4fa573dab7e242fbba75bd40dcdcfb7e",
+  "name" : "XMR",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTUzMDE2OTg4OCwKICAicHJvZmlsZUlkIiA6ICI0ZmE1NzNkYWI3ZTI0MmZiYmE3NWJkNDBkY2RjZmI3ZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJYTVIiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmMxNjBmYmQxNmFkYmM0YmZmMjQwOWU3MDE4MGQ5MTEwMDJhZWJjZmE4MTFlYjZlYzNkMTA0MDc2MWFlYTZkZCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

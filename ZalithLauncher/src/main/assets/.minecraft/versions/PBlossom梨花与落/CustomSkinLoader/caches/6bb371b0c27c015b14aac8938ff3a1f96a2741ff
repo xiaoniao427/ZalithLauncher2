@@ -1,0 +1,9 @@
+{
+  "id" : "e37c63eba0c84afaa82d02d9ed2f45d6",
+  "name" : "Rui_Xue",
+  "properties" : [ {
+    "name" : "textures",
+    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEwNDY2OTE2MCwKICAicHJvZmlsZUlkIiA6ICJlMzdjNjNlYmEwYzg0YWZhYTgyZDAyZDllZDJmNDVkNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWlfWHVlIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2NmYjMzMmVmOTA0NGRlMzk5Y2RkNjRmZGVhN2EwMjc3NGNhMGIyMDBhNWE4MGMyODQ0MTNmOTM1ZTA1OWU2YWYiCiAgICB9CiAgfQp9"
+  } ],
+  "profileActions" : [ ]
+}

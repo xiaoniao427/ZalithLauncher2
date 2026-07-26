@@ -48,11 +48,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: "on-failure"
+          cache-disabled: true
 
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          ./gradlew clean ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'

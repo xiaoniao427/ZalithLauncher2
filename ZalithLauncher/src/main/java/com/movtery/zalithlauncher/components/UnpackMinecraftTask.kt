@@ -30,19 +30,23 @@ import java.io.FileInputStream
 private const val TAG = "UnpackMinecraftTask"
 
 /**
- * 负责将 assets/.minecraft 目录下的所有资源递归复制到
+ * 负责将 assets/minecraft 目录下的所有资源递归复制到
  * 应用私有目录 files/.minecraft 下，并通过 version 文件进行版本比对。
+ *
+ * 注意：assets 端使用 "minecraft"（不带点前缀，否则会被 AAPT 忽略），
+ * 目标端使用 ".minecraft"（Minecraft 约定的隐藏目录名）。
  *
  * 首次安装或版本不一致时，将清空目标目录并完整复制。
  */
 class UnpackMinecraftTask(private val context: Context) : AbstractUnpackTask() {
     companion object {
-        const val ASSETS_DIR_NAME = ".minecraft"
+        const val ASSETS_DIR_NAME = "minecraft"
+        const val TARGET_DIR_NAME = ".minecraft"
         const val VERSION_FILE_NAME = "version"
     }
 
     private val assetsDirName = ASSETS_DIR_NAME
-    private val targetDir: File = File(PathManager.DIR_FILES_PRIVATE, ASSETS_DIR_NAME)
+    private val targetDir: File = File(PathManager.DIR_FILES_PRIVATE, TARGET_DIR_NAME)
     private val versionFile: File = File(targetDir, VERSION_FILE_NAME)
 
     private val isCheckFailed: Boolean

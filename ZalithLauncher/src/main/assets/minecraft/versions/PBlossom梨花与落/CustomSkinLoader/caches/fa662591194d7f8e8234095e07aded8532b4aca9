@@ -1,9 +1,0 @@
-{
-  "id" : "d129d506b6c64cf48483ad3acea71bcc",
-  "name" : "CJZlollipop",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0NjQ3NjcxNSwKICAicHJvZmlsZUlkIiA6ICJkMTI5ZDUwNmI2YzY0Y2Y0ODQ4M2FkM2FjZWE3MWJjYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJDSlpsb2xsaXBvcCIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82ZWFjMDY0YWE4ZWRhYzExZTMxYzZjMWI0YTAwOGEwMTQzMjJiZjQ4YjUwYjY3OWI0NGU0M2Y5ZTNhYzdhOWUiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

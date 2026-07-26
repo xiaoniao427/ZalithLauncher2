@@ -1,9 +1,0 @@
-{
-  "id" : "2a74d9be551f40179c2170db86c68d78",
-  "name" : "Jonas",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNjk4NjcyNiwKICAicHJvZmlsZUlkIiA6ICIyYTc0ZDliZTU1MWY0MDE3OWMyMTcwZGI4NmM2OGQ3OCIsCiAgInByb2ZpbGVOYW1lIiA6ICJKb25hcyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8zMWY0NzdlYjFhN2JlZWU2MzFjMmNhNjRkMDZmOGY2OGZhOTNhMzM4NmQwNDQ1MmFiMjdmNDNhY2RmMWI2MGNiIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

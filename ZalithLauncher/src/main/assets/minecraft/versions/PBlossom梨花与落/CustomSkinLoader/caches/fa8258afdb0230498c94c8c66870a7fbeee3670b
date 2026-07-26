@@ -1,9 +1,0 @@
-{
-  "id" : "b0d414e433374b0ea7489112057c16e1",
-  "name" : "ZL233717",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg3MjE5OTI3NiwKICAicHJvZmlsZUlkIiA6ICJiMGQ0MTRlNDMzMzc0YjBlYTc0ODkxMTIwNTdjMTZlMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJaTDIzMzcxNyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xYTRhZjcxODQ1NWQ0YWFiNTI4ZTdhNjFmODZmYTI1ZTZhMzY5ZDE3NjhkY2IxM2Y3ZGYzMTlhNzEzZWI4MTBiIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

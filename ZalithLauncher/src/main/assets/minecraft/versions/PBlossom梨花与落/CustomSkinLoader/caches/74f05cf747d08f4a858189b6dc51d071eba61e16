@@ -1,9 +1,0 @@
-{
-  "id" : "0f6aeaee09be43649b0a9d7981131ab1",
-  "name" : "GooD_O",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNTEwNjM3MywKICAicHJvZmlsZUlkIiA6ICIwZjZhZWFlZTA5YmU0MzY0OWIwYTlkNzk4MTEzMWFiMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJHb29EX08iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVjZGMzMjQzYjIxNTNhYjI4YTE1OTg2MWJlNjQzYTRmYzFlM2MxN2QyOTFjZGQzZTU3YTdmMzcwYWQ2NzZmMyIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

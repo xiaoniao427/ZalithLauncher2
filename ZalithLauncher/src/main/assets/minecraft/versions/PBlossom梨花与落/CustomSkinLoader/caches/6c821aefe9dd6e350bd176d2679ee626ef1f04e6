@@ -1,9 +1,0 @@
-{
-  "id" : "da1e7a2784984fff9d4fd09f545f08cd",
-  "name" : "LightYagami",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNTEwMTg3MywKICAicHJvZmlsZUlkIiA6ICJkYTFlN2EyNzg0OTg0ZmZmOWQ0ZmQwOWY1NDVmMDhjZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJMaWdodFlhZ2FtaSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81NTExNjRiZmI3ODZlNzg4ODE5YWYxZjAyMWFhMzgwMmMyNmM1MmU3MzQ3YmE4Y2U2MzQxNjEwY2M5MDA3YzFjIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

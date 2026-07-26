@@ -1,9 +1,0 @@
-{
-  "id" : "5e62f359ad5c489a89037407e7022d15",
-  "name" : "chen753",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyNzI1NTE0MiwKICAicHJvZmlsZUlkIiA6ICI1ZTYyZjM1OWFkNWM0ODlhODkwMzc0MDdlNzAyMmQxNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJjaGVuNzUzIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzMxZjQ3N2ViMWE3YmVlZTYzMWMyY2E2NGQwNmY4ZjY4ZmE5M2EzMzg2ZDA0NDUyYWIyN2Y0M2FjZGYxYjYwY2IiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

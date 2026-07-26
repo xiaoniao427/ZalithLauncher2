@@ -1,9 +1,0 @@
-{
-  "id" : "e3ec8ac4581546c1b730fdf583dbaaaa",
-  "name" : "Xukun",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE5NjEwOTk5NSwKICAicHJvZmlsZUlkIiA6ICJlM2VjOGFjNDU4MTU0NmMxYjczMGZkZjU4M2RiYWFhYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJYdWt1biIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iZjA4MTk0YjcyMjQyN2M1ZmFjZmJlYTg1YjQ2M2FjNzk1YTI3MTBiNDRhMTgyOTVjYmE3ZTZjYjIyOTc2MmQ0IiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

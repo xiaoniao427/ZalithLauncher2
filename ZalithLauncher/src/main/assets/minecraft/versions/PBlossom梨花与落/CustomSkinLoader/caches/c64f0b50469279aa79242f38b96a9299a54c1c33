@@ -1,9 +1,0 @@
-{
-  "id" : "c0da90b2b71e4f69a8cf60ded42d7458",
-  "name" : "ranshol",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTMwOTA0OCwKICAicHJvZmlsZUlkIiA6ICJjMGRhOTBiMmI3MWU0ZjY5YThjZjYwZGVkNDJkNzQ1OCIsCiAgInByb2ZpbGVOYW1lIiA6ICJyYW5zaG9sIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzM1YzFhZDA2MmFjODQxNzNjOTQxMDhjOTUwNDAzYjE2YTRmMDJlZDJmNTg1NWFlYzdlYTg1YWQzYjM2NzI3YzEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

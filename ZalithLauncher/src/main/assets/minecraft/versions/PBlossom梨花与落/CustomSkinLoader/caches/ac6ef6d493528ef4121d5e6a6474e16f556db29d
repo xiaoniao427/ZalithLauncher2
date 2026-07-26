@@ -1,9 +1,0 @@
-{
-  "id" : "5f6d78590e364d79b2e0c4a3b83a31d6",
-  "name" : "XiaoPiXiu",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE4NjQ2MTY1MywKICAicHJvZmlsZUlkIiA6ICI1ZjZkNzg1OTBlMzY0ZDc5YjJlMGM0YTNiODNhMzFkNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJYaWFvUGlYaXUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzdlZWRiNjRlM2RkYTE2MDY2MDhkYjliZTlkODE1NjYxNWI3OWRiZGY4NmRmMjk4OTY2MmU2NjM5ZmRjYzI2ZSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

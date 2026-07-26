@@ -1,9 +1,0 @@
-{
-  "id" : "525c34a0bd75484ebb85451f58aa3d3f",
-  "name" : "KiGi",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2MzEyMzI4OCwKICAicHJvZmlsZUlkIiA6ICI1MjVjMzRhMGJkNzU0ODRlYmI4NTQ1MWY1OGFhM2QzZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJLaUdpIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzhjZGYwYTUzMDRlOTJiZDY0Y2U3NGU2NzBkYmQyMjU2ODU3OTE1NDI4NGRiN2YzNzg4OGEyY2I3ZTdiYWRlZTciCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

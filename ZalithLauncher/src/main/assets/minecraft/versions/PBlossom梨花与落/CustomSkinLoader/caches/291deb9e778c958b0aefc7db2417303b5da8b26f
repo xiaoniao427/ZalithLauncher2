@@ -1,9 +1,0 @@
-{
-  "id" : "aab872ed3d5e4fdcad695334e7f8d4fd",
-  "name" : "DeRTa",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU1NzQwMjA3NiwKICAicHJvZmlsZUlkIiA6ICJhYWI4NzJlZDNkNWU0ZmRjYWQ2OTUzMzRlN2Y4ZDRmZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJEZVJUYSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85Y2MxMDFkZDNhYzM2NzAzNjNjODlhNDg0MjNhYmJmOTRhOTMzNTBhODhmYTU5OThkZDU2NjcyMGUxNTcyMDIxIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

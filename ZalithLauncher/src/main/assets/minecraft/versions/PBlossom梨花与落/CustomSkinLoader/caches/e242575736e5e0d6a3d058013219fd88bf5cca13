@@ -1,9 +1,0 @@
-{
-  "id" : "0c6ff80caca3488f83f97b9cabef6e3b",
-  "name" : "Bookcoconut",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTE5MTkxMTUyOSwKICAicHJvZmlsZUlkIiA6ICIwYzZmZjgwY2FjYTM0ODhmODNmOTdiOWNhYmVmNmUzYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJCb29rY29jb251dCIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yN2RkYmYyYmQ5MWFiZTBjN2JmYjJhZDBiYTQ3MjAzYjkxY2IxOGVlNzljZTJkMTlkOWUzYzRmYWFmNGRjYzhiIgogICAgfSwKICAgICJDQVBFIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yOGRlNGE4MTY4OGFkMThiNDllNzM1YTI3M2UwODZjMThmMWUzOTY2OTU2MTIzY2NiNTc0MDM0YzA2ZjVkMzM2IgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

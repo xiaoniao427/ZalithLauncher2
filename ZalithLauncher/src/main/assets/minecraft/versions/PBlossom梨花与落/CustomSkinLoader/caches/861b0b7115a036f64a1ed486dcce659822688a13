@@ -1,9 +1,0 @@
-{
-  "id" : "10a258d895f045d0873c132e29e2d58d",
-  "name" : "HaoHao_O",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNjYzOTEyMywKICAicHJvZmlsZUlkIiA6ICIxMGEyNThkODk1ZjA0NWQwODczYzEzMmUyOWUyZDU4ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJIYW9IYW9fTyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81YmFkOWU3MzZkMmEyY2NlYzZiMmZkMDBiNTgyNjI1YzIwYTA1ZmRmMGNiNjJlZTg1OGZmN2NlYjY0MDllMmE0IgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "93bc7fa1b4c84c228f74814bfbebd24d",
-  "name" : "tom2",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0MjE3NzYwNywKICAicHJvZmlsZUlkIiA6ICI5M2JjN2ZhMWI0Yzg0YzIyOGY3NDgxNGJmYmViZDI0ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJ0b20yIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzc2YzZkODY4NDRkZTQyZTEyMTZmOTk1ZThmMGY3MzgyMmVhNzM1ZDhjYzIwNmFmM2JmMWVjZWViMDQ3OTFkOTAiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "f2a5b2fc835141049849c3143992f779",
-  "name" : "d3rLord3",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNzgyODMyNCwKICAicHJvZmlsZUlkIiA6ICJmMmE1YjJmYzgzNTE0MTA0OTg0OWMzMTQzOTkyZjc3OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJkM3JMb3JkMyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iMDFiYTk1NWY3ZDdlMTNlYjJjYzdjOTQzMDE1YmU2ZDg1ZjhmNDllZTdkYjU1NTRlZTUzZjJkMTQ1YzIyMDBjIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

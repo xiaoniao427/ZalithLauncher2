@@ -1,9 +1,0 @@
-{
-  "id" : "5f050cf0fd6d4c909ade08573c1662c2",
-  "name" : "yuan66",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNDcyMTQ0OCwKICAicHJvZmlsZUlkIiA6ICI1ZjA1MGNmMGZkNmQ0YzkwOWFkZTA4NTczYzE2NjJjMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJ5dWFuNjYiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjY2YmM4MGYwMDJiMTAzNzFlMmZhMjNkZTZmMjMwZGQ1ZTJmM2FmZmMyZTE1Nzg2ZjY1YmM5YmU0YzZlYjcxYSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

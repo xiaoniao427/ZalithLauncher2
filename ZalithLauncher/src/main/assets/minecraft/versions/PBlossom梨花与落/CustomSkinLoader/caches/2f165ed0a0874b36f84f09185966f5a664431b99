@@ -1,9 +1,0 @@
-{
-  "id" : "a6fa4dde3ad04b6ebec9c7b9dfb1e315",
-  "name" : "Kaguya",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTYyMDk5NDE0MiwKICAicHJvZmlsZUlkIiA6ICJhNmZhNGRkZTNhZDA0YjZlYmVjOWM3YjlkZmIxZTMxNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJLYWd1eWEiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGM2OGJkZDMzYTBhY2ZlOTZmMDc3MTk2ZGZiMWEzYTlkZWM3YmE3YzJiNmIwODNlNDhhNjE1MWRjMTNlYzkxOCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

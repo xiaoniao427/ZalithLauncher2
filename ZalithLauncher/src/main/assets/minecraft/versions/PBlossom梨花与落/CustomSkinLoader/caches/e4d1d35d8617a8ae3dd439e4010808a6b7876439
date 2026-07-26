@@ -1,9 +1,0 @@
-{
-  "id" : "d0f48bf556b84782a5be99f47a763c9f",
-  "name" : "zmsz66",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDcwMDU1NzQxNCwKICAicHJvZmlsZUlkIiA6ICJkMGY0OGJmNTU2Yjg0NzgyYTViZTk5ZjQ3YTc2M2M5ZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJ6bXN6NjYiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVjZGMzMjQzYjIxNTNhYjI4YTE1OTg2MWJlNjQzYTRmYzFlM2MxN2QyOTFjZGQzZTU3YTdmMzcwYWQ2NzZmMyIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

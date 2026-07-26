@@ -1,9 +1,0 @@
-{
-  "id" : "59002ae613fd4ae9add22254fdd4576d",
-  "name" : "f1y",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNTEwMTg4MiwKICAicHJvZmlsZUlkIiA6ICI1OTAwMmFlNjEzZmQ0YWU5YWRkMjIyNTRmZGQ0NTc2ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJmMXkiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWY0MzVhMDZjMGYwZjI4MTJiZTk3MzMxYWQyODgyMzUxMjcwZTU2ZTJjZmNjODhlZjEzYzg0MmIzYWZhZDIwNiIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

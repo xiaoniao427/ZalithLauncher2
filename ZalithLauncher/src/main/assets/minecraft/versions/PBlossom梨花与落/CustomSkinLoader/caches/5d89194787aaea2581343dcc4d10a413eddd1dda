@@ -1,9 +1,0 @@
-{
-  "id" : "eaad756008df46e08b84f937ab9e6a0f",
-  "name" : "zhouxx",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc4MjgzOTQ3MCwKICAicHJvZmlsZUlkIiA6ICJlYWFkNzU2MDA4ZGY0NmUwOGI4NGY5MzdhYjllNmEwZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJ6aG91eHgiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTNiZDE2MDc5Zjc2NGNkNTQxZTA3MmU4ODhmZTQzODg1ZTcxMWY5ODY1ODMyM2RiMGY5YTYwNDVkYTkxZWU3YSIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

@@ -44,17 +44,18 @@ import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.writeCrashFile
 import com.tencent.mmkv.MMKV
+import com.umeng.commonsdk.UMConfigure
+import com.umeng.message.PushAgent
+import com.umeng.message.UPushRegisterCallback
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
 import kotlin.properties.Delegates
 
-import com.umeng.commonsdk.UMConfigure;
-import com.umeng.message.PushAgent;
-import com.umeng.message.api.UPushRegisterCallback;
-
-
 @HiltAndroidApp
-class ZLApplication : Application(), SingletonImageLoader.Factory {
+class ZLApplication : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
     companion object {
         @JvmStatic
         var DEVICE_ARCHITECTURE by Delegates.notNull<Int>()
@@ -129,9 +130,6 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         registerActivityLifecycleCallbacks(this)
 
         Thread {
-            val deviceId = getDeviceUniqueId()
-            Log.i("ZLIST", "Device unique ID: $deviceId")
-            checkBanStatus(deviceId)
             initPush()
         }.start()
     }
@@ -196,4 +194,13 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         AccountsManager.initialize(this)
         GamePathManager.initialize(this)
     }
+
+    // ActivityLifecycleCallbacks 空实现
+    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
+    override fun onActivityStarted(activity: android.app.Activity) {}
+    override fun onActivityResumed(activity: android.app.Activity) {}
+    override fun onActivityPaused(activity: android.app.Activity) {}
+    override fun onActivityStopped(activity: android.app.Activity) {}
+    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+    override fun onActivityDestroyed(activity: android.app.Activity) {}
 }

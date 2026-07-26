@@ -1,9 +1,0 @@
-{
-  "id" : "796ae4a0b37b4917a945caadab64b398",
-  "name" : "Niubigtu",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNjc0MjY3OCwKICAicHJvZmlsZUlkIiA6ICI3OTZhZTRhMGIzN2I0OTE3YTk0NWNhYWRhYjY0YjM5OCIsCiAgInByb2ZpbGVOYW1lIiA6ICJOaXViaWd0dSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9kNWJiMTJkZTZmYzhjNmRkNWJmNjgyZjVkN2I0NzhiZjZmNDMwNTJlNGUyZWIyNTcwYjJmMGExODg5MzI2YzdkIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

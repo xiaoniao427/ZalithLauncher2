@@ -1,9 +1,0 @@
-{
-  "id" : "a7c392fb35d6419cb1aae29e7d33cbd1",
-  "name" : "Spring",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTA1NDM0Mzk5MywKICAicHJvZmlsZUlkIiA6ICJhN2MzOTJmYjM1ZDY0MTljYjFhYWUyOWU3ZDMzY2JkMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJTcHJpbmciLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWU0NjdmODJlMGE1M2UzNjdjMjViOGY2YmZmYzFjZWY4NGE5YTFjMzY1M2U0OGNjMTlmNjhkYmU1OTU0NTM2OCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

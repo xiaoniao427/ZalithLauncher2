@@ -1,9 +1,0 @@
-{
-  "id" : "44b91006286d4bdd8c823ba2d7de691b",
-  "name" : "ddd_point",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY1OTI5NDE5NywKICAicHJvZmlsZUlkIiA6ICI0NGI5MTAwNjI4NmQ0YmRkOGM4MjNiYTJkN2RlNjkxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJkZGRfcG9pbnQiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWE4ZWNmZGQzMzUxM2M2YTczMzVkYjBlMTc4MmNhNWIzZThjZGNlMDlkNTBmYmQ3ZGRiOGRhZTBhMDE0M2Y2MiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

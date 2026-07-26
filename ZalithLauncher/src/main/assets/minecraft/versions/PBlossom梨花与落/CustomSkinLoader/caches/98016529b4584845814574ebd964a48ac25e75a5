@@ -1,9 +1,0 @@
-{
-  "id" : "8c50e7843e964a06805bd2db5dbe69e5",
-  "name" : "Zcrr",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU2MTQ2ODA4MywKICAicHJvZmlsZUlkIiA6ICI4YzUwZTc4NDNlOTY0YTA2ODA1YmQyZGI1ZGJlNjllNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJaY3JyIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzY5ZmY0ZDg4MzhhYWZjMTg2M2FiMzMwY2ZlODdiNWI5YTY1NjY2OGMzMTFjNzdjYTRkOGYyMjgxMmIyMTZlMmIiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

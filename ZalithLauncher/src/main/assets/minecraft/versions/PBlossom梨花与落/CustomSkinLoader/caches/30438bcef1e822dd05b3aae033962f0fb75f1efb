@@ -1,9 +1,0 @@
-{
-  "id" : "a63b071af4d3447c81d21199edcd466d",
-  "name" : "LiZhanLiang",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDcwMDU1NzY5MSwKICAicHJvZmlsZUlkIiA6ICJhNjNiMDcxYWY0ZDM0NDdjODFkMjExOTllZGNkNDY2ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJMaVpoYW5MaWFuZyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jYTkzZjZmYzQwNDg4ZjE4NzdjZGE5NGE4MzBiNTRlOWY2ZjU0YWI1OGE1NDUzYmFkNWM5NDc3MjZkZDFmNDczIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

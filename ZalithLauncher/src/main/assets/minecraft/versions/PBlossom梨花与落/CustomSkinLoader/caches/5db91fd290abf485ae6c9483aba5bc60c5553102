@@ -1,9 +1,0 @@
-{
-  "id" : "29b1c631260249468ec1def48da30469",
-  "name" : "Lyt",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0OTA2MDM5MSwKICAicHJvZmlsZUlkIiA6ICIyOWIxYzYzMTI2MDI0OTQ2OGVjMWRlZjQ4ZGEzMDQ2OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJMeXQiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWY4NjJlMjEyMDhhODRlNmExNmEzYjVlNTM4MWE3N2EyNDFjMjJkMDNhNTU3MWI3ZmYyNWVhNDg4MWRkNzc3MiIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

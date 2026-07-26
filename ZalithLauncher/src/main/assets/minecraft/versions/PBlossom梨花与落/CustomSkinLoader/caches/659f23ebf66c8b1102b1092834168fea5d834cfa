@@ -1,9 +1,0 @@
-{
-  "id" : "12800d9c1ea7463389e374d915ab7b17",
-  "name" : "Yimin",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTUzMDE3NDk2MSwKICAicHJvZmlsZUlkIiA6ICIxMjgwMGQ5YzFlYTc0NjMzODllMzc0ZDkxNWFiN2IxNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJZaW1pbiIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84OGY5YzQ0Y2ZlMmFlM2MxODlkMzhlOTk3MTY4Zjk4Yzc1MzA4YTgyZWViOTVlY2I4NGVlOGNiZGE1M2UxNzI4IiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "fd6180916c0a45a3a604a1194e647782",
-  "name" : "Stewie",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc2NDk2MzUzNSwKICAicHJvZmlsZUlkIiA6ICJmZDYxODA5MTZjMGE0NWEzYTYwNGExMTk0ZTY0Nzc4MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTdGV3aWUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2Q3YjdjODNkOWUyZmU2NjY1MjZmMzhmYTY5YWUxMDgxNTMyNTc4ODJlOTYwNzZjZjA1MGQyMTRiODE4ZTFlMiIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

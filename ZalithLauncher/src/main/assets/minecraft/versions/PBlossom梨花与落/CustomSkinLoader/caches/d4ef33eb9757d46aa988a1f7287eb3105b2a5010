@@ -1,9 +1,0 @@
-{
-  "id" : "42f6488760974d4d8b24fc1142cfc619",
-  "name" : "Tom",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2NjE3NzEzMSwKICAicHJvZmlsZUlkIiA6ICI0MmY2NDg4NzYwOTc0ZDRkOGIyNGZjMTE0MmNmYzYxOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJUb20iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjE2N2IyMTRkN2Y1ODBlMWQyNDgzMjViNzlmODA4MTYwNzJkODNlYjg0ODkyNDY2NWVlOTlmYWYwYzAxNzg1YiIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

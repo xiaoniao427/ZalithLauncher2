@@ -1,9 +1,0 @@
-{
-  "id" : "f817801ae5e04c1ca69ec6f826f7ddb1",
-  "name" : "KELE5555",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk3MzA0NDYxOCwKICAicHJvZmlsZUlkIiA6ICJmODE3ODAxYWU1ZTA0YzFjYTY5ZWM2ZjgyNmY3ZGRiMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJLRUxFNTU1NSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9kYWYzZDg4Y2NiMzhmMTFmNzQ4MTRlOTIwNTNkOTJmNzcyOGRkYjFhNzk1NTY1MmE2MGUzMGNiMjdhZTY2NTlmIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "2c0370f4724c4323a182757823cc5502",
-  "name" : "SasIoverlxrd",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2MTUzNjE0MiwKICAicHJvZmlsZUlkIiA6ICIyYzAzNzBmNDcyNGM0MzIzYTE4Mjc1NzgyM2NjNTUwMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTYXNJb3Zlcmx4cmQiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmFjZTRiNzBlYzE2YTM0OTY3ZTMxYmRkZGYzZWIwYTQ3NGY5ODg2Njc1ZTU2NDc4MDllNjczNjY4MjM1NDkzZCIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

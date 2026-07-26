@@ -1,9 +1,0 @@
-{
-  "id" : "94f85a7ae1c84c728f4380ce8ceab0b9",
-  "name" : "QuFo_",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0MDc4NjcxMiwKICAicHJvZmlsZUlkIiA6ICI5NGY4NWE3YWUxYzg0YzcyOGY0MzgwY2U4Y2VhYjBiOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJRdUZvXyIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iZmVkYTIxNTIxNWI0ZTZjYWJlNzA3MTUxNWYyY2IxM2UyNzdjYTg3YTNjNTZkZTAzM2ViZmI2MTczOGI3NDdhIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

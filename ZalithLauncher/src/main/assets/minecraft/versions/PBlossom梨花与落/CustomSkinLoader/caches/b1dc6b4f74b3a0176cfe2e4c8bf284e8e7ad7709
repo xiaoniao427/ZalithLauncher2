@@ -1,9 +1,0 @@
-{
-  "id" : "ea09abb53be549aeb374a1bd0f596d94",
-  "name" : "Sunny_P",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDY5NzA3NDUyMSwKICAicHJvZmlsZUlkIiA6ICJlYTA5YWJiNTNiZTU0OWFlYjM3NGExYmQwZjU5NmQ5NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJTdW5ueV9QIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzc1OWEzYWE0OWIzYTU3MjM0NjBlMmY3NGRhMGQ5OWUzN2Y0NDY5MjFhNDgyZjZjYTViODAyNWE0YTYwMmU3YzYiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

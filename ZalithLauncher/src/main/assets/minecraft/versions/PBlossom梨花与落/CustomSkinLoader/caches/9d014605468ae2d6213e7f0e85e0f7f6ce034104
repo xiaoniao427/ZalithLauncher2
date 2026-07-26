@@ -1,9 +1,0 @@
-{
-  "id" : "bac5d251a0994fea9c83db7f577a3706",
-  "name" : "Qing_Shui_233",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNDcyMDg0MywKICAicHJvZmlsZUlkIiA6ICJiYWM1ZDI1MWEwOTk0ZmVhOWM4M2RiN2Y1NzdhMzcwNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJRaW5nX1NodWlfMjMzIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzM3NDQ3NmQwODNlMWZkN2U4MDc0MjUxMmQxZjI2ZTc4MzhkMzZkYWZkYjQxM2Y4MTViNWE4MWE5NjM1ZDYwZTkiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

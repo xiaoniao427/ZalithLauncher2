@@ -1,9 +1,0 @@
-{
-  "id" : "47cd02f91300476db36586c487d75242",
-  "name" : "yzyr",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0NDU4MDYxOSwKICAicHJvZmlsZUlkIiA6ICI0N2NkMDJmOTEzMDA0NzZkYjM2NTg2YzQ4N2Q3NTI0MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJ5enlyIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFhNGFmNzE4NDU1ZDRhYWI1MjhlN2E2MWY4NmZhMjVlNmEzNjlkMTc2OGRjYjEzZjdkZjMxOWE3MTNlYjgxMGIiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

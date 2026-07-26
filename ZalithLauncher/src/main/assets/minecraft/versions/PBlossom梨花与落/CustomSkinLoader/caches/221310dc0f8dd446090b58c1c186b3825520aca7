@@ -1,9 +1,0 @@
-{
-  "id" : "2c7f5851a9474408ad03288fba2906c2",
-  "name" : "DDDD",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDcwMDY0MTUyMSwKICAicHJvZmlsZUlkIiA6ICIyYzdmNTg1MWE5NDc0NDA4YWQwMzI4OGZiYTI5MDZjMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJEREREIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzU2Y2ZmYTZkY2Q4ZmY1NmIzOWVmYjJlYmNkZTE4NmNjMzYxYmYzNzczZTFhODc1YjE4ZWRkYzBhZjRlZTdkMDEiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

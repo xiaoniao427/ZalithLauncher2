@@ -1,9 +1,0 @@
-{
-  "id" : "381f5fe9da5a4abb8411aaffafb138c2",
-  "name" : "mym1",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc3OTMyMjkwOSwKICAicHJvZmlsZUlkIiA6ICIzODFmNWZlOWRhNWE0YWJiODQxMWFhZmZhZmIxMzhjMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJteW0xIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzMxZjQ3N2ViMWE3YmVlZTYzMWMyY2E2NGQwNmY4ZjY4ZmE5M2EzMzg2ZDA0NDUyYWIyN2Y0M2FjZGYxYjYwY2IiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "20dde50d0b62410cb10cb0c2fc61941f",
-  "name" : "KKAA",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2MjUyNTY1NiwKICAicHJvZmlsZUlkIiA6ICIyMGRkZTUwZDBiNjI0MTBjYjEwY2IwYzJmYzYxOTQxZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJLS0FBIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ2YWNkMDZlODQ4M2IxNzZlOGVhMzlmYzEyZmUxMDVlYjNhMmE0OTcwZjUxMDAwNTdlOWQ4NGQ0YjYwYmRmYTciLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

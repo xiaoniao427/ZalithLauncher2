@@ -1,9 +1,0 @@
-{
-  "id" : "f04a2b490d45449caed16c25888aeae3",
-  "name" : "miuk_tsuks",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDg3NDg5ODA1NCwKICAicHJvZmlsZUlkIiA6ICJmMDRhMmI0OTBkNDU0NDljYWVkMTZjMjU4ODhhZWFlMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJtaXVrX3RzdWtzIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Y4YzBkMGRlNzMwMGI2MWJkOGFkMzQ5YTI0ZmVlOWJlMDZkZmIxODQ4MGNhY2Y2NTJkODI2MGQ0NDEwOTcyODUiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

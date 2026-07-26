@@ -1,9 +1,0 @@
-{
-  "id" : "e1d19c9f350c4441af9e36437f73d7ef",
-  "name" : "shrink",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNDcyMTE1NCwKICAicHJvZmlsZUlkIiA6ICJlMWQxOWM5ZjM1MGM0NDQxYWY5ZTM2NDM3ZjczZDdlZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJzaHJpbmsiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzk4NzlhYTczZmJhYTg4M2M1MmJhMmEyNmI4ZTI2ZmZiZWY0MGQ5MGI2MDNhOGIyYTM0NTZlNmZkN2I0YTY3NCIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

@@ -1,9 +1,0 @@
-{
-  "id" : "8f7fa8954bde4fe295fc3d2833e8df99",
-  "name" : "yokai_",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0MDc4Njk0MiwKICAicHJvZmlsZUlkIiA6ICI4ZjdmYTg5NTRiZGU0ZmUyOTVmYzNkMjgzM2U4ZGY5OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJ5b2thaV8iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzk2YWE3M2VmZjgyMDNlMWRlNzYyOGQxNWE2MTdhNmNjYWZlNjI2NThhNDk3YzEyNzE1YTM3MWVmMzE1MzQxIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

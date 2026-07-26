@@ -1,9 +1,0 @@
-{
-  "id" : "ec86f02add2b428089af5c8b7e00ab2b",
-  "name" : "longchen",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk1MjQ0OTM5OSwKICAicHJvZmlsZUlkIiA6ICJlYzg2ZjAyYWRkMmI0MjgwODlhZjVjOGI3ZTAwYWIyYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJsb25nY2hlbiIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8zZDNkNzkzY2U4YTE3MmE5NGQxYzExNzVlNmE3OGQ5YWYwMzdmMWVkOTk1YjA5ZTEzYmVmMjg4NDZhYmNjY2VjIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

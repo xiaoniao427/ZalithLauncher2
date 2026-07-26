@@ -1,9 +1,0 @@
-{
-  "id" : "a0293d7fb8c2416eb4addceab984c308",
-  "name" : "Xiayi77",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY3MDM4MDI2NywKICAicHJvZmlsZUlkIiA6ICJhMDI5M2Q3ZmI4YzI0MTZlYjRhZGRjZWFiOTg0YzMwOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJYaWF5aTc3IiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE1OGI0ZmI2NzJjZDJlZjM5NTY3NzViMmU2YjFlNTcxZWZjZTU4YTk4ODRlYjYwNDc3NzEzOWM1YjQ0YTY5ZTgiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

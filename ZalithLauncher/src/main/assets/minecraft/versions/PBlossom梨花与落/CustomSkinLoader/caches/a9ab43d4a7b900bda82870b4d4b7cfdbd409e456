@@ -1,9 +1,0 @@
-{
-  "id" : "920f54db15bb485a993efa9d82b06f23",
-  "name" : "daladala",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyNjYyOTE4OSwKICAicHJvZmlsZUlkIiA6ICI5MjBmNTRkYjE1YmI0ODVhOTkzZWZhOWQ4MmIwNmYyMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJkYWxhZGFsYSIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9mNWRkZGI0MWRjYWZlZjYxNmU5NTljMjgxNzgwOGUwYmU3NDFjODlmZmJmZWQzOTEzNGExM2U3NWI4MTE4NjNkIgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

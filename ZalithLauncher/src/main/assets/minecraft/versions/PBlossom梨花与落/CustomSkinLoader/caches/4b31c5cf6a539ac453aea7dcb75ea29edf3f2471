@@ -1,9 +1,0 @@
-{
-  "id" : "75834f5800f447b899edb2b5b370a931",
-  "name" : "xpx",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDk3MjE2NzM4NiwKICAicHJvZmlsZUlkIiA6ICI3NTgzNGY1ODAwZjQ0N2I4OTllZGIyYjViMzcwYTkzMSIsCiAgInByb2ZpbGVOYW1lIiA6ICJ4cHgiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4M2JmMzIwNjI3NWYyMzBlYjM4YWYxZDM4MDcyZTlhMGU3YmIwNTc0MGRkNjVmOTYwNDFkYTY0Y2Y0ZDMyZiIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

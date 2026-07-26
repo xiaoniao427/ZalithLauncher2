@@ -1,9 +1,0 @@
-{
-  "id" : "7c0c8893d0c241bcaa1b40ca99d16be8",
-  "name" : "swy",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NDc0MjQxNzU0NSwKICAicHJvZmlsZUlkIiA6ICI3YzBjODg5M2QwYzI0MWJjYWExYjQwY2E5OWQxNmJlOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJzd3kiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjViY2I4NDEzYWFmN2FhZTBiM2NmMjdlMDg3ZDUzNWFjMDYzOThmZTI3NzQyZjBjYmE4YjJmYjgwZGQ1OGM0IgogICAgfQogIH0KfQ=="
-  } ],
-  "profileActions" : [ ]
-}

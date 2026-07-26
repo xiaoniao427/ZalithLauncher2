@@ -1,9 +1,0 @@
-{
-  "id" : "2cf93613eae34aee835856c1ca4b24bb",
-  "name" : "PigGod",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTcxNTEwMzEyNiwKICAicHJvZmlsZUlkIiA6ICIyY2Y5MzYxM2VhZTM0YWVlODM1ODU2YzFjYTRiMjRiYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJQaWdHb2QiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTM1ODE4YWNkYTVmMjFmNmViMGM2Nzg1ODdmMzEwYzc2MmNiMGFiNDc1MWM2OTZhODUwNDc0NGRiNTcwZWZhOSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

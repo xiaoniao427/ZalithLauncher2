@@ -1,9 +1,0 @@
-{
-  "id" : "253a1a90c51543b5982f16463ebd2f19",
-  "name" : "Amor",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTEyODIzMTgxMiwKICAicHJvZmlsZUlkIiA6ICIyNTNhMWE5MGM1MTU0M2I1OTgyZjE2NDYzZWJkMmYxOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbW9yIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2NjY2MyZTVhMDdmZTQyZDdhYzZmYWM3ZDczODJjMThhY2RjZWIyM2Y3MWFiNTY4MjA4OTg1OWJiNmNhNjcwZTQiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

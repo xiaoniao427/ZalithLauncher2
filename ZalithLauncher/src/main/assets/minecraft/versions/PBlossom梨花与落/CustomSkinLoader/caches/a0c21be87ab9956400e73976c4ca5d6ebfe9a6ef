@@ -1,9 +1,0 @@
-{
-  "id" : "be7baaa8435d4c93b68ba3915834ffc9",
-  "name" : "CaiGua",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY2NDk5MzgyNSwKICAicHJvZmlsZUlkIiA6ICJiZTdiYWFhODQzNWQ0YzkzYjY4YmEzOTE1ODM0ZmZjOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJDYWlHdWEiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTAxZmVhYmE5NjI4ODY3NTEwZjM5MzE2MDNlMGZkMTc1ZjcxMjg2YTUxZGI5ZTM4NDM3OTc3NTA5ZWMxNWNmMCIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

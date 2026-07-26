@@ -1,9 +1,0 @@
-{
-  "id" : "04e9239159b44f1b817fde75b6b9de69",
-  "name" : "AeternaEpoch",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTY0NTc5ODI1NywKICAicHJvZmlsZUlkIiA6ICIwNGU5MjM5MTU5YjQ0ZjFiODE3ZmRlNzViNmI5ZGU2OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJBZXRlcm5hRXBvY2giLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGQ2M2FmMmJhNGZjODE1YjAzYjA3NzhlNjBkNDdkOGRhMzZmMDk4ZjBkYTI3NzRjMmQyMWJmNDY3ZTBlMTBlOCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

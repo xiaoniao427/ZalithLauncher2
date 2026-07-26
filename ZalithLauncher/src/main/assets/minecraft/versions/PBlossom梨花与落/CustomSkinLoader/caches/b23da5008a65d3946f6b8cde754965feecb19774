@@ -1,9 +1,0 @@
-{
-  "id" : "ada541e6cebb46248fa1c5558a85dd79",
-  "name" : "Makoto",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU3OTM1NTgwMCwKICAicHJvZmlsZUlkIiA6ICJhZGE1NDFlNmNlYmI0NjI0OGZhMWM1NTU4YTg1ZGQ3OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNYWtvdG8iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWJhYjc0ZmEzMTM1MzE1YWQ2Y2QxNWFhZjA2NzUxNzRkMzY4MDM2NTAyYjI1YjNlN2IxNTU4OTMwZmNiMTc2MSIKICAgIH0KICB9Cn0="
-  } ],
-  "profileActions" : [ ]
-}

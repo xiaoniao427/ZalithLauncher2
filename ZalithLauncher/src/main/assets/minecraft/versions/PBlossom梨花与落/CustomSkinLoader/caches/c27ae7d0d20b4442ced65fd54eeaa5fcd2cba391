@@ -1,9 +1,0 @@
-{
-  "id" : "df0d7063ed024058a9a25ff34ccbf87e",
-  "name" : "Sbdd",
-  "properties" : [ {
-    "name" : "textures",
-    "value" : "ewogICJ0aW1lc3RhbXAiIDogMTc3NTU1Nzc4MDI4NiwKICAicHJvZmlsZUlkIiA6ICJkZjBkNzA2M2VkMDI0MDU4YTlhMjVmZjM0Y2NiZjg3ZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJTYmRkIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRjMDVhYjllMDdiMzUwNWRjM2VjMTEzNzBjM2JkY2U1NTcwYWQyZmIyYjU2MmU5YjlkZDljZjI3MWY4MWFhNDQiCiAgICB9CiAgfQp9"
-  } ],
-  "profileActions" : [ ]
-}

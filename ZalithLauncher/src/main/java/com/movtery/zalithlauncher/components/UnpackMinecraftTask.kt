@@ -46,7 +46,7 @@ class UnpackMinecraftTask(private val context: Context) : AbstractUnpackTask() {
     }
 
     private val assetsDirName = ASSETS_DIR_NAME
-    private val targetDir: File = File(PathManager.DIR_FILES_PRIVATE, TARGET_DIR_NAME)
+    private val targetDir: File = File(PathManager.DIR_FILES_EXTERNAL, TARGET_DIR_NAME)
     private val versionFile: File = File(targetDir, VERSION_FILE_NAME)
 
     private val isCheckFailed: Boolean

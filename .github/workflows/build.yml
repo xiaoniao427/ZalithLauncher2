@@ -8,9 +8,11 @@ on:
         required: true
         type: string
     secrets:
-      KEY_PASSWORD:
+      RELEASE_STORE_PASSWORD:
         required: false
-      STORE_PASSWORD:
+      RELEASE_KEY_ALIAS:
+        required: false
+      RELEASE_KEY_PASSWORD:
         required: false
       OAUTH_CLIENT_ID:
         required: false
@@ -27,8 +29,9 @@ jobs:
       fail-fast: false
 
     env:
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
 
@@ -51,10 +54,6 @@ jobs:
           cache-disabled: true
 
       - name: Build APK for ${{ matrix.arch }}
-        env:
-         RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew clean ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}

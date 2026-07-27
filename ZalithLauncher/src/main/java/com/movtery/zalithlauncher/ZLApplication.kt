@@ -51,7 +51,6 @@ import com.umeng.message.api.UPushRegisterCallback
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import kotlin.properties.Delegates
 
@@ -71,6 +70,26 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         const val UMENG_CHANNEL = "GitHub"
         const val UMENG_MESSAGE_SECRET = "4890e5af9c2530d9b72215b5e3015979"
 
+        /** 当前设备的推送 Device Token，注册成功后会更新 */
+        @JvmStatic
+        var deviceToken: String? = null
+            private set
+
+        /** Device Token 存储文件名 */
+        const val DEVICE_TOKEN_FILE = "device_token.txt"
+
+        /**
+         * 获取当前 Device Token。
+         * 优先返回内存中的值，其次从本地文件读取。
+         */
+        @JvmStatic
+        fun getDeviceToken(context: Context): String? {
+            // 优先返回内存中的最新token
+            deviceToken?.let { return it }
+            // 回退：从本地文件读取
+            return readDeviceTokenFromFile(context)
+        }
+
         fun initUmeng(context: Context) {
             UMConfigure.init(
                 context,
@@ -82,9 +101,10 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
             val pushAgent = PushAgent.getInstance(context)
             pushAgent.register(object : UPushRegisterCallback {
-                override fun onSuccess(deviceToken: String) {
-                    Log.i(TAG, "Push registration success, deviceToken: $deviceToken")
-                    writeDeviceTokenToFile(context, deviceToken)
+                override fun onSuccess(token: String) {
+                    deviceToken = token
+                    Log.i(TAG, "Push registration success, deviceToken: $token")
+                    writeDeviceTokenToFile(context, token)
                 }
 
                 override fun onFailure(errCode: String, errDesc: String) {
@@ -93,16 +113,30 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
             })
         }
 
-        private fun writeDeviceTokenToFile(context: Context, deviceToken: String) {
-            val file = File(context.filesDir, "device_token.txt")
+        private fun writeDeviceTokenToFile(context: Context, token: String) {
             try {
-                FileWriter(file).use { writer ->
-                    writer.write("开发者使用，如果不知道这是什么请不要乱动！\n")
-                    writer.write("你的deviceToken：$deviceToken\n")
-                    Log.i(TAG, "Device token written to file: ${file.absolutePath}")
+                File(context.filesDir, DEVICE_TOKEN_FILE).bufferedWriter().use { writer ->
+                    writer.write("Device Token (Push notification unique identifier)\n")
+                    writer.write("deviceToken：$token\n")
+                    Log.i(TAG, "Device token written to file: ${context.filesDir}/$DEVICE_TOKEN_FILE")
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to write device token to file", e)
+            }
+        }
+
+        /**
+         * 从本地文件读取 Device Token
+         */
+        private fun readDeviceTokenFromFile(context: Context): String? {
+            return try {
+                val file = File(context.filesDir, DEVICE_TOKEN_FILE)
+                if (!file.exists()) return null
+                file.readLines().firstOrNull { it.startsWith("deviceToken：") }
+                    ?.removePrefix("deviceToken：")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to read device token from file", e)
+                null
             }
         }
     }

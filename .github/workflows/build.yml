@@ -53,6 +53,30 @@ jobs:
           add-job-summary: "on-failure"
           cache-disabled: true
 
+      - name: Verify Keystore Password
+        if: inputs.variant == 'Release'
+        run: |
+          echo "Verifying keystore credentials..."
+          if [ -z "$RELEASE_STORE_PASSWORD" ]; then
+            echo "::error::RELEASE_STORE_PASSWORD is not set"
+            exit 1
+          fi
+          if [ -z "$RELEASE_KEY_ALIAS" ]; then
+            echo "::error::RELEASE_KEY_ALIAS is not set"
+            exit 1
+          fi
+          if [ -z "$RELEASE_KEY_PASSWORD" ]; then
+            echo "::error::RELEASE_KEY_PASSWORD is not set"
+            exit 1
+          fi
+          echo "Keystore file: $GITHUB_WORKSPACE/ZalithLauncher/mykey.jks"
+          keytool -list -keystore "$GITHUB_WORKSPACE/ZalithLauncher/mykey.jks" \
+            -storepass "$RELEASE_STORE_PASSWORD" \
+            -alias "$RELEASE_KEY_ALIAS" \
+            -keypass "$RELEASE_KEY_PASSWORD" && \
+            echo "Keystore verified successfully" || \
+            (echo "ERROR: Keystore verification failed - check password/alias" && exit 1)
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew

@@ -133,21 +133,7 @@ android {
 }
 
 androidComponents {
-    val sourceDir = file("src")
-    var replaced = false
     onVariants { variant ->
-        // 只执行一次：将源码中 com.movtery.zalithlauncher 替换为 com.tzhd427.zalithlauncher
-        if (!replaced) {
-            replaced = true
-            sourceDir.walkTopDown().filter { it.extension in listOf("kt", "java") }.forEach { f ->
-                val oldContent = f.readText()
-                val newContent = oldContent.replace("com.movtery.zalithlauncher", "com.tzhd427.zalithlauncher")
-                if (oldContent != newContent) {
-                    f.writeText(newContent)
-                    logger.lifecycle("[Package-Replace] ${f.relativeTo(rootDir)}")
-                }
-            }
-        }
         variant.outputs.forEach { output ->
             if (output is VariantOutputImpl) {
                 val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }

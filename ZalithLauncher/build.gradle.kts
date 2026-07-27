@@ -46,10 +46,10 @@ android {
 
     signingConfigs {
         create("releaseBuild") {
-            storeFile = file("zalith_launcher.jks")
-            storePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
-            keyAlias = "movtery_zalith"
-            keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
+            storeFile = rootProject.file("mykey.bks")
+            storePassword = getKeyFromLocal("RELEASE_STORE_PASSWORD")
+            keyAlias = getKeyFromLocal("RELEASE_KEY_ALIAS")
+            keyPassword = getKeyFromLocal("RELEASE_KEY_PASSWORD")
         }
         create("debugBuild") {
             storeFile = file("zalith_launcher_debug.jks")

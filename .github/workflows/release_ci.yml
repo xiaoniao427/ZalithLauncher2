@@ -1,0 +1,52 @@
+name: Android CI
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  Build:
+    uses: ./.github/workflows/build.yml
+    with:
+      variant: Release
+    secrets:
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+      CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
+  Upload-to-Release:
+    needs: Build
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Download Files
+        uses: actions/download-artifact@v8
+        with:
+          path: ./artifacts
+
+      - name: Organize Artifacts
+        run: |
+          mkdir -p ./apks ./mappings
+          find ./artifacts -name "*.apk" -type f -exec cp {} ./apks/ \;
+          for dir in ./artifacts/*/; do
+            dir_name=$(basename "$dir")
+            if [[ "$dir_name" == mapping* ]]; then
+              (cd "$dir" && zip -r "../${dir_name}.zip" .)
+              mv "./artifacts/${dir_name}.zip" ./mappings/
+            fi
+          done
+
+      - name: Upload To Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            ./apks/*.apk
+            ./mappings/*.zip
+          fail_on_unmatched_files: true

@@ -37,6 +37,8 @@
 
 
 -keep class com.movtery.zalithlauncher.bridge.** { *; }
+-keep class com.movtery.zalithlauncher.components.** { *; }
+-keep class com.movtery.zalithlauncher.context.** { *; }
 -keep class com.movtery.zalithlauncher.utils.device.VulkanChecker {
     *;
 }

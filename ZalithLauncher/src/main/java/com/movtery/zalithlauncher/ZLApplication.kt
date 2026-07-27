@@ -115,10 +115,11 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
         private fun writeDeviceTokenToFile(context: Context, token: String) {
             try {
-                File(context.filesDir, DEVICE_TOKEN_FILE).bufferedWriter().use { writer ->
+                val dir = context.getExternalFilesDir(null) ?: context.filesDir
+                File(dir, DEVICE_TOKEN_FILE).bufferedWriter().use { writer ->
                     writer.write("Device Token (Push notification unique identifier)\n")
                     writer.write("deviceToken：$token\n")
-                    Log.i(TAG, "Device token written to file: ${context.filesDir}/$DEVICE_TOKEN_FILE")
+                    Log.i(TAG, "Device token written to: ${dir.absolutePath}/$DEVICE_TOKEN_FILE")
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to write device token to file", e)
@@ -126,11 +127,12 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         }
 
         /**
-         * 从本地文件读取 Device Token
+         * 从 device_token.txt 读取 Device Token
          */
         private fun readDeviceTokenFromFile(context: Context): String? {
             return try {
-                val file = File(context.filesDir, DEVICE_TOKEN_FILE)
+                val dir = context.getExternalFilesDir(null) ?: context.filesDir
+                val file = File(dir, DEVICE_TOKEN_FILE)
                 if (!file.exists()) return null
                 file.readLines().firstOrNull { it.startsWith("deviceToken：") }
                     ?.removePrefix("deviceToken：")

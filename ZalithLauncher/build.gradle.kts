@@ -46,7 +46,7 @@ android {
 
     signingConfigs {
         create("releaseBuild") {
-            storeFile = file("mykey.bks")
+            storeFile = file("mykey.jks")
             storePassword = getKeyFromLocal("RELEASE_STORE_PASSWORD")
             keyAlias = getKeyFromLocal("RELEASE_KEY_ALIAS")
             keyPassword = getKeyFromLocal("RELEASE_KEY_PASSWORD")

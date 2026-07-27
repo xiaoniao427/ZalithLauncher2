@@ -51,6 +51,10 @@ jobs:
           cache-disabled: true
 
       - name: Build APK for ${{ matrix.arch }}
+        env:
+         RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew clean ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}

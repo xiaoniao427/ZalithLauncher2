@@ -41,7 +41,7 @@ fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? =
 }
 
 android {
-    namespace = zalithPackageName
+    namespace = "com.movtery.zalithlauncher"
     compileSdk = 37
 
     signingConfigs {

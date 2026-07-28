@@ -52,10 +52,6 @@ import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
-import com.umeng.union.UMUnionApi
-import com.umeng.union.UMUnionSdk
-import com.umeng.union.common.UMAdConfig
-import com.umeng.union.entity.UMSplashAD
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll

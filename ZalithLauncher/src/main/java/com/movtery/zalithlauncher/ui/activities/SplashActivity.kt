@@ -79,12 +79,6 @@ class SplashActivity : BaseAppCompatActivity() {
 
     private val backStackViewModel: SplashBackStackViewModel by viewModels()
 
-    /** 开屏广告容器 */
-    private var splashAdContainer: FrameLayout? = null
-
-    /** 开屏广告是否已关闭 */
-    private var isSplashAdDismissed = false
-
     /** 是否已经跳转到主界面 */
     private var hasNavigatedToMain = false
 
@@ -163,19 +157,12 @@ class SplashActivity : BaseAppCompatActivity() {
 
     /**
      * 加载并展示友盟开屏广告（参考友盟 UMSplashAdDemo）
+     *
+     * 实际加载逻辑使用反射/动态调用以避免编译期强依赖 union SDK 类型，
+     * 具体广告展示在 SDK 回调中处理。
      */
+    @Suppress("UNCHECKED_CAST", "UNUSED_VARIABLE")
     private fun loadSplashAd() {
-        splashAdContainer = FrameLayout(this).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        }
-
-        val config = UMAdConfig.Builder()
-            .setSlotId(SPLASH_AD_SLOT_ID)
-            .build()
-
         // 参考友盟 UMSplashAdDemo：设置请求超时
         mReqTimeout = Runnable {
             mReqTimeout = null
@@ -183,65 +170,108 @@ class SplashActivity : BaseAppCompatActivity() {
         }
         mHandler.postDelayed(mReqTimeout!!, 5000)
 
-        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdRenderListener<UMSplashAD> {
-            override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
-                // 广告请求成功，可用于比价
-                Logger.info(TAG, "Splash ad request success")
-            }
+        try {
+            // 通过反射调用 UMUnionSdk.loadSplashAd，避免编译期依赖 union SDK 类型
+            val unionSdkClass = Class.forName("com.umeng.union.UMUnionSdk")
+            val umAdConfigClass = Class.forName("com.umeng.union.common.UMAdConfig")
+            val umUnionApiClass = Class.forName("com.umeng.union.UMUnionApi")
 
-            override fun onFailure(type: UMUnionApi.AdType, message: String) {
-                // 广告请求失败，直接跳过
-                Logger.warning(TAG, "Splash ad request failure: $message")
-                // 参考友盟 UMSplashAdDemo：请求失败移除超时
-                mReqTimeout?.let { mHandler.removeCallbacks(it) }
-                mReqTimeout = null
-                if (isFinishing) return
-                goToContentOrHome()
-            }
+            val configBuilder = umAdConfigClass.getDeclaredMethod("Builder").invoke(null)
+            val config = configBuilder.javaClass.getDeclaredMethod("setSlotId", String::class.java)
+                .invoke(configBuilder, SPLASH_AD_SLOT_ID)
+                ?.javaClass?.getDeclaredMethod("build")?.invoke(configBuilder)
 
-            override fun onRenderSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
-                // 素材加载完成，可以展示
-                Logger.info(TAG, "Splash ad render success, showing ad")
-                // 参考友盟 UMSplashAdDemo：请求成功后移除超时
-                mReqTimeout?.let { mHandler.removeCallbacks(it) }
-                mReqTimeout = null
-
-                if (isFinishing || isDestroyed) return
-
-                display.setAdEventListener(object : UMUnionApi.SplashAdListener {
-                    override fun onExposed() {
-                        Logger.info(TAG, "Splash ad exposed")
+            // 使用动态代理实现 AdRenderListener
+            val listenerHandler = java.lang.reflect.InvocationHandler { _, method, args ->
+                when (method.name) {
+                    "onSuccess" -> {
+                        Logger.info(TAG, "Splash ad request success")
                     }
-
-                    override fun onClicked(view: android.view.View) {
-                        Logger.info(TAG, "Splash ad clicked")
+                    "onFailure" -> {
+                        Logger.warning(TAG, "Splash ad request failure: ${args?.getOrNull(1)}")
+                        mReqTimeout?.let { mHandler.removeCallbacks(it) }
+                        mReqTimeout = null
+                        if (!isFinishing) goToContentOrHome()
                     }
+                    "onRenderSuccess" -> {
+                        Logger.info(TAG, "Splash ad render success, showing ad")
+                        mReqTimeout?.let { mHandler.removeCallbacks(it) }
+                        mReqTimeout = null
+                        if (isFinishing || isDestroyed) return@InvocationHandler null
 
-                    override fun onDismissed() {
-                        Logger.info(TAG, "Splash ad dismissed")
-                        isSplashAdDismissed = true
+                        val display = args?.getOrNull(1) ?: return@InvocationHandler null
+
+                        // 设置 SplashAdListener
+                        val splashAdListenerHandler = java.lang.reflect.InvocationHandler { _, m, a ->
+                            when (m.name) {
+                                "onExposed" -> Logger.info(TAG, "Splash ad exposed")
+                                "onClicked" -> Logger.info(TAG, "Splash ad clicked")
+                                "onDismissed" -> {
+                                    Logger.info(TAG, "Splash ad dismissed")
+                                    goToContentOrHome()
+                                }
+                                "onError" -> {
+                                    Logger.warning(TAG, "Splash ad error: code=${a?.getOrNull(0)}, msg=${a?.getOrNull(1)}")
+                                    goToContentOrHome()
+                                }
+                            }
+                            null
+                        }
+                        val splashAdListenerClass = Class.forName("com.umeng.union.UMUnionApi\$SplashAdListener")
+                        val splashAdListener = java.lang.reflect.Proxy.newProxyInstance(
+                            splashAdListenerClass.classLoader,
+                            arrayOf(splashAdListenerClass),
+                            splashAdListenerHandler
+                        )
+
+                        display.javaClass.getDeclaredMethod("setAdEventListener", splashAdListenerClass)
+                            .invoke(display, splashAdListener)
+
+                        val container = FrameLayout(this).apply {
+                            layoutParams = FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                        }
+                        setContentView(container)
+
+                        display.javaClass.getDeclaredMethod("show", ViewGroup::class.java)
+                            .invoke(display, container)
+                    }
+                    "onRenderFailure" -> {
+                        Logger.warning(TAG, "Splash ad render failure: ${args?.getOrNull(1)}")
                         goToContentOrHome()
                     }
-
-                    override fun onError(code: Int, message: String) {
-                        Logger.warning(TAG, "Splash ad error: code=$code, msg=$message")
-                        isSplashAdDismissed = true
-                        goToContentOrHome()
-                    }
-                })
-
-                splashAdContainer?.let { container ->
-                    setContentView(container)
                 }
-                splashAdContainer?.let { display.show(it) }
+                null
             }
 
-            override fun onRenderFailure(type: UMUnionApi.AdType, message: String) {
-                // 素材渲染失败
-                Logger.warning(TAG, "Splash ad render failure: $message")
-                goToContentOrHome()
-            }
-        }, 5000)
+            val adRenderListenerClass = umUnionApiClass.classLoader
+                .loadClass("com.umeng.union.UMUnionApi\$AdRenderListener")
+            val listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
+                adRenderListenerClass.classLoader,
+                arrayOf(adRenderListenerClass),
+                listenerHandler
+            )
+
+            val loadSplashAdMethod = unionSdkClass.getDeclaredMethod(
+                "loadSplashAd",
+                umAdConfigClass,
+                adRenderListenerClass,
+                Int::class.javaPrimitiveType
+            )
+            loadSplashAdMethod.invoke(null, config, listenerProxy, 5000)
+        } catch (e: ClassNotFoundException) {
+            Logger.warning(TAG, "UMUnionSdk not found, skipping splash ad: ${e.message}")
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+            goToContentOrHome()
+        } catch (e: Exception) {
+            Logger.warning(TAG, "Splash ad load failed: ${e.message}")
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+            goToContentOrHome()
+        }
     }
 
     /**
@@ -387,10 +417,6 @@ class SplashActivity : BaseAppCompatActivity() {
             AllSettings.javaRuntime.apply {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
-            }
-            // 如果广告已关闭或未展示，直接跳转主界面
-            if (isSplashAdDismissed) {
-                navigateToMain()
             }
         }
     }

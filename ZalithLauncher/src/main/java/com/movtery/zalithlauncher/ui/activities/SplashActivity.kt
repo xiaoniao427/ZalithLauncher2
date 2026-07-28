@@ -23,6 +23,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +34,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.SplashException
-import com.movtery.zalithlauncher.ad.AppOpenAdManager
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
@@ -42,6 +43,10 @@ import com.movtery.zalithlauncher.components.jre.UnpackJnaTask
 import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.umeng.message.PushAgent
+import com.umeng.union.UMAdConfig
+import com.umeng.union.UMUnionApi
+import com.umeng.union.UMUnionSdk
+import com.umeng.union.UMSplashAD
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.splash.SplashScreen
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
@@ -51,7 +56,6 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
@@ -66,8 +70,11 @@ const val IMPORT_TYPE_MODPACK = "modpack"
 const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
-/** 开屏广告展示超时（毫秒），防止广告卡死导致永远无法进入主页 */
-private const val AD_SHOW_TIMEOUT_MS = 3_000L
+/** 友盟开屏广告位 ID */
+private const val SPLASH_AD_SLOT_ID = "100012689"
+
+/** 开屏广告请求超时（毫秒） */
+private const val AD_REQUEST_TIMEOUT = 5_000L
 
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
@@ -83,6 +90,55 @@ class SplashActivity : BaseAppCompatActivity() {
     /** canJump: 防止后台切回时误跳转。onResume 时设为 true，onPause 时设为 false。 */
     private var canJump = false
 
+    /** 广告请求超时任务 */
+    private var mReqTimeout: Runnable? = null
+
+    private val mHandler = Handler(Looper.getMainLooper())
+
+    // ======================== 友盟开屏广告加载回调 ========================
+
+    private val mLoadListener = object : UMUnionApi.AdLoadListener<UMSplashAD> {
+        override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+            Logger.info(TAG, "Splash ad loaded successfully")
+            // 移除超时
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+
+            if (isFinishing) return
+
+            display.setAdEventListener(object : UMUnionApi.SplashAdListener {
+                override fun onDismissed() {
+                    Logger.info(TAG, "Splash ad dismissed")
+                    goToContentOrHome()
+                }
+
+                override fun onExposed() {
+                    Logger.info(TAG, "Splash ad exposed")
+                }
+
+                override fun onClicked(view: android.view.View?) {
+                    Logger.info(TAG, "Splash ad clicked")
+                }
+
+                override fun onError(code: Int, message: String) {
+                    Logger.warning(TAG, "Splash ad display error: code=$code, msg=$message")
+                    goToContentOrHome()
+                }
+            })
+
+            // 展示广告
+            display.show(window.decorView as android.view.ViewGroup)
+        }
+
+        override fun onFailure(type: UMUnionApi.AdType, message: String) {
+            Logger.warning(TAG, "Splash ad load failed: $message")
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+            if (isFinishing) return
+            goToContentOrHome()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -97,7 +153,7 @@ class SplashActivity : BaseAppCompatActivity() {
             return
         }
 
-        // 根据设置开关加载 AdMob 开屏广告
+        // 根据设置开关加载友盟开屏广告
         loadSplashAd()
 
         setContent {
@@ -120,9 +176,9 @@ class SplashActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         canJump = true
-        // 从后台切回时，如果任务已完成，展示开屏广告
-        if (areAllTasksFinished() && !hasNavigatedToMain) {
-            showSplashAdIfAvailable()
+        // 从后台切回时，如果任务已完成且广告展示流程已完成，跳转主页
+        if (areAllTasksFinished() && !hasNavigatedToMain && mReqTimeout == null) {
+            goToContentOrHome()
         }
     }
 
@@ -134,6 +190,8 @@ class SplashActivity : BaseAppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         canJump = false
+        mReqTimeout?.let { mHandler.removeCallbacks(it) }
+        mReqTimeout = null
     }
 
     /** 禁用返回键：开屏期间不允许退出 */
@@ -157,40 +215,31 @@ class SplashActivity : BaseAppCompatActivity() {
         }
     }
 
-    // ======================== AdMob 开屏广告 ========================
+    // ======================== 友盟开屏广告 ========================
 
-    /** 根据设置开关加载开屏广告 */
+    /** 根据设置开关加载友盟开屏广告 */
     private fun loadSplashAd() {
-        if (AllSettings.showSplashAd.getValue()) {
-            AppOpenAdManager.loadAd(this)
-        }
-    }
-
-    /** 展示开屏广告（如果已加载），否则直接进入内容页 */
-    private fun showSplashAdIfAvailable() {
-        if (!AllSettings.showSplashAd.getValue() || hasNavigatedToMain) {
-            goToContentOrHome()
+        if (!AllSettings.showSplashAd.getValue()) {
             return
         }
 
-        val shown = AppOpenAdManager.showAdIfAvailable(this) {
-            // 广告关闭或展示失败 → 预加载下一则，然后跳转
-            loadSplashAd()
-            goToContentOrHome()
-        }
-
-        if (!shown) {
-            // 广告不可用（未加载/过期），直接跳转
-            goToContentOrHome()
-        } else {
-            // 广告正在展示中，设置超时保护
-            lifecycleScope.launch {
-                delay(AD_SHOW_TIMEOUT_MS)
+        try {
+            val config = UMAdConfig.Builder()
+                .setSlotId(SPLASH_AD_SLOT_ID)
+                .build()
+            UMUnionSdk.loadSplashAd(config, mLoadListener, AD_REQUEST_TIMEOUT.toInt())
+            // 设置超时保护
+            mReqTimeout = Runnable {
+                mReqTimeout = null
                 if (!hasNavigatedToMain) {
-                    Logger.warning(TAG, "Ad show timeout, forcing navigation to main")
                     goToContentOrHome()
                 }
             }
+            mHandler.postDelayed(mReqTimeout, AD_REQUEST_TIMEOUT)
+        } catch (e: Exception) {
+            Logger.warning(TAG, "Failed to load splash ad: ${e.message}")
+            // 加载失败，直接走正常流程
+            goToContentOrHome()
         }
     }
 
@@ -317,11 +366,26 @@ class SplashActivity : BaseAppCompatActivity() {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
             }
-            // 解压任务全部完成后展示开屏广告，再跳转主页
+            // 解压任务全部完成后加载开屏广告，再跳转主页
             if (!hasNavigatedToMain && areAllTasksFinished()) {
                 showSplashAdIfAvailable()
             }
         }
+    }
+
+    /** 解压任务完成后加载并展示开屏广告 */
+    private fun showSplashAdIfAvailable() {
+        if (!canJump || hasNavigatedToMain) return
+        if (!AllSettings.showSplashAd.getValue()) {
+            goToContentOrHome()
+            return
+        }
+        // 广告已在 onCreate 中发起加载，如果尚未完成会通过超时或回调触发跳转
+        // 但如果广告加载已经完成且展示完毕（mReqTimeout == null），直接跳转
+        if (mReqTimeout == null) {
+            goToContentOrHome()
+        }
+        // 否则等待广告回调或超时处理
     }
 
     private fun checkTasksToMain(): Boolean {
@@ -337,9 +401,9 @@ class SplashActivity : BaseAppCompatActivity() {
             }
         }
 
-        // 所有任务已完成 → 展示开屏广告后再跳转
+        // 所有任务已完成 → 加载开屏广告后再跳转
         canJump = true
-        showSplashAdIfAvailable()
+        loadSplashAd()
         return true
     }
 

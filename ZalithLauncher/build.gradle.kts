@@ -272,8 +272,11 @@ dependencies {
     //U-Push依赖
     implementation("com.umeng.umsdk:push:+")
 
-    // AdMob GMA Next-Gen SDK（开屏广告）
-    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:+")
+    // 友盟广告（开屏广告）
+    implementation("com.umeng.umsdk:union:+")
+
+    // AdMob GMA Next-Gen SDK（开屏广告）— 暂时注释，待后续启用
+    // implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:+")
 
     //Test
     testImplementation(libs.junit)

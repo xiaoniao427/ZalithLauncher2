@@ -1079,13 +1079,13 @@
     <string name="settings_launcher_home_page_url">主页下载链接：</string>
     <string name="settings_launcher_home_page_loading">加载主页中</string>
     
-    <!-- 开屏广告设置 -->
-    <string name="settings_splash_ad_title">显示开屏广告</string>
-    <string name="settings_splash_ad_summary_on">开屏广告有助于维持我们的开发。连续快速点击 3 次即可关闭。</string>
-    <string name="settings_splash_ad_summary_off">开屏广告已关闭。点按即可开启，支持我们！</string>
-    <string name="settings_splash_ad_tap_hint">开屏广告已关闭 🥺</string>
-    <string name="settings_splash_ad_dissuade_title1">关闭开屏广告？</string>
-    <string name="settings_splash_ad_dissuade_text1">广告收益能够帮助应用维持免费并支持持续开发。您确定要关闭开屏广告吗？</string>
+    <!-- 广告开关 -->
+    <string name="settings_splash_ad_title">广告开关</string>
+    <string name="settings_splash_ad_summary_on">开启广告有助于维持我们的开发。连续快速点击 3 次即可关闭。</string>
+    <string name="settings_splash_ad_summary_off">广告已关闭。点按即可开启，支持我们！</string>
+    <string name="settings_splash_ad_tap_hint">广告已关闭 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">关闭广告？</string>
+    <string name="settings_splash_ad_dissuade_text1">广告收益能够帮助应用维持免费并支持持续开发。您确定要关闭广告吗？</string>
     <string name="settings_splash_ad_dissuade_confirm1">是的，我要关闭</string>
     <string name="settings_splash_ad_dissuade_cancel1">不了，保持开启</string>
     <string name="settings_splash_ad_dissuade_title2">真的不再考虑一下吗？</string>

@@ -156,10 +156,10 @@ class SplashActivity : BaseAppCompatActivity() {
     }
 
     /**
-     * 加载并展示友盟开屏广告（参考友盟 UMSplashAdDemo）
+     * 加载并展示友盟开屏广告（参考友盟 UMSplashAdDemo 官方文档示例）
      *
-     * 实际加载逻辑使用反射/动态调用以避免编译期强依赖 union SDK 类型，
-     * 具体广告展示在 SDK 回调中处理。
+     * 由于 CI 环境缺少 union SDK 依赖，使用纯反射调用。
+     * 采用多候选包路径 fallback 机制以适应不同版本的 SDK 类路径。
      */
     @Suppress("UNCHECKED_CAST", "UNUSED_VARIABLE")
     private fun loadSplashAd() {
@@ -170,19 +170,64 @@ class SplashActivity : BaseAppCompatActivity() {
         }
         mHandler.postDelayed(mReqTimeout!!, 5000)
 
-        try {
-            // 通过反射调用 UMUnionSdk.loadSplashAd，避免编译期依赖 union SDK 类型
+        runCatching {
+            // 1. 加载 UMUnionSdk（已验证运行时存在）
             val unionSdkClass = Class.forName("com.umeng.union.UMUnionSdk")
-            val umAdConfigBuilderClass = Class.forName("com.umeng.union.common.UMAdConfig\$Builder")
-            val umUnionApiClass = Class.forName("com.umeng.union.UMUnionApi")
 
-            val configBuilder = umAdConfigBuilderClass.getDeclaredConstructor().newInstance()
-            configBuilder.javaClass.getDeclaredMethod("setSlotId", String::class.java)
+            // 2. 多候选包路径 fallback，找到 UMAdConfig 和 UMUnionApi
+            //    友盟不同 SDK 版本可能把类放在不同包下
+            val candidateConfigClassNames = listOf(
+                "com.umeng.union.api.UMAdConfig",       // 友盟 demo 代码
+                "com.umeng.union.common.UMAdConfig",     // 原始 ZalithLauncher import
+                "com.umeng.union.UMAdConfig",            // 顶级包（与 UMUnionSdk 同级）
+            )
+            val candidateApiClassNames = listOf(
+                "com.umeng.union.api.UMUnionApi",
+                "com.umeng.union.common.UMUnionApi",
+                "com.umeng.union.UMUnionApi",
+            )
+
+            var umAdConfigClass: Class<*>? = null
+            var umUnionApiClass: Class<*>? = null
+
+            for (i in candidateConfigClassNames.indices) {
+                try {
+                    umAdConfigClass = Class.forName(candidateConfigClassNames[i])
+                    umUnionApiClass = Class.forName(candidateApiClassNames[i])
+                    Logger.info(TAG, "Found union SDK classes: UMAdConfig=${umAdConfigClass.name}, UMUnionApi=${umUnionApiClass.name}")
+                    break
+                } catch (_: ClassNotFoundException) {
+                    continue
+                }
+            }
+
+            if (umAdConfigClass == null || umUnionApiClass == null) {
+                Logger.warning(TAG, "UMAdConfig/UMUnionApi not found in any known package")
+                return@runCatching
+            }
+
+            // 3. 反射构造 UMAdConfig
+            val builderClass = umAdConfigClass.classLoader
+                .loadClass("${umAdConfigClass.name}\$Builder")
+            val configBuilder = builderClass.getDeclaredConstructor().newInstance()
+            builderClass.getDeclaredMethod("setSlotId", String::class.java)
                 .invoke(configBuilder, SPLASH_AD_SLOT_ID)
-            val config = configBuilder.javaClass.getDeclaredMethod("build")
+            val config = builderClass.getDeclaredMethod("build")
                 .invoke(configBuilder)
 
-            // 使用动态代理实现 AdRenderListener
+            // 4. 加载内部类：AdRenderListener、SplashAdListener、AdLoadListener
+            val adRenderListenerClass = umUnionApiClass.classLoader
+                .loadClass("${umUnionApiClass.name}\$AdRenderListener")
+            val splashAdListenerClass = umUnionApiClass.classLoader
+                .loadClass("${umUnionApiClass.name}\$SplashAdListener")
+            // AdLoadListener 是 AdRenderListener 的父接口，loadSplashAd 方法签名可能用它
+            val adLoadListenerClass = try {
+                umUnionApiClass.classLoader.loadClass("${umUnionApiClass.name}\$AdLoadListener")
+            } catch (_: ClassNotFoundException) {
+                null
+            }
+
+            // 5. 使用动态代理实现 AdRenderListener（兼容 AdLoadListener）
             val listenerHandler = java.lang.reflect.InvocationHandler { _, method, args ->
                 when (method.name) {
                     "onSuccess" -> {
@@ -218,7 +263,6 @@ class SplashActivity : BaseAppCompatActivity() {
                             }
                             null
                         }
-                        val splashAdListenerClass = Class.forName("com.umeng.union.UMUnionApi\$SplashAdListener")
                         val splashAdListener = java.lang.reflect.Proxy.newProxyInstance(
                             splashAdListenerClass.classLoader,
                             arrayOf(splashAdListenerClass),
@@ -236,8 +280,15 @@ class SplashActivity : BaseAppCompatActivity() {
                         }
                         setContentView(container)
 
-                        display.javaClass.getDeclaredMethod("show", ViewGroup::class.java)
-                            .invoke(display, container)
+                        // show 方法签名可能是 show(ViewGroup) 或 show(ViewGroup, View, View)
+                        val showMethod = display.javaClass.methods
+                            .firstOrNull { it.name == "show" && it.parameterTypes.size == 1 }
+                        if (showMethod != null) {
+                            showMethod.invoke(display, container)
+                        } else {
+                            display.javaClass.getDeclaredMethod("show", ViewGroup::class.java)
+                                .invoke(display, container)
+                        }
                     }
                     "onRenderFailure" -> {
                         Logger.warning(TAG, "Splash ad render failure: ${args?.getOrNull(1)}")
@@ -247,28 +298,36 @@ class SplashActivity : BaseAppCompatActivity() {
                 null
             }
 
-            val adRenderListenerClass = umUnionApiClass.classLoader
-                .loadClass("com.umeng.union.UMUnionApi\$AdRenderListener")
             val listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
                 adRenderListenerClass.classLoader,
                 arrayOf(adRenderListenerClass),
                 listenerHandler
             )
 
-            val loadSplashAdMethod = unionSdkClass.getDeclaredMethod(
-                "loadSplashAd",
-                umAdConfigBuilderClass.enclosingClass,
-                adRenderListenerClass,
-                Int::class.javaPrimitiveType
-            )
-            loadSplashAdMethod.invoke(null, config, listenerProxy, 5000)
-        } catch (e: ClassNotFoundException) {
-            Logger.warning(TAG, "UMUnionSdk not found, skipping splash ad: ${e.message}")
-            mReqTimeout?.let { mHandler.removeCallbacks(it) }
-            mReqTimeout = null
-            goToContentOrHome()
-        } catch (e: Exception) {
-            Logger.warning(TAG, "Splash ad load failed: ${e.message}")
+            // 6. 反射调用 UMUnionSdk.loadSplashAd
+            //    getDeclaredMethod 做精确类型匹配：先尝试 AdRenderListener，再尝试 AdLoadListener
+            val loadMethod = try {
+                unionSdkClass.getDeclaredMethod(
+                    "loadSplashAd",
+                    umAdConfigClass,
+                    adRenderListenerClass,
+                    Int::class.javaPrimitiveType
+                )
+            } catch (_: NoSuchMethodException) {
+                if (adLoadListenerClass != null) {
+                    unionSdkClass.getDeclaredMethod(
+                        "loadSplashAd",
+                        umAdConfigClass,
+                        adLoadListenerClass,
+                        Int::class.javaPrimitiveType
+                    )
+                } else {
+                    throw NoSuchMethodException("loadSplashAd not found with AdRenderListener or AdLoadListener")
+                }
+            }
+            loadMethod.invoke(null, config, listenerProxy, 5000)
+        }.onFailure {
+            Logger.warning(TAG, "Splash ad load failed: ${it.message}", it)
             mReqTimeout?.let { mHandler.removeCallbacks(it) }
             mReqTimeout = null
             goToContentOrHome()

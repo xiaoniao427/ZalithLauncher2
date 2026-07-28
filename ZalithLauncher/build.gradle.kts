@@ -269,8 +269,7 @@ dependencies {
     implementation("com.umeng.umsdk:abtest:+")//使用U-App中ABTest能力（可选）
     
     // U-AppWin 广告SDK
-    implementation("com.umeng.umsdk:auvoke:+")//必选，U-AppWin广告变现
-    implementation("com.umeng.umsdk:uappwin:+")//必选，U-AppWin广告变现核心
+    implementation("com.umeng.umsdk:union:+")//必选，U-AppWin广告变现核心
     
     api("com.umeng.umsdk:common:+")
     api("com.umeng.umsdk:asms:+")

@@ -23,6 +23,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
@@ -90,6 +92,14 @@ class SplashActivity : BaseAppCompatActivity() {
     /** 是否已经跳转到主界面 */
     private var hasNavigatedToMain = false
 
+    /** 是否可以跳转（参考友盟 UMSplashAdDemo：onResume 时 canJump=true 则直接跳转） */
+    private var canJump = false
+
+    /** 开屏广告请求超时（参考友盟 UMSplashAdDemo：超时后直接进入主界面） */
+    private var mReqTimeout: Runnable? = null
+
+    private val mHandler = Handler(Looper.getMainLooper())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -126,13 +136,37 @@ class SplashActivity : BaseAppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 参考友盟 UMSplashAdDemo：从后台切回时若已经可以跳转则直接跳转
+        if (canJump) {
+            goToContentOrHome()
+        }
+        canJump = true
+    }
+
     override fun onPause() {
         super.onPause()
-        // 开屏广告展示期间不允许用户直接跳转
+        // 参考友盟 UMSplashAdDemo：离开页面时不允许跳转
+        canJump = false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 参考友盟 UMSplashAdDemo：清理超时任务
+        mReqTimeout?.let { mHandler.removeCallbacks(it) }
+        mReqTimeout = null
     }
 
     /**
-     * 加载并展示友盟开屏广告
+     * 禁止返回键退出开屏广告（参考友盟 UMSplashAdDemo）
+     */
+    override fun onBackPressed() {
+        // 开屏广告展示期间禁用返回键
+    }
+
+    /**
+     * 加载并展示友盟开屏广告（参考友盟 UMSplashAdDemo）
      */
     private fun loadSplashAd() {
         splashAdContainer = FrameLayout(this).apply {
@@ -146,22 +180,46 @@ class SplashActivity : BaseAppCompatActivity() {
             .setSlotId(SPLASH_AD_SLOT_ID)
             .build()
 
-        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdRenderListener<UMSplashAD> {
+        // 参考友盟 UMSplashAdDemo：设置请求超时
+        mReqTimeout = Runnable {
+            mReqTimeout = null
+            goToContentOrHome()
+        }
+        mHandler.postDelayed(mReqTimeout!!, 5000)
+
+        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdLoadListener<UMSplashAD> {
             override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
-                // 广告请求成功，可用于比价
                 Logger.info(TAG, "Splash ad request success")
-            }
+                // 参考友盟 UMSplashAdDemo：请求成功后移除超时
+                mReqTimeout?.let { mHandler.removeCallbacks(it) }
+                mReqTimeout = null
 
-            override fun onFailure(type: UMUnionApi.AdType, message: String) {
-                // 广告请求失败，直接跳过
-                Logger.warning(TAG, "Splash ad request failure: $message")
-                goToContent()
-            }
+                if (isFinishing) return
 
-            override fun onRenderSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
-                // 素材加载完成，可以展示
-                Logger.info(TAG, "Splash ad render success, showing ad")
-                if (isFinishing || isDestroyed) return
+                // 参考友盟 UMSplashAdDemo：如果是视频广告，设置视频监听
+                if (display.isVideo) {
+                    display.setVideoListener(object : UMUnionApi.VideoListener {
+                        override fun onReady() {
+                            Logger.info(TAG, "Splash video ready, duration: ${display.videoPlayer?.duration}")
+                        }
+
+                        override fun onStart() {
+                            Logger.info(TAG, "Splash video start")
+                        }
+
+                        override fun onPause() {
+                            Logger.info(TAG, "Splash video pause")
+                        }
+
+                        override fun onCompleted() {
+                            Logger.info(TAG, "Splash video completed")
+                        }
+
+                        override fun onError(message: String) {
+                            Logger.warning(TAG, "Splash video error: $message")
+                        }
+                    })
+                }
 
                 display.setAdEventListener(object : UMUnionApi.SplashAdListener {
                     override fun onExposed() {
@@ -175,13 +233,13 @@ class SplashActivity : BaseAppCompatActivity() {
                     override fun onDismissed() {
                         Logger.info(TAG, "Splash ad dismissed")
                         isSplashAdDismissed = true
-                        goToContent()
+                        goToContentOrHome()
                     }
 
                     override fun onError(code: Int, message: String) {
                         Logger.warning(TAG, "Splash ad error: code=$code, msg=$message")
                         isSplashAdDismissed = true
-                        goToContent()
+                        goToContentOrHome()
                     }
                 })
 
@@ -191,23 +249,29 @@ class SplashActivity : BaseAppCompatActivity() {
                 splashAdContainer?.let { display.show(it) }
             }
 
-            override fun onRenderFailure(type: UMUnionApi.AdType, message: String) {
-                // 素材渲染失败
-                Logger.warning(TAG, "Splash ad render failure: $message")
-                goToContent()
+            override fun onFailure(type: UMUnionApi.AdType, message: String) {
+                Logger.warning(TAG, "Splash ad request failure: $message")
+                // 参考友盟 UMSplashAdDemo：请求失败移除超时
+                mReqTimeout?.let { mHandler.removeCallbacks(it) }
+                mReqTimeout = null
+                if (isFinishing) return
+                goToContentOrHome()
             }
         }, 5000)
     }
 
     /**
-     * 广告未准备好时直接进入内容
-     * 如果所有任务已完成则直接跳转主界面，否则保持 SplashScreen 显示
+     * 广告关闭/失败时尝试进入内容（参考友盟 UMSplashAdDemo goHome 模式）
+     * 使用 canJump 防止在后台误跳转
      */
-    private fun goToContent() {
-        if (isSplashAdDismissed && hasNavigatedToMain) return
-
-        if (areAllTasksFinished()) {
-            navigateToMain()
+    private fun goToContentOrHome() {
+        Logger.info(TAG, "goToContentOrHome canJump=$canJump")
+        if (canJump) {
+            if (areAllTasksFinished()) {
+                navigateToMain()
+            }
+        } else {
+            canJump = true
         }
     }
 

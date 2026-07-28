@@ -45,10 +45,11 @@ import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.writeCrashFile
 import com.tencent.mmkv.MMKV
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.umeng.commonsdk.UMConfigure
 import com.umeng.message.PushAgent
 import com.umeng.message.api.UPushRegisterCallback
-import com.umeng.union.UMUnionSdk
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import java.io.File
@@ -70,6 +71,9 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         const val UMENG_APPKEY = "6a65eb27d679c36d9c7dc574"
         const val UMENG_CHANNEL = "GitHub"
         const val UMENG_MESSAGE_SECRET = "4890e5af9c2530d9b72215b5e3015979"
+
+        /** AdMob 应用 ID（GMA Next-Gen SDK 以编程方式提供） */
+        const val ADMOB_APP_ID = "ca-app-pub-4002076249242835~6918863189"
 
         /** 当前设备的推送 Device Token，注册成功后会更新 */
         @JvmStatic
@@ -100,9 +104,7 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
                 UMENG_MESSAGE_SECRET
             )
 
-            // 初始化友盟广告组件
-            UMUnionSdk.init(context)
-
+            // 友盟推送注册（建议在子线程中执行）
             val pushAgent = PushAgent.getInstance(context)
             pushAgent.register(object : UPushRegisterCallback {
                 override fun onSuccess(token: String) {
@@ -144,6 +146,23 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
                 Log.e(TAG, "Failed to read device token from file", e)
                 null
             }
+        }
+
+        /** 在后台线程初始化 AdMob GMA Next-Gen SDK */
+        fun initAdMob(context: Context) {
+            Thread {
+                try {
+                    MobileAds.initialize(
+                        context,
+                        InitializationConfig.Builder(ADMOB_APP_ID).build()
+                    ) {
+                        // SDK 初始化完成回调
+                        Log.i(TAG, "AdMob SDK initialized successfully")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "AdMob SDK initialization failed", e)
+                }
+            }.start()
         }
     }
 
@@ -209,6 +228,9 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         Thread {
             initUmeng(this)
         }.start()
+
+        // AdMob GMA Next-Gen SDK 初始化（后台线程）
+        initAdMob(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

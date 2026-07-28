@@ -269,11 +269,12 @@ dependencies {
 
     implementation("com.umeng.umsdk:uyumao:+") // 高级运营分析功能依赖库，使用U-App卸载分析、开启反作弊能力请务必集成。common需搭配v9.6.3及以上版本，asms需搭配v1.7.0及以上版本。需更新隐私声明。
 
-    implementation("com.umeng.umsdk:union:+")
-
     //U-Push依赖
     implementation("com.umeng.umsdk:push:+")
-    
+
+    // AdMob GMA Next-Gen SDK（开屏广告）
+    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:+")
+
     //Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

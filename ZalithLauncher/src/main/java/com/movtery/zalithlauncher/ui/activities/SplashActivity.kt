@@ -23,10 +23,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +32,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.SplashException
+import com.movtery.zalithlauncher.ad.AppOpenAdManager
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
@@ -54,6 +51,7 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
@@ -68,8 +66,8 @@ const val IMPORT_TYPE_MODPACK = "modpack"
 const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
-/** 友盟开屏广告位ID */
-private const val SPLASH_AD_SLOT_ID = "100012689"
+/** 开屏广告展示超时（毫秒），防止广告卡死导致永远无法进入主页 */
+private const val AD_SHOW_TIMEOUT_MS = 3_000L
 
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
@@ -82,13 +80,8 @@ class SplashActivity : BaseAppCompatActivity() {
     /** 是否已经跳转到主界面 */
     private var hasNavigatedToMain = false
 
-    /** 是否可以跳转（参考友盟 UMSplashAdDemo：onResume 时 canJump=true 则直接跳转） */
+    /** canJump: 防止后台切回时误跳转。onResume 时设为 true，onPause 时设为 false。 */
     private var canJump = false
-
-    /** 开屏广告请求超时（参考友盟 UMSplashAdDemo：超时后直接进入主界面） */
-    private var mReqTimeout: Runnable? = null
-
-    private val mHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -100,14 +93,12 @@ class SplashActivity : BaseAppCompatActivity() {
         initUnpackItems()
         checkAllTask()
 
-        // 加载开屏广告
-        if (AllSettings.showSplashAd.getValue()) {
-            loadSplashAd()
-        }
-
         if (checkTasksToMain()) {
             return
         }
+
+        // 根据设置开关加载 AdMob 开屏广告
+        loadSplashAd()
 
         setContent {
             ZalithLauncherTheme {
@@ -128,225 +119,26 @@ class SplashActivity : BaseAppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 参考友盟 UMSplashAdDemo：从后台切回时若已经可以跳转则直接跳转
-        if (canJump) {
-            goToContentOrHome()
-        }
         canJump = true
+        // 从后台切回时，如果任务已完成，展示开屏广告
+        if (areAllTasksFinished() && !hasNavigatedToMain) {
+            showSplashAdIfAvailable()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        // 参考友盟 UMSplashAdDemo：离开页面时不允许跳转
         canJump = false
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // 参考友盟 UMSplashAdDemo：清理超时任务
-        mReqTimeout?.let { mHandler.removeCallbacks(it) }
-        mReqTimeout = null
+        canJump = false
     }
 
-    /**
-     * 禁止返回键退出开屏广告（参考友盟 UMSplashAdDemo）
-     */
+    /** 禁用返回键：开屏期间不允许退出 */
     override fun onBackPressed() {
-        // 开屏广告展示期间禁用返回键
-    }
-
-    /**
-     * 加载并展示友盟开屏广告（参考友盟 UMSplashAdDemo 官方文档示例）
-     *
-     * 由于 CI 环境缺少 union SDK 依赖，使用纯反射调用。
-     * 采用多候选包路径 fallback 机制以适应不同版本的 SDK 类路径。
-     */
-    @Suppress("UNCHECKED_CAST", "UNUSED_VARIABLE")
-    private fun loadSplashAd() {
-        // 参考友盟 UMSplashAdDemo：设置请求超时
-        mReqTimeout = Runnable {
-            mReqTimeout = null
-            goToContentOrHome()
-        }
-        mHandler.postDelayed(mReqTimeout!!, 5000)
-
-        runCatching {
-            // 1. 加载 UMUnionSdk（已验证运行时存在）
-            val unionSdkClass = Class.forName("com.umeng.union.UMUnionSdk")
-
-            // 2. 多候选包路径 fallback，找到 UMAdConfig 和 UMUnionApi
-            //    友盟不同 SDK 版本可能把类放在不同包下
-            val candidateConfigClassNames = listOf(
-                "com.umeng.union.api.UMAdConfig",       // 友盟 demo 代码
-                "com.umeng.union.common.UMAdConfig",     // 原始 ZalithLauncher import
-                "com.umeng.union.UMAdConfig",            // 顶级包（与 UMUnionSdk 同级）
-            )
-            val candidateApiClassNames = listOf(
-                "com.umeng.union.api.UMUnionApi",
-                "com.umeng.union.common.UMUnionApi",
-                "com.umeng.union.UMUnionApi",
-            )
-
-            var umAdConfigClass: Class<*>? = null
-            var umUnionApiClass: Class<*>? = null
-
-            for (i in candidateConfigClassNames.indices) {
-                try {
-                    umAdConfigClass = Class.forName(candidateConfigClassNames[i])
-                    umUnionApiClass = Class.forName(candidateApiClassNames[i])
-                    Logger.info(TAG, "Found union SDK classes: UMAdConfig=${umAdConfigClass.name}, UMUnionApi=${umUnionApiClass.name}")
-                    break
-                } catch (_: ClassNotFoundException) {
-                    continue
-                }
-            }
-
-            if (umAdConfigClass == null || umUnionApiClass == null) {
-                Logger.warning(TAG, "UMAdConfig/UMUnionApi not found in any known package")
-                return@runCatching
-            }
-
-            // 3. 反射构造 UMAdConfig
-            val builderClass = umAdConfigClass.classLoader
-                .loadClass("${umAdConfigClass.name}\$Builder")
-            val configBuilder = builderClass.getDeclaredConstructor().newInstance()
-            builderClass.getDeclaredMethod("setSlotId", String::class.java)
-                .invoke(configBuilder, SPLASH_AD_SLOT_ID)
-            val config = builderClass.getDeclaredMethod("build")
-                .invoke(configBuilder)
-
-            // 4. 加载内部类：AdRenderListener、SplashAdListener、AdLoadListener
-            val adRenderListenerClass = umUnionApiClass.classLoader
-                .loadClass("${umUnionApiClass.name}\$AdRenderListener")
-            val splashAdListenerClass = umUnionApiClass.classLoader
-                .loadClass("${umUnionApiClass.name}\$SplashAdListener")
-            // AdLoadListener 是 AdRenderListener 的父接口，loadSplashAd 方法签名可能用它
-            val adLoadListenerClass = try {
-                umUnionApiClass.classLoader.loadClass("${umUnionApiClass.name}\$AdLoadListener")
-            } catch (_: ClassNotFoundException) {
-                null
-            }
-
-            // 5. 使用动态代理实现 AdRenderListener（兼容 AdLoadListener）
-            val listenerHandler = java.lang.reflect.InvocationHandler { _, method, args ->
-                when (method.name) {
-                    "onSuccess" -> {
-                        Logger.info(TAG, "Splash ad request success")
-                    }
-                    "onFailure" -> {
-                        Logger.warning(TAG, "Splash ad request failure: ${args?.getOrNull(1)}")
-                        mReqTimeout?.let { mHandler.removeCallbacks(it) }
-                        mReqTimeout = null
-                        if (!isFinishing) goToContentOrHome()
-                    }
-                    "onRenderSuccess" -> {
-                        Logger.info(TAG, "Splash ad render success, showing ad")
-                        mReqTimeout?.let { mHandler.removeCallbacks(it) }
-                        mReqTimeout = null
-                        if (isFinishing || isDestroyed) return@InvocationHandler null
-
-                        val display = args?.getOrNull(1) ?: return@InvocationHandler null
-
-                        // 设置 SplashAdListener
-                        val splashAdListenerHandler = java.lang.reflect.InvocationHandler { _, m, a ->
-                            when (m.name) {
-                                "onExposed" -> Logger.info(TAG, "Splash ad exposed")
-                                "onClicked" -> Logger.info(TAG, "Splash ad clicked")
-                                "onDismissed" -> {
-                                    Logger.info(TAG, "Splash ad dismissed")
-                                    goToContentOrHome()
-                                }
-                                "onError" -> {
-                                    Logger.warning(TAG, "Splash ad error: code=${a?.getOrNull(0)}, msg=${a?.getOrNull(1)}")
-                                    goToContentOrHome()
-                                }
-                            }
-                            null
-                        }
-                        val splashAdListener = java.lang.reflect.Proxy.newProxyInstance(
-                            splashAdListenerClass.classLoader,
-                            arrayOf(splashAdListenerClass),
-                            splashAdListenerHandler
-                        )
-
-                        display.javaClass.getDeclaredMethod("setAdEventListener", splashAdListenerClass)
-                            .invoke(display, splashAdListener)
-
-                        val container = FrameLayout(this).apply {
-                            layoutParams = FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
-                        }
-                        setContentView(container)
-
-                        // show 方法签名可能是 show(ViewGroup) 或 show(ViewGroup, View, View)
-                        val showMethod = display.javaClass.methods
-                            .firstOrNull { it.name == "show" && it.parameterTypes.size == 1 }
-                        if (showMethod != null) {
-                            showMethod.invoke(display, container)
-                        } else {
-                            display.javaClass.getDeclaredMethod("show", ViewGroup::class.java)
-                                .invoke(display, container)
-                        }
-                    }
-                    "onRenderFailure" -> {
-                        Logger.warning(TAG, "Splash ad render failure: ${args?.getOrNull(1)}")
-                        goToContentOrHome()
-                    }
-                }
-                null
-            }
-
-            val listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
-                adRenderListenerClass.classLoader,
-                arrayOf(adRenderListenerClass),
-                listenerHandler
-            )
-
-            // 6. 反射调用 UMUnionSdk.loadSplashAd
-            //    getDeclaredMethod 做精确类型匹配：先尝试 AdRenderListener，再尝试 AdLoadListener
-            val loadMethod = try {
-                unionSdkClass.getDeclaredMethod(
-                    "loadSplashAd",
-                    umAdConfigClass,
-                    adRenderListenerClass,
-                    Int::class.javaPrimitiveType
-                )
-            } catch (_: NoSuchMethodException) {
-                if (adLoadListenerClass != null) {
-                    unionSdkClass.getDeclaredMethod(
-                        "loadSplashAd",
-                        umAdConfigClass,
-                        adLoadListenerClass,
-                        Int::class.javaPrimitiveType
-                    )
-                } else {
-                    throw NoSuchMethodException("loadSplashAd not found with AdRenderListener or AdLoadListener")
-                }
-            }
-            loadMethod.invoke(null, config, listenerProxy, 5000)
-        }.onFailure {
-            Logger.warning(TAG, "Splash ad load failed: ${it.message}", it)
-            mReqTimeout?.let { mHandler.removeCallbacks(it) }
-            mReqTimeout = null
-            goToContentOrHome()
-        }
-    }
-
-    /**
-     * 广告关闭/失败时尝试进入内容（参考友盟 UMSplashAdDemo goHome 模式）
-     * 使用 canJump 防止在后台误跳转
-     */
-    private fun goToContentOrHome() {
-        Logger.info(TAG, "goToContentOrHome canJump=$canJump")
-        if (canJump) {
-            if (areAllTasksFinished()) {
-                navigateToMain()
-            }
-        } else {
-            canJump = true
-        }
+        // 空实现，阻止返回键退出
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -364,6 +156,53 @@ class SplashActivity : BaseAppCompatActivity() {
             finish()
         }
     }
+
+    // ======================== AdMob 开屏广告 ========================
+
+    /** 根据设置开关加载开屏广告 */
+    private fun loadSplashAd() {
+        if (AllSettings.showSplashAd.getValue()) {
+            AppOpenAdManager.loadAd(this)
+        }
+    }
+
+    /** 展示开屏广告（如果已加载），否则直接进入内容页 */
+    private fun showSplashAdIfAvailable() {
+        if (!AllSettings.showSplashAd.getValue() || hasNavigatedToMain) {
+            goToContentOrHome()
+            return
+        }
+
+        val shown = AppOpenAdManager.showAdIfAvailable(this) {
+            // 广告关闭或展示失败 → 预加载下一则，然后跳转
+            loadSplashAd()
+            goToContentOrHome()
+        }
+
+        if (!shown) {
+            // 广告不可用（未加载/过期），直接跳转
+            goToContentOrHome()
+        } else {
+            // 广告正在展示中，设置超时保护
+            lifecycleScope.launch {
+                delay(AD_SHOW_TIMEOUT_MS)
+                if (!hasNavigatedToMain) {
+                    Logger.warning(TAG, "Ad show timeout, forcing navigation to main")
+                    goToContentOrHome()
+                }
+            }
+        }
+    }
+
+    /** 统一的跳转入口：canJump 防误跳 + 任务完成检查 */
+    private fun goToContentOrHome() {
+        if (!canJump || hasNavigatedToMain) return
+        if (!areAllTasksFinished()) return
+
+        navigateToMain()
+    }
+
+    // ======================== 原有逻辑 ========================
 
     private fun initUnpackItems() {
         Components.entries.forEach { component ->
@@ -478,8 +317,10 @@ class SplashActivity : BaseAppCompatActivity() {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
             }
-            // 解压任务全部完成后，检查是否应该跳转到主界面
-            goToContentOrHome()
+            // 解压任务全部完成后展示开屏广告，再跳转主页
+            if (!hasNavigatedToMain && areAllTasksFinished()) {
+                showSplashAdIfAvailable()
+            }
         }
     }
 
@@ -496,7 +337,9 @@ class SplashActivity : BaseAppCompatActivity() {
             }
         }
 
-        swapToMain()
+        // 所有任务已完成 → 展示开屏广告后再跳转
+        canJump = true
+        showSplashAdIfAvailable()
         return true
     }
 
@@ -511,8 +354,6 @@ class SplashActivity : BaseAppCompatActivity() {
         if (hasNavigatedToMain) return
         swapToMain()
     }
-
-
 
     private fun handleImportIntent(source: Intent): Boolean {
         if (!isImportIntent(source)) return false

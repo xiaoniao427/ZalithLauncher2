@@ -48,7 +48,7 @@ import com.tencent.mmkv.MMKV
 import com.umeng.commonsdk.UMConfigure
 import com.umeng.message.PushAgent
 import com.umeng.message.api.UPushRegisterCallback
-import com.umeng.unionmarketing.UMUnionSdk
+import com.umeng.union.UMUnionSdk
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import java.io.File

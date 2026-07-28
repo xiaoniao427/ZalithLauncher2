@@ -1,0 +1,129 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="shortcut icon" href="//img.alicdn.com/tfs/TB1BS1CkwvD8KJjy0FlXXagBFXa-16-16.ico">
+    <link rel="stylesheet" href="//g.alicdn.com/um-f2e/cdn-res/devcenter/default.min.css">
+    <title>开发者中心</title>
+    <!-- <link rel="stylesheet" href="//g.alicdn.com/um-f2e/dev-center/1.0.11/index.css" /> -->
+    <script>
+        if (typeof String.prototype.startsWith != 'function') {
+            String.prototype.startsWith = function (prefix){
+                return this.slice(0, prefix.length) === prefix;
+            };
+        }
+
+        if (typeof Object.assign != 'function') {
+            Object.defineProperty(Object, "assign", {
+                value: function assign(target, varArgs) {
+                    'use strict';
+                    if (target == null) {
+                        throw new TypeError('Cannot convert undefined or null to object');
+                    }
+                    var to = Object(target);
+                    for (var index = 1; index < arguments.length; index++) {
+                        var nextSource = arguments[index];
+                        if (nextSource != null) {
+                            for (var nextKey in nextSource) {
+                                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                    to[nextKey] = nextSource[nextKey];
+                                }
+                            }
+                        }
+                    }
+                    return to;
+                },
+                writable: true,
+                configurable: true
+            });
+        }
+    </script>
+    <!-- start Dplus -->  
+    <script type="text/javascript" data-debug="true" id="uma-signature-not-to-change" data-dplus-siteid="1258498910" src="https://g.alicdn.com/jssdk/dplus2aplus/index.umd.js"></script>
+    <!-- end Dplus -->
+    <script>
+        window.dplus && dplus.register({
+            userid: (function(){
+                var m = document.cookie.match(/umplus_uc_loginid=([^;]+)/);
+                if (m&&m.length>1) return decodeURIComponent(m[1]);
+                return '';
+            })()
+        });
+    </script>
+    <script src="//g.alicdn.com/um-f2e/cdn-res/devcenter/highlight.min.js" crossorigin></script>
+</head>
+<body>
+<!-- <script async src="//s.umeng.com/common/js/nav/ihome.js"></script> -->
+
+<div id="J_appContainer"></div>
+
+<script>
+    window.cdnPublicPath = "//g.alicdn.com/um-f2e/dev-center/1.0.11/";
+</script>
+<script src="//g.alicdn.com/um-f2e/dev-center/1.0.11/vendors.js"></script>
+<script src="//g.alicdn.com/um-f2e/dev-center/1.0.11/index.js"></script>
+
+<!-- <script async src="//s.umeng.com/common/js/footer/footer.js"></script> -->
+
+<script>
+    (function() {
+      var _pathName = location.pathname.toLowerCase();
+      if (_pathName.substr(0, 4) === '/dop' || _pathName.substr(0, 8) === '/preview') {
+
+      } else {
+        var header = document.createElement("script"),
+            footer = document.createElement("script"),
+            alicare = document.createElement("script");
+
+        header.type = "text/javascript";
+        header.charset = "utf-8";
+        header.async = !0;
+        header.src = '//s.umeng.com/common/js/nav/ihome.js';
+
+        footer.type = "text/javascript";
+        footer.charset = "utf-8";
+        footer.async = !0;
+        footer.src = '//s.umeng.com/common/js/footer/footer.js';
+
+        alicare.type = "text/javascript";
+        alicare.charset = "utf-8";
+        alicare.defer = !0;
+        alicare.src = 'https://fragment.tmall.com/umsite/default/alicarejs';
+
+        e = document.getElementsByTagName("script")[0];
+        e.parentNode.insertBefore(header, e);
+        document.body.appendChild(footer);
+        document.body.appendChild(alicare);
+      }
+    })();
+</script>
+
+<!-- clue:start -->
+<script src="//g.alicdn.com/dt/tracker/3.4.10/tracker.Tracker.js" crossorigin></script>
+<script src="//g.alicdn.com/dt/tracker/3.4.11/tracker.performanceTrackerPlugin.js" crossorigin></script>
+<script>
+    (function(){
+        var tracker = new window.Tracker({
+            pid: 'um-dev-center',
+            uidResolver: function() {
+                var m = document.cookie.match(/umplus_uc_loginid=([^;]+)/);
+                if (m&&m.length>1) return decodeURIComponent(m[1]);
+                return 'Unknow(Clue)';
+            },
+            plugins: [
+                [performanceTrackerPlugin]
+            ]
+        });
+        // 监听全局 JS 异常
+        tracker.onGlobalError();
+    })();
+
+</script>
+<!-- clue:end -->
+
+</body>
+</html>

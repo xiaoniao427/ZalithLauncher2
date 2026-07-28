@@ -43,8 +43,8 @@ import com.movtery.zalithlauncher.components.jre.UnpackJnaTask
 import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.umeng.message.PushAgent
-import com.umeng.union.UMAdConfig
-import com.umeng.union.UMUnionApi
+import com.umeng.union.api.UMAdConfig
+import com.umeng.union.api.UMUnionApi
 import com.umeng.union.UMUnionSdk
 import com.umeng.union.UMSplashAD
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
@@ -229,13 +229,14 @@ class SplashActivity : BaseAppCompatActivity() {
                 .build()
             UMUnionSdk.loadSplashAd(config, mLoadListener, AD_REQUEST_TIMEOUT.toInt())
             // 设置超时保护
-            mReqTimeout = Runnable {
+            val timeoutRunnable = Runnable {
                 mReqTimeout = null
                 if (!hasNavigatedToMain) {
                     goToContentOrHome()
                 }
             }
-            mHandler.postDelayed(mReqTimeout, AD_REQUEST_TIMEOUT)
+            mReqTimeout = timeoutRunnable
+            mHandler.postDelayed(timeoutRunnable, AD_REQUEST_TIMEOUT)
         } catch (e: Exception) {
             Logger.warning(TAG, "Failed to load splash ad: ${e.message}")
             // 加载失败，直接走正常流程

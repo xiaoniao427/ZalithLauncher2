@@ -173,8 +173,8 @@ class SplashActivity : BaseAppCompatActivity() {
         try {
             // 通过反射调用 UMUnionSdk.loadSplashAd，避免编译期依赖 union SDK 类型
             val unionSdkClass = Class.forName("com.umeng.union.UMUnionSdk")
-            val umAdConfigClass = Class.forName("com.umeng.union.common.UMAdConfig")
-            val umUnionApiClass = Class.forName("com.umeng.union.UMUnionApi")
+            val umAdConfigClass = Class.forName("com.umeng.union.api.UMAdConfig")
+            val umUnionApiClass = Class.forName("com.umeng.union.api.UMUnionApi")
 
             val configBuilder = umAdConfigClass.getDeclaredMethod("Builder").invoke(null)
             val config = configBuilder.javaClass.getDeclaredMethod("setSlotId", String::class.java)
@@ -217,7 +217,7 @@ class SplashActivity : BaseAppCompatActivity() {
                             }
                             null
                         }
-                        val splashAdListenerClass = Class.forName("com.umeng.union.UMUnionApi\$SplashAdListener")
+                        val splashAdListenerClass = Class.forName("com.umeng.union.api.UMUnionApi\$SplashAdListener")
                         val splashAdListener = java.lang.reflect.Proxy.newProxyInstance(
                             splashAdListenerClass.classLoader,
                             arrayOf(splashAdListenerClass),
@@ -247,7 +247,7 @@ class SplashActivity : BaseAppCompatActivity() {
             }
 
             val adRenderListenerClass = umUnionApiClass.classLoader
-                .loadClass("com.umeng.union.UMUnionApi\$AdRenderListener")
+                .loadClass("com.umeng.union.api.UMUnionApi\$AdRenderListener")
             val listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
                 adRenderListenerClass.classLoader,
                 arrayOf(adRenderListenerClass),
@@ -418,6 +418,8 @@ class SplashActivity : BaseAppCompatActivity() {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
             }
+            // 解压任务全部完成后，检查是否应该跳转到主界面
+            goToContentOrHome()
         }
     }
 

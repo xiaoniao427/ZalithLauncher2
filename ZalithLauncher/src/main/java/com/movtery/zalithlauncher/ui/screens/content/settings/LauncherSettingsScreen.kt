@@ -241,6 +241,20 @@ fun LauncherSettingsScreen(
                 }
             }
 
+            // 开屏广告趣味开关
+            AnimatedItem(scope) { yOffset ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                ) {
+                    SplashAdSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Single
+                    )
+                }
+            }
+
             //启动器背景设置板块
             LocalBackgroundViewModel.current?.let { backgroundViewModel ->
                 AnimatedItem(scope) { yOffset ->

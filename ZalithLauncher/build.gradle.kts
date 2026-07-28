@@ -268,6 +268,10 @@ dependencies {
     implementation("com.umeng.umsdk:uyumao:+") //高级运营分析功能依赖库（可选）。使用卸载分析、开启反作弊能力请务必集成，以免影响高级功能使用。common需搭配v9.6.3及以上版本，asms需搭配v1.7.0及以上版本。需更新隐私声明。需配置混淆，以避免依赖库无法生效，见本文下方【混淆设置】部分。
     implementation("com.umeng.umsdk:abtest:+")//使用U-App中ABTest能力（可选）
     
+    // U-AppWin 广告SDK
+    implementation("com.umeng.umsdk:auvoke:+")//必选，U-AppWin广告变现
+    implementation("com.umeng.umsdk:uappwin:+")//必选，U-AppWin广告变现核心
+    
     api("com.umeng.umsdk:common:+")
     api("com.umeng.umsdk:asms:+")
     api("com.umeng.umsdk:push:+")

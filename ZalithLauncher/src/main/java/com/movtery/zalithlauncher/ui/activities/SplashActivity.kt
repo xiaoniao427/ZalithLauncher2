@@ -23,6 +23,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +50,10 @@ import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
+import com.umeng.unionmarketing.UMUnionApi
+import com.umeng.unionmarketing.UMUnionSdk
+import com.umeng.unionmarketing.common.UMAdConfig
+import com.umeng.unionmarketing.entity.UMSplashAD
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
@@ -64,6 +70,9 @@ const val IMPORT_TYPE_MODPACK = "modpack"
 const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
+/** 友盟开屏广告位ID */
+private const val SPLASH_AD_SLOT_ID = "100012689"
+
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
 class SplashActivity : BaseAppCompatActivity() {
@@ -71,6 +80,15 @@ class SplashActivity : BaseAppCompatActivity() {
     private val finishedTaskCount = AtomicInteger(0)
 
     private val backStackViewModel: SplashBackStackViewModel by viewModels()
+
+    /** 开屏广告容器 */
+    private var splashAdContainer: FrameLayout? = null
+
+    /** 开屏广告是否已关闭 */
+    private var isSplashAdDismissed = false
+
+    /** 是否已经跳转到主界面 */
+    private var hasNavigatedToMain = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -81,6 +99,11 @@ class SplashActivity : BaseAppCompatActivity() {
 
         initUnpackItems()
         checkAllTask()
+
+        // 加载开屏广告
+        if (AllSettings.showSplashAd.getValue()) {
+            loadSplashAd()
+        }
 
         if (checkTasksToMain()) {
             return
@@ -100,6 +123,91 @@ class SplashActivity : BaseAppCompatActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 开屏广告展示期间不允许用户直接跳转
+    }
+
+    /**
+     * 加载并展示友盟开屏广告
+     */
+    private fun loadSplashAd() {
+        splashAdContainer = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        val config = UMAdConfig.Builder()
+            .setSlotId(SPLASH_AD_SLOT_ID)
+            .build()
+
+        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdRenderListener<UMSplashAD> {
+            override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+                // 广告请求成功，可用于比价
+                Logger.info(TAG, "Splash ad request success")
+            }
+
+            override fun onFailure(type: UMUnionApi.AdType, message: String) {
+                // 广告请求失败，直接跳过
+                Logger.warning(TAG, "Splash ad request failure: $message")
+                goToContent()
+            }
+
+            override fun onRenderSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+                // 素材加载完成，可以展示
+                Logger.info(TAG, "Splash ad render success, showing ad")
+                if (isFinishing || isDestroyed) return
+
+                display.setAdEventListener(object : UMUnionApi.SplashAdListener {
+                    override fun onExposed() {
+                        Logger.info(TAG, "Splash ad exposed")
+                    }
+
+                    override fun onClicked(view: android.view.View) {
+                        Logger.info(TAG, "Splash ad clicked")
+                    }
+
+                    override fun onDismissed() {
+                        Logger.info(TAG, "Splash ad dismissed")
+                        isSplashAdDismissed = true
+                        goToContent()
+                    }
+
+                    override fun onError(code: Int, message: String) {
+                        Logger.warning(TAG, "Splash ad error: code=$code, msg=$message")
+                        isSplashAdDismissed = true
+                        goToContent()
+                    }
+                })
+
+                splashAdContainer?.let { container ->
+                    setContentView(container)
+                }
+                splashAdContainer?.let { display.show(it) }
+            }
+
+            override fun onRenderFailure(type: UMUnionApi.AdType, message: String) {
+                // 素材渲染失败
+                Logger.warning(TAG, "Splash ad render failure: $message")
+                goToContent()
+            }
+        }, 5000)
+    }
+
+    /**
+     * 广告未准备好时直接进入内容
+     * 如果所有任务已完成则直接跳转主界面，否则保持 SplashScreen 显示
+     */
+    private fun goToContent() {
+        if (isSplashAdDismissed && hasNavigatedToMain) return
+
+        if (areAllTasksFinished()) {
+            navigateToMain()
         }
     }
 
@@ -232,7 +340,10 @@ class SplashActivity : BaseAppCompatActivity() {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
             }
-            swapToMain()
+            // 如果广告已关闭或未展示，直接跳转主界面
+            if (isSplashAdDismissed) {
+                navigateToMain()
+            }
         }
     }
 
@@ -255,7 +366,14 @@ class SplashActivity : BaseAppCompatActivity() {
 
     private fun swapToMain() {
         startActivity(Intent(this, MainActivity::class.java))
+        hasNavigatedToMain = true
         finish()
+    }
+
+    /** 统一的主界面跳转入口 */
+    private fun navigateToMain() {
+        if (hasNavigatedToMain) return
+        swapToMain()
     }
 
 

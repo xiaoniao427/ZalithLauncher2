@@ -48,6 +48,7 @@ import com.tencent.mmkv.MMKV
 import com.umeng.commonsdk.UMConfigure
 import com.umeng.message.PushAgent
 import com.umeng.message.api.UPushRegisterCallback
+import com.umeng.unionmarketing.UMUnionSdk
 import dagger.hilt.android.HiltAndroidApp
 import okio.Path.Companion.toOkioPath
 import java.io.File
@@ -98,6 +99,9 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
                 UMConfigure.DEVICE_TYPE_PHONE,
                 UMENG_MESSAGE_SECRET
             )
+
+            // 初始化友盟广告组件
+            UMUnionSdk.init(context)
 
             val pushAgent = PushAgent.getInstance(context)
             pushAgent.register(object : UPushRegisterCallback {

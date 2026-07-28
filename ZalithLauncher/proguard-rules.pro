@@ -62,6 +62,10 @@
 
 -keep class com.uyumao.** { *; }
 
+# U-AppWin 广告SDK
+-keep class com.umeng.unionmarketing.** {*;}
+-keep class com.umeng.auvoke.** {*;}
+
 -keepclassmembers class * {
    public <init> (org.json.JSONObject);
 }

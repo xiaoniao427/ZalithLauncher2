@@ -1076,6 +1076,20 @@
     <string name="settings_launcher_home_page_type_warning">自訂主頁屬於第三方內容，啟動器不對其內容做任何擔保，請謹慎接收不熟悉的主頁！</string>
     <string name="settings_launcher_home_page_url">主頁下載連結：</string>
     <string name="settings_launcher_home_page_loading">載入主頁中</string>
+    
+    <!-- 開屏廣告設定 -->
+    <string name="settings_splash_ad_title">顯示開屏廣告</string>
+    <string name="settings_splash_ad_summary_on">開屏廣告有助於維持我們的開發。連續快速點擊 3 次即可關閉。</string>
+    <string name="settings_splash_ad_summary_off">開屏廣告已關閉。點按即可開啟，支持我們！</string>
+    <string name="settings_splash_ad_tap_hint">開屏廣告已關閉 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">關閉開屏廣告？</string>
+    <string name="settings_splash_ad_dissuade_text1">廣告收益能夠幫助應用維持免費並支持持續開發。您確定要關閉開屏廣告嗎？</string>
+    <string name="settings_splash_ad_dissuade_confirm1">是的，我要關閉</string>
+    <string name="settings_splash_ad_dissuade_cancel1">不了，保持開啟</string>
+    <string name="settings_splash_ad_dissuade_title2">真的不再考慮一下嗎？</string>
+    <string name="settings_splash_ad_dissuade_text2">每一次展示都是對我們的莫大支持！🙏 沒有了廣告收入，我們將很難繼續維護這個項目。您真的、真的確定嗎？</string>
+    <string name="settings_splash_ad_dissuade_confirm2">好吧，仍要關閉</string>
+    <string name="settings_splash_ad_dissuade_cancel2">OK，我還是留著吧</string>
     <string name="just_now">現在</string>
     <string name="minutes_ago">%d 分鐘前</string>
     <string name="hours_ago">%d 小時前</string>

@@ -633,6 +633,11 @@ object AllSettings : SettingsRegistry() {
     val showSponsorship = boolSetting("showSponsorship", true)
 
     /**
+     * 是否显示开屏广告
+     */
+    val showSplashAd = boolSetting("showSplashAd", true)
+
+    /**
      * 搜索模组的初始搜索平台
      */
     val searchModPlatform = enumSetting("searchModPlatform", Platform.MODRINTH)

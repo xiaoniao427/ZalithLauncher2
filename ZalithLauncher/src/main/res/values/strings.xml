@@ -1079,6 +1079,20 @@
     <string name="settings_launcher_home_page_type_warning">Custom home pages are third-party content. The launcher does not provide any guarantee for their content. Please be cautious when accepting unfamiliar home pages!</string>
     <string name="settings_launcher_home_page_url">Home Page Download URL:</string>
     <string name="settings_launcher_home_page_loading">Loading Home Page</string>
+    
+    <!-- 开屏广告设置 -->
+    <string name="settings_splash_ad_title">Display Splash Ad</string>
+    <string name="settings_splash_ad_summary_on">Splash ads help support development. Tap 3 times quickly to turn off.</string>
+    <string name="settings_splash_ad_summary_off">Splash ads are turned off. Tap to turn on and support us!</string>
+    <string name="settings_splash_ad_tap_hint">Splash ads are currently disabled 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">Turn Off Splash Ads?</string>
+    <string name="settings_splash_ad_dissuade_text1">Ads help us keep the app free and support ongoing development. Are you sure you want to disable splash ads?</string>
+    <string name="settings_splash_ad_dissuade_confirm1">Yes, I want to turn off</string>
+    <string name="settings_splash_ad_dissuade_cancel1">No, keep them on</string>
+    <string name="settings_splash_ad_dissuade_title2">Are You Absolutely Sure?</string>
+    <string name="settings_splash_ad_dissuade_text2">Every view makes a difference! 🙏 Without ads, we\'d have a harder time maintaining this project. Are you really, really sure?</string>
+    <string name="settings_splash_ad_dissuade_confirm2">Fine, turn them off</string>
+    <string name="settings_splash_ad_dissuade_cancel2">OK, I\'ll keep them on</string>
     <!--  Control  -->
     <string name="control_keyboard_bind_title">Bind Key</string>
     <string name="control_keyboard_bind_summary">Press the key you want to bind on your keyboard</string>

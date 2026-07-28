@@ -187,39 +187,30 @@ class SplashActivity : BaseAppCompatActivity() {
         }
         mHandler.postDelayed(mReqTimeout!!, 5000)
 
-        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdLoadListener<UMSplashAD> {
+        UMUnionSdk.loadSplashAd(config, object : UMUnionApi.AdRenderListener<UMSplashAD> {
             override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+                // 广告请求成功，可用于比价
                 Logger.info(TAG, "Splash ad request success")
+            }
+
+            override fun onFailure(type: UMUnionApi.AdType, message: String) {
+                // 广告请求失败，直接跳过
+                Logger.warning(TAG, "Splash ad request failure: $message")
+                // 参考友盟 UMSplashAdDemo：请求失败移除超时
+                mReqTimeout?.let { mHandler.removeCallbacks(it) }
+                mReqTimeout = null
+                if (isFinishing) return
+                goToContentOrHome()
+            }
+
+            override fun onRenderSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+                // 素材加载完成，可以展示
+                Logger.info(TAG, "Splash ad render success, showing ad")
                 // 参考友盟 UMSplashAdDemo：请求成功后移除超时
                 mReqTimeout?.let { mHandler.removeCallbacks(it) }
                 mReqTimeout = null
 
-                if (isFinishing) return
-
-                // 参考友盟 UMSplashAdDemo：如果是视频广告，设置视频监听
-                if (display.isVideo) {
-                    display.setVideoListener(object : UMUnionApi.VideoListener {
-                        override fun onReady() {
-                            Logger.info(TAG, "Splash video ready, duration: ${display.videoPlayer?.duration}")
-                        }
-
-                        override fun onStart() {
-                            Logger.info(TAG, "Splash video start")
-                        }
-
-                        override fun onPause() {
-                            Logger.info(TAG, "Splash video pause")
-                        }
-
-                        override fun onCompleted() {
-                            Logger.info(TAG, "Splash video completed")
-                        }
-
-                        override fun onError(message: String) {
-                            Logger.warning(TAG, "Splash video error: $message")
-                        }
-                    })
-                }
+                if (isFinishing || isDestroyed) return
 
                 display.setAdEventListener(object : UMUnionApi.SplashAdListener {
                     override fun onExposed() {
@@ -249,12 +240,9 @@ class SplashActivity : BaseAppCompatActivity() {
                 splashAdContainer?.let { display.show(it) }
             }
 
-            override fun onFailure(type: UMUnionApi.AdType, message: String) {
-                Logger.warning(TAG, "Splash ad request failure: $message")
-                // 参考友盟 UMSplashAdDemo：请求失败移除超时
-                mReqTimeout?.let { mHandler.removeCallbacks(it) }
-                mReqTimeout = null
-                if (isFinishing) return
+            override fun onRenderFailure(type: UMUnionApi.AdType, message: String) {
+                // 素材渲染失败
+                Logger.warning(TAG, "Splash ad render failure: $message")
                 goToContentOrHome()
             }
         }, 5000)

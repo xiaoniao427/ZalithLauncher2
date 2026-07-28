@@ -173,13 +173,14 @@ class SplashActivity : BaseAppCompatActivity() {
         try {
             // 通过反射调用 UMUnionSdk.loadSplashAd，避免编译期依赖 union SDK 类型
             val unionSdkClass = Class.forName("com.umeng.union.UMUnionSdk")
-            val umAdConfigClass = Class.forName("com.umeng.union.api.UMAdConfig")
-            val umUnionApiClass = Class.forName("com.umeng.union.api.UMUnionApi")
+            val umAdConfigBuilderClass = Class.forName("com.umeng.union.common.UMAdConfig\$Builder")
+            val umUnionApiClass = Class.forName("com.umeng.union.UMUnionApi")
 
-            val configBuilder = umAdConfigClass.getDeclaredMethod("Builder").invoke(null)
-            val config = configBuilder.javaClass.getDeclaredMethod("setSlotId", String::class.java)
+            val configBuilder = umAdConfigBuilderClass.getDeclaredConstructor().newInstance()
+            configBuilder.javaClass.getDeclaredMethod("setSlotId", String::class.java)
                 .invoke(configBuilder, SPLASH_AD_SLOT_ID)
-                ?.javaClass?.getDeclaredMethod("build")?.invoke(configBuilder)
+            val config = configBuilder.javaClass.getDeclaredMethod("build")
+                .invoke(configBuilder)
 
             // 使用动态代理实现 AdRenderListener
             val listenerHandler = java.lang.reflect.InvocationHandler { _, method, args ->
@@ -217,7 +218,7 @@ class SplashActivity : BaseAppCompatActivity() {
                             }
                             null
                         }
-                        val splashAdListenerClass = Class.forName("com.umeng.union.api.UMUnionApi\$SplashAdListener")
+                        val splashAdListenerClass = Class.forName("com.umeng.union.UMUnionApi\$SplashAdListener")
                         val splashAdListener = java.lang.reflect.Proxy.newProxyInstance(
                             splashAdListenerClass.classLoader,
                             arrayOf(splashAdListenerClass),
@@ -247,7 +248,7 @@ class SplashActivity : BaseAppCompatActivity() {
             }
 
             val adRenderListenerClass = umUnionApiClass.classLoader
-                .loadClass("com.umeng.union.api.UMUnionApi\$AdRenderListener")
+                .loadClass("com.umeng.union.UMUnionApi\$AdRenderListener")
             val listenerProxy = java.lang.reflect.Proxy.newProxyInstance(
                 adRenderListenerClass.classLoader,
                 arrayOf(adRenderListenerClass),
@@ -256,7 +257,7 @@ class SplashActivity : BaseAppCompatActivity() {
 
             val loadSplashAdMethod = unionSdkClass.getDeclaredMethod(
                 "loadSplashAd",
-                umAdConfigClass,
+                umAdConfigBuilderClass.enclosingClass,
                 adRenderListenerClass,
                 Int::class.javaPrimitiveType
             )

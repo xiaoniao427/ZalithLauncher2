@@ -174,6 +174,8 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
         // 友盟预初始化（合规要求：必须在 super.onCreate 之前，不采集设备信息）
         UMConfigure.preInit(this, UMENG_APPKEY, UMENG_CHANNEL)
+        // Union SDK 初始化需在 UMConfigure.init 之前（参考官方 Demo）
+        UMUnionSdk.init(this)
 
         Thread.setDefaultUncaughtExceptionHandler { _, th ->
             //停止所有任务
@@ -197,6 +199,7 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
         super.onCreate()
 
+        // 开启调试日志（含 Union SDK 创意拉取日志，便于排查 1009）
         UMConfigure.setLogEnabled(true)
 
         runCatching {
@@ -225,10 +228,11 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
             showFatalError(this, launchTh)
         }
 
-        // 友盟正式初始化 + 推送注册 + Union SDK（建议在子线程中执行）
+        // 友盟正式初始化 + 推送注册（建议在子线程中执行）
         Thread {
+            // 提交隐私政策授权结果，允许 SDK 采集设备标识（IMEI/OAID 等）
+            UMConfigure.submitPolicyGrantResult(this, true)
             initUmeng(this)
-            UMUnionSdk.init(this)
         }.start()
 
         // AdMob GMA Next-Gen SDK 初始化 — 暂时注释

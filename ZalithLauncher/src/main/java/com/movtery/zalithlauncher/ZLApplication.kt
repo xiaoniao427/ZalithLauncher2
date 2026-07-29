@@ -18,9 +18,11 @@
 
 package com.movtery.zalithlauncher
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Bundle
 import android.os.Process
 import android.util.Log
 import coil3.ImageLoader
@@ -33,12 +35,13 @@ import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.kyant.fishnet.Fishnet
+import com.movtery.zalithlauncher.ad.InterstitialAdManager
 import com.movtery.zalithlauncher.context.refreshContext
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.loadAllSettings
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.showFatalError
 import com.movtery.zalithlauncher.ui.activities.showLauncherCrash
 import com.movtery.zalithlauncher.utils.device.Architecture
@@ -59,7 +62,16 @@ import java.io.IOException
 import kotlin.properties.Delegates
 
 @HiltAndroidApp
-class ZLApplication : Application(), SingletonImageLoader.Factory {
+class ZLApplication : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
+
+    /** 当前前台 Activity 引用 */
+    private var currentActivity: Activity? = null
+
+    /** 应用是否在后台 */
+    private var isAppInBackground = false
+
+    /** 是否已注册生命周期回调 */
+    private var isLifecycleRegistered = false
     companion object {
         private const val TAG = "ZLApplication"
 
@@ -237,7 +249,45 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
 
         // AdMob GMA Next-Gen SDK 初始化 — 暂时注释
         // initAdMob(this)
+
+        // 注册 Activity 生命周期回调（用于插屏广告）
+        if (!isLifecycleRegistered) {
+            registerActivityLifecycleCallbacks(this)
+            isLifecycleRegistered = true
+        }
     }
+
+    // ======================== Activity 生命周期回调（插屏广告） ========================
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+
+    override fun onActivityStarted(activity: Activity) {}
+
+    override fun onActivityResumed(activity: Activity) {
+        currentActivity = activity
+        // 从后台切回前台时，展示插屏广告
+        if (isAppInBackground && AllSettings.showSplashAd.getValue()) {
+            isAppInBackground = false
+            InterstitialAdManager.showAdIfAvailable(activity)
+        }
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        currentActivity = null
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+        // 应用进入后台
+        isAppInBackground = true
+        // 预加载插屏广告
+        if (AllSettings.showSplashAd.getValue()) {
+            InterstitialAdManager.loadAd(activity)
+        }
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+    override fun onActivityDestroyed(activity: Activity) {}
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)

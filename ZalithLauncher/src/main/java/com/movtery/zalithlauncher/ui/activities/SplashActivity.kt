@@ -71,7 +71,7 @@ const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
 /** 友盟开屏广告位 ID */
-private const val SPLASH_AD_SLOT_ID = "100012744"
+private const val SPLASH_AD_SLOT_ID = "100012689"
 
 /** 开屏广告请求超时（毫秒） */
 private const val AD_REQUEST_TIMEOUT = 5_000L

@@ -20,31 +20,38 @@ package com.movtery.zalithlauncher.push
 
 import android.app.NotificationManager as SysNotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.movtery.zalithlauncher.notification.NotificationChannelData
 import com.movtery.zalithlauncher.ui.activities.MainActivity
-import com.umeng.message.UmengMessageIntentService
-import org.android.agoo.client.BaseIntentService
 import org.json.JSONObject
 
 /**
  * 友盟推送消息接收服务。
  *
- * 当推送消息到达时，此服务会被友盟 SDK 自动调用，
+ * 当推送消息到达时，友盟 SDK 会通过 Intent 调起此服务，
  * 负责解析消息内容并通过系统通知展示给用户。
  */
-class PushMessageService : UmengMessageIntentService() {
+class PushMessageService : Service() {
 
     companion object {
         private const val TAG = "PushMessageService"
         private const val NOTIFICATION_ID_BASE = 2000
     }
 
-    override fun onMessage(context: Context, intent: Intent) {
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) {
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
         try {
             val body = intent.getStringExtra("body")
             val extras = intent.getStringExtra("extra")
@@ -60,33 +67,36 @@ class PushMessageService : UmengMessageIntentService() {
             }
 
             // 展示通知
-            showNotification(context, title, text, extras)
+            showNotification(title, text, extras)
 
             Log.i(TAG, "Push message received: title=$title, text=$text")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to process push message", e)
         }
+
+        stopSelf(startId)
+        return START_NOT_STICKY
     }
 
-    private fun showNotification(context: Context, title: String, text: String, extras: JSONObject) {
+    private fun showNotification(title: String, text: String, extras: JSONObject) {
         val channelId = NotificationChannelData.PUSH_MESSAGE_CHANNEL.channelId
         val notificationId = NOTIFICATION_ID_BASE + System.currentTimeMillis().toInt()
 
         // 点击通知跳转到 MainActivity
-        val openIntent = Intent(context, MainActivity::class.java).apply {
+        val openIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             // 将 extra 信息传递到 MainActivity
             extras.optString("url")?.let { url -> putExtra("push_url", url) }
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            context,
+            this,
             notificationId,
             openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val builder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.mipmap.sym_def_app_icon)
             .setContentTitle(title)
             .setContentText(text)
@@ -94,8 +104,8 @@ class PushMessageService : UmengMessageIntentService() {
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as
-            android.app.NotificationManager
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as
+            SysNotificationManager
         manager.notify(notificationId, builder.build())
     }
 }

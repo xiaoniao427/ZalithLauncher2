@@ -25,6 +25,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,6 +95,9 @@ class SplashActivity : BaseAppCompatActivity() {
     /** 广告请求超时任务 */
     private var mReqTimeout: Runnable? = null
 
+    /** 广告展示容器 */
+    private var adContainer: FrameLayout? = null
+
     private val mHandler = Handler(Looper.getMainLooper())
 
     // ======================== 友盟开屏广告加载回调 ========================
@@ -109,6 +114,9 @@ class SplashActivity : BaseAppCompatActivity() {
             display.setAdEventListener(object : UMUnionApi.SplashAdListener {
                 override fun onDismissed() {
                     Logger.info(TAG, "Splash ad dismissed")
+                    // 移除广告容器
+                    (adContainer?.parent as? ViewGroup)?.removeView(adContainer)
+                    adContainer = null
                     goToContentOrHome()
                 }
 
@@ -126,8 +134,18 @@ class SplashActivity : BaseAppCompatActivity() {
                 }
             })
 
-            // 展示广告
-            display.show(window.decorView as android.view.ViewGroup)
+            // 创建居中容器，竖屏广告在横屏下保持原始比例不拉伸
+            val container = FrameLayout(this@SplashActivity).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            adContainer = container
+            // 将容器添加到根视图
+            (window.decorView as ViewGroup).addView(container)
+            // 展示广告到容器中
+            display.show(container)
         }
 
         override fun onFailure(type: UMUnionApi.AdType, message: String) {

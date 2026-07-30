@@ -209,8 +209,9 @@
             android:name="UMENG_CHANNEL"
             android:value="GitHub" />
 
+        <!-- 友盟推送消息接收服务 -->
         <service
-            android:name="com.umeng.message.UmengMessageIntentService"
+            android:name=".push.PushMessageService"
             android:exported="false" />
 
         <activity

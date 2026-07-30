@@ -42,5 +42,10 @@ enum class NotificationChannelData(
     /**
      * 陶瓦联机 VPN 状态显示服务
      */
-    TERRACOTTA_VPN_CHANNEL("terracotta_vpn_channel", { "Terracotta VPN" }, { it.getString(R.string.terracotta_terracotta) }, IMPORTANCE_LOW, false)
+    TERRACOTTA_VPN_CHANNEL("terracotta_vpn_channel", { "Terracotta VPN" }, { it.getString(R.string.terracotta_terracotta) }, IMPORTANCE_LOW, false),
+
+    /**
+     * 友盟推送消息
+     */
+    PUSH_MESSAGE_CHANNEL("push_message", { "消息推送" }, { "推送消息通知" }, android.app.NotificationManager.IMPORTANCE_HIGH)
 }

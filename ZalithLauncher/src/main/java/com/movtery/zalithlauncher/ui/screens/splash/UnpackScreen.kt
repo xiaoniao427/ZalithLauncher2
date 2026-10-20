@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -131,6 +132,13 @@ private fun ActionMenu(
                     stringResource(R.string.splash_screen_unpack_desc)
                 },
                 style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.splash_screen_unofficial_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
             )
         }
 

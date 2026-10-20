@@ -145,6 +145,7 @@
     <string name="splash_screen_unpack_desc">启动器需要安装这些内容，才能够确保 Minecraft 能够正常启动。这些内容已经包含在应用中，需要解压之后才能正常使用，点击下方按钮，开始解压并更新这些内容。</string>
     <string name="splash_screen_installing">启动器正在解压这些内容，解压完成后将自动进入主界面，请耐心等待。</string>
     <string name="splash_screen_agree">同意并安装</string>
+    <string name="splash_screen_unofficial_warning">⚠️ 这是一个非官方修改版本。它与官方开发者无关，也未获得官方认可。使用风险自负。</string>
     <!--  通知  -->
     <string name="notification_title">检查通知权限</string>
     <string name="notification_request">申请权限</string>
@@ -169,6 +170,7 @@
     <string name="unpack_screen_lwjgl">轻量级 Java 游戏库，Minecraft 依赖它运行游戏</string>
     <string name="unpack_screen_launcher">启动器依赖的一些组件</string>
     <string name="unpack_screen_jna">让 Minecraft 能直接调用操作系统的底层功能</string>
+    <string name="unpack_screen_minecraft">Minecraft 基础配置与资源文件</string>
     <!--  主菜单  -->
     <string name="main_launch_game">启动游戏</string>
     <string name="launch_check_mods">检查模组</string>
@@ -1110,6 +1112,31 @@
     <string name="settings_launcher_background_blur_summary">调整背景的模糊效果，此选项较为消耗性能</string>
     <string name="settings_launcher_festivals_effects_title">持续型节日彩蛋效果</string>
     <string name="settings_launcher_festivals_effects_summary">在特定时间段显示持续型彩蛋效果</string>
+    <string name="settings_launcher_home_page_title">主页</string>
+    <string name="settings_launcher_home_page_type_blank">空白</string>
+    <string name="settings_launcher_home_page_type_local">从本地加载</string>
+    <string name="settings_launcher_home_page_type_url">从网络加载</string>
+    <string name="settings_launcher_home_page_type_local_tip">编辑启动器本地的主页文件，启动器使用经过扩展的 Markdown 语法描述主页，编辑完成后，点击刷新重载主页</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc">生成官方主页文档</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc_exists">当前已存在主页文件，你确定要将已有的主页覆盖掉，并重新生成官方文档主页吗？</string>
+    <string name="settings_launcher_home_page_type_url_tip">从指定的链接获取启动器主页文件并缓存，定时刷新重载主页</string>
+    <string name="settings_launcher_home_page_type_warning">自定义主页属于第三方内容，启动器不对其内容做任何担保，请谨慎接收陌生的主页！</string>
+    <string name="settings_launcher_home_page_url">主页下载链接：</string>
+    <string name="settings_launcher_home_page_loading">加载主页中</string>
+    
+    <!-- 广告开关 -->
+    <string name="settings_splash_ad_title">广告开关</string>
+    <string name="settings_splash_ad_summary_on">开启广告有助于维持我们的开发。连续快速点击 3 次即可关闭。</string>
+    <string name="settings_splash_ad_summary_off">广告已关闭。点按即可开启，支持我们！</string>
+    <string name="settings_splash_ad_tap_hint">广告已关闭 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">关闭广告？</string>
+    <string name="settings_splash_ad_dissuade_text1">广告收益能够帮助应用维持免费并支持持续开发。您确定要关闭广告吗？</string>
+    <string name="settings_splash_ad_dissuade_confirm1">是的，我要关闭</string>
+    <string name="settings_splash_ad_dissuade_cancel1">不了，保持开启</string>
+    <string name="settings_splash_ad_dissuade_title2">真的不再考虑一下吗？</string>
+    <string name="settings_splash_ad_dissuade_text2">每一次展示都是对我们的莫大支持！🙏 没有了广告收入，我们将很难继续维护这个项目。您真的、真的确定吗？</string>
+    <string name="settings_splash_ad_dissuade_confirm2">好吧，仍要关闭</string>
+    <string name="settings_splash_ad_dissuade_cancel2">OK，我还是留着吧</string>
     <!--  控制  -->
     <string name="control_keyboard_bind_title">绑定按键</string>
     <string name="control_keyboard_bind_summary">请在您的键盘上按下想要绑定的按键</string>
@@ -1271,7 +1298,7 @@
     <!--  关于  -->
     <string name="about_launcher_title">关于启动器</string>
     <string name="about_launcher_version">启动器版本：%s</string>
-    <string name="about_launcher_author_movtery_title">墨北MovTery</string>
+    <string name="about_launcher_author_movtery_title">兔子哈德427</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
     <string name="about_launcher_project_link">项目地址</string>
     <string name="about_sponsor">赞助支持</string>

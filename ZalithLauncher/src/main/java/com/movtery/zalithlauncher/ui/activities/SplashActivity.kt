@@ -20,9 +20,15 @@ package com.movtery.zalithlauncher.ui.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,10 +41,16 @@ import com.movtery.zalithlauncher.SplashException
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
+import com.movtery.zalithlauncher.components.UnpackMinecraftTask
 import com.movtery.zalithlauncher.components.jre.Jre
 import com.movtery.zalithlauncher.components.jre.UnpackJnaTask
 import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.umeng.message.PushAgent
+import com.umeng.union.api.UMAdConfig
+import com.umeng.union.api.UMUnionApi
+import com.umeng.union.UMUnionSdk
+import com.umeng.union.UMSplashAD
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.splash.SplashScreen
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
@@ -62,6 +74,12 @@ const val IMPORT_TYPE_MODPACK = "modpack"
 const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
+/** 友盟开屏广告位 ID */
+private const val SPLASH_AD_SLOT_ID = "100012689"
+
+/** 开屏广告请求超时（毫秒） */
+private const val AD_REQUEST_TIMEOUT = 5_000L
+
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
 class SplashActivity : BaseAppCompatActivity() {
@@ -72,9 +90,119 @@ class SplashActivity : BaseAppCompatActivity() {
 
     private val backStackViewModel: SplashBackStackViewModel by viewModels()
 
+    /** 是否已经跳转到主界面 */
+    private var hasNavigatedToMain = false
+
+    /** canJump: 防止后台切回时误跳转。onResume 时设为 true，onPause 时设为 false。 */
+    private var canJump = false
+
+    /** 广告请求超时任务 */
+    private var mReqTimeout: Runnable? = null
+
+    /** 广告展示容器（我们将使用一个全屏父容器 + 居中子容器来承载竖屏广告） */
+    private var adContainer: FrameLayout? = null
+
+    /** 原来请求的方向，展示广告时临时切换为竖屏，展示结束后恢复 */
+    private var originalRequestedOrientation: Int? = null
+
+    private val mHandler = Handler(Looper.getMainLooper())
+
+    // ======================== 友盟开屏广告加载回调 ========================
+
+    private val mLoadListener = object : UMUnionApi.AdLoadListener<UMSplashAD> {
+        override fun onSuccess(type: UMUnionApi.AdType, display: UMSplashAD) {
+            Logger.info(TAG, "Splash ad loaded successfully")
+            // 移除超时
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+
+            if (isFinishing) return
+
+            display.setAdEventListener(object : UMUnionApi.SplashAdListener {
+                override fun onDismissed() {
+                    Logger.info(TAG, "Splash ad dismissed")
+                    // 移除广告容器
+                    (adContainer?.parent as? ViewGroup)?.removeView(adContainer)
+                    adContainer = null
+                    // 恢复方向
+                    originalRequestedOrientation?.let {
+                        requestedOrientation = it
+                        originalRequestedOrientation = null
+                    }
+                    goToContentOrHome()
+                }
+
+                override fun onExposed() {
+                    Logger.info(TAG, "Splash ad exposed")
+                }
+
+                override fun onClicked(view: android.view.View?) {
+                    Logger.info(TAG, "Splash ad clicked")
+                }
+
+                override fun onError(code: Int, message: String) {
+                    Logger.warning(TAG, "Splash ad display error: code=$code, msg=$message")
+                    // 移除广告容器（如果已添加）
+                    (adContainer?.parent as? ViewGroup)?.removeView(adContainer)
+                    adContainer = null
+                    // 恢复方向
+                    originalRequestedOrientation?.let {
+                        requestedOrientation = it
+                        originalRequestedOrientation = null
+                    }
+                    goToContentOrHome()
+                }
+            })
+
+            // 在展示广告前临时切换为竖屏，以便竖屏广告能以原始比例展示
+            try {
+                originalRequestedOrientation = requestedOrientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            } catch (e: Exception) {
+                Logger.warning(TAG, "Failed to change orientation for splash ad: ${e.message}")
+            }
+
+            // 创建全屏父容器 + 居中子容器，竖屏广告在横屏下保持原始比例不拉伸
+            val full = FrameLayout(this@SplashActivity).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            val inner = FrameLayout(this@SplashActivity).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                ).apply { gravity = Gravity.CENTER }
+            }
+            full.addView(inner)
+            adContainer = full
+            // 将容器添加到根视图
+            (window.decorView as ViewGroup).addView(full)
+            // 展示广告到居中子容器中
+            display.show(inner)
+        }
+
+        override fun onFailure(type: UMUnionApi.AdType, message: String) {
+            Logger.warning(TAG, "Splash ad load failed: $message")
+            mReqTimeout?.let { mHandler.removeCallbacks(it) }
+            mReqTimeout = null
+            if (isFinishing) return
+            // 若提前切换了方向（理论上不会在加载失败前切换），也尝试恢复
+            originalRequestedOrientation?.let {
+                requestedOrientation = it
+                originalRequestedOrientation = null
+            }
+            goToContentOrHome()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // 友盟推送：活跃统计（必须在同意隐私政策后调用）
+        PushAgent.getInstance(this).onAppStart()
 
         initUnpackItems()
         checkAllTask()
@@ -82,6 +210,9 @@ class SplashActivity : BaseAppCompatActivity() {
         if (checkTasksToMain()) {
             return
         }
+
+        // 根据设置开关加载友盟开屏广告
+        loadSplashAd()
 
         setContent {
             ZalithLauncherTheme {
@@ -98,6 +229,39 @@ class SplashActivity : BaseAppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        canJump = true
+        // 从后台切回时，如果任务已完成且广告展示流程已完成，跳转主页
+        if (areAllTasksFinished() && !hasNavigatedToMain && mReqTimeout == null) {
+            goToContentOrHome()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        canJump = false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        canJump = false
+        mReqTimeout?.let { mHandler.removeCallbacks(it) }
+        mReqTimeout = null
+        // 恢复方向（防止意外）
+        originalRequestedOrientation?.let {
+            try {
+                requestedOrientation = it
+            } catch (_: Exception) {}
+            originalRequestedOrientation = null
+        }
+    }
+
+    /** 禁用返回键：开屏期间不允许退出 */
+    override fun onBackPressed() {
+        // 空实现，阻止返回键退出
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -118,6 +282,52 @@ class SplashActivity : BaseAppCompatActivity() {
             finish()
         }
     }
+
+    // ======================== 友盟开屏广告 ========================
+
+    /** 根据设置开关加载友盟开屏广告 */
+    private fun loadSplashAd() {
+        if (!AllSettings.showSplashAd.getValue()) {
+            return
+        }
+
+        try {
+            val config = UMAdConfig.Builder()
+                .setSlotId(SPLASH_AD_SLOT_ID)
+                .build()
+            UMUnionSdk.loadSplashAd(config, mLoadListener, AD_REQUEST_TIMEOUT.toInt())
+            // 设置超时保护
+            val timeoutRunnable = Runnable {
+                mReqTimeout = null
+                // 若我们临时切换了方向，尝试恢复
+                originalRequestedOrientation?.let {
+                    try {
+                        requestedOrientation = it
+                    } catch (_: Exception) {}
+                    originalRequestedOrientation = null
+                }
+                if (!hasNavigatedToMain) {
+                    goToContentOrHome()
+                }
+            }
+            mReqTimeout = timeoutRunnable
+            mHandler.postDelayed(timeoutRunnable, AD_REQUEST_TIMEOUT)
+        } catch (e: Exception) {
+            Logger.warning(TAG, "Failed to load splash ad: ${e.message}")
+            // 加载失败，直接走正常流程
+            goToContentOrHome()
+        }
+    }
+
+    /** 统一的跳转入口：canJump 防误跳 + 任务完成检查 */
+    private fun goToContentOrHome() {
+        if (!canJump || hasNavigatedToMain) return
+        if (!areAllTasksFinished()) return
+
+        navigateToMain()
+    }
+
+    // ======================== 原有逻辑 ========================
 
     private fun initUnpackItems() {
         Components.entries.forEach { component ->
@@ -151,6 +361,16 @@ class SplashActivity : BaseAppCompatActivity() {
                     "JNA",
                     getString(R.string.unpack_screen_jna),
                     jnaTask
+                )
+            )
+        }
+        val minecraftTask = UnpackMinecraftTask(this@SplashActivity)
+        if (!minecraftTask.isCheckFailed()) {
+            unpackItems.add(
+                InstallableItem(
+                    ".minecraft",
+                    getString(R.string.unpack_screen_minecraft),
+                    minecraftTask
                 )
             )
         }
@@ -222,20 +442,26 @@ class SplashActivity : BaseAppCompatActivity() {
                 //检查并设置默认的Java环境
                 if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
             }
-            finishSplash()
+            // 解压任务全部完成后加载开屏广告，再跳转主页
+            if (!hasNavigatedToMain && areAllTasksFinished()) {
+                showSplashAdIfAvailable()
+            }
         }
     }
 
-    private fun finishSplash() {
-        val import = pendingImportIntent
-            ?.takeIf { isImportIntent(it) && !isLauncherIntent(it) }
-            ?: intent.takeIf { isImportIntent(it) && !isLauncherIntent(it) }
-
-        if (import != null && handleImportIntent(import)) {
-            finish()
-        } else {
-            swapToMain()
+    /** 解压任务完成后加载并展示开屏广告 */
+    private fun showSplashAdIfAvailable() {
+        if (!canJump || hasNavigatedToMain) return
+        if (!AllSettings.showSplashAd.getValue()) {
+            goToContentOrHome()
+            return
         }
+        // 广告已在 onCreate 中发起加载，如果尚未完成会通过超时或回调触发跳转
+        // 但如果广告加载已经完成且展示完毕（mReqTimeout == null），直接跳转
+        if (mReqTimeout == null) {
+            goToContentOrHome()
+        }
+        // 否则等待广告回调或超时处理
     }
 
     private fun checkTasksToMain(): Boolean {
@@ -251,19 +477,23 @@ class SplashActivity : BaseAppCompatActivity() {
             }
         }
 
-        swapToMain()
+        // 所有任务已完成 → 加载开屏广告后再跳转
+        canJump = true
+        loadSplashAd()
         return true
     }
 
     private fun swapToMain() {
-        val forward = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        startActivity(forward)
+        startActivity(Intent(this, MainActivity::class.java))
+        hasNavigatedToMain = true
         finish()
     }
 
-
+    /** 统一的主界面跳转入口 */
+    private fun navigateToMain() {
+        if (hasNavigatedToMain) return
+        swapToMain()
+    }
 
     private fun handleImportIntent(source: Intent): Boolean {
         if (!isImportIntent(source)) return false

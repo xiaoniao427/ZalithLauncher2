@@ -13,7 +13,7 @@ plugins {
     id("com.movtery.buildkeys")
 }
 
-val zalithPackageName = "com.movtery.zalithlauncher"
+val zalithPackageName = "com.tzhd427.zalithlauncher"
 val launcherAPPName = project.findProperty("launcher_app_name") as? String ?: error("The \"launcher_app_name\" property is not set in gradle.properties.")
 val launcherName = project.findProperty("launcher_name") as? String ?: error("The \"launcher_name\" property is not set in gradle.properties.")
 val launcherShortName = project.findProperty("launcher_short_name") as? String ?: error("The \"launcher_short_name\" property is not set in gradle.properties.")
@@ -50,10 +50,10 @@ android {
 
     signingConfigs {
         create("releaseBuild") {
-            storeFile = file("zalith_launcher.jks")
-            storePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
-            keyAlias = "movtery_zalith"
-            keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
+            storeFile = file("mykey.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
         create("debugBuild") {
             storeFile = file("zalith_launcher_debug.jks")
@@ -301,6 +301,22 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    
+  // 友盟基础组件库（所有友盟业务SDK都依赖基础组件库
+    implementation("com.umeng.umsdk:common:+")// 必选
+    implementation("com.umeng.umsdk:asms:+")// 必选
+
+    implementation("com.umeng.umsdk:uyumao:+") // 高级运营分析功能依赖库，使用U-App卸载分析、开启反作弊能力请务必集成。common需搭配v9.6.3及以上版本，asms需搭配v1.7.0及以上版本。需更新隐私声明。
+
+    //U-Push依赖
+    implementation("com.umeng.umsdk:push:+")
+
+    // 友盟广告（开屏广告）
+    implementation("com.umeng.umsdk:union:+")
+
+    // AdMob GMA Next-Gen SDK（开屏广告）— 暂时注释，待后续启用
+    // implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:+")
+
     //Test
     testImplementation(libs.junit)
     testImplementation(libs.mockwebserver3)

@@ -130,6 +130,7 @@
     <string name="splash_screen_unpack_desc">啟動器需要安裝這些內容，才能確保 Minecraft 能夠正常啟動。這些內容已包含在應用程式中，需要解壓縮後才能正常使用，點擊下方按鈕，開始解壓縮並更新這些內容。</string>
     <string name="splash_screen_installing">啟動器正在解壓縮這些內容，解壓縮完成後將自動進入主介面，請耐心等候。</string>
     <string name="splash_screen_agree">同意並安裝</string>
+    <string name="splash_screen_unofficial_warning">⚠️ 這是一個非官方修改版本。它與官方開發者無關，也未獲得官方認可。使用風險自負。</string>
     <!--  通知  -->
     <string name="notification_title">檢查通知權限</string>
     <string name="notification_request">請求權限</string>
@@ -154,6 +155,7 @@
     <string name="unpack_screen_lwjgl">輕量級 Java 遊戲函式庫，Minecraft 依賴它執行遊戲</string>
     <string name="unpack_screen_launcher">啟動器依賴的一些元件</string>
     <string name="unpack_screen_jna">讓 Minecraft 能直接呼叫作業系統的底層功能</string>
+    <string name="unpack_screen_minecraft">Minecraft 基礎配置與資源檔案</string>
     <!--  主選單  -->
     <string name="main_launch_game">啟動遊戲</string>
     <string name="launch_check_mods">檢查模組</string>
@@ -994,7 +996,7 @@
     <!--  關於  -->
     <string name="about_launcher_title">關於啟動器</string>
     <string name="about_launcher_version">啟動器版本：%s</string>
-    <string name="about_launcher_author_movtery_title">墨北 MovTery</string>
+    <string name="about_launcher_author_movtery_title">兔子哈德427</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
     <string name="about_launcher_project_link">專案連結</string>
     <string name="about_sponsor">贊助支持</string>
@@ -1106,6 +1108,31 @@
     <string name="settings_launcher_background_blur_summary">調整背景的模糊效果，此選項較為耗費效能</string>
     <string name="settings_launcher_festivals_effects_title">持續型節日彩蛋效果</string>
     <string name="settings_launcher_festivals_effects_summary">在特定時間期間顯示持續型彩蛋效果</string>
+    <string name="settings_launcher_home_page_title">主頁</string>
+    <string name="settings_launcher_home_page_type_blank">空白</string>
+    <string name="settings_launcher_home_page_type_local">從本機載入</string>
+    <string name="settings_launcher_home_page_type_url">從網路載入</string>
+    <string name="settings_launcher_home_page_type_local_tip">編輯啟動器本機的主頁檔案，啟動器使用經過擴充的 Markdown 語法描述主頁，編輯完成後，點擊重新整理以重新載入主頁</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc">生成官方主頁文件</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc_exists">目前已存在主頁檔案，你確定要將已有的主頁覆蓋掉，並重新生成官方文件主頁嗎？</string>
+    <string name="settings_launcher_home_page_type_url_tip">從指定的連結獲取啟動器主頁檔案並快取，定時重新整理以重新載入主頁</string>
+    <string name="settings_launcher_home_page_type_warning">自訂主頁屬於第三方內容，啟動器不對其內容做任何擔保，請謹慎接收不熟悉的主頁！</string>
+    <string name="settings_launcher_home_page_url">主頁下載連結：</string>
+    <string name="settings_launcher_home_page_loading">載入主頁中</string>
+    
+    <!-- 開屏廣告設定 -->
+    <string name="settings_splash_ad_title">顯示開屏廣告</string>
+    <string name="settings_splash_ad_summary_on">開屏廣告有助於維持我們的開發。連續快速點擊 3 次即可關閉。</string>
+    <string name="settings_splash_ad_summary_off">開屏廣告已關閉。點按即可開啟，支持我們！</string>
+    <string name="settings_splash_ad_tap_hint">開屏廣告已關閉 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">關閉開屏廣告？</string>
+    <string name="settings_splash_ad_dissuade_text1">廣告收益能夠幫助應用維持免費並支持持續開發。您確定要關閉開屏廣告嗎？</string>
+    <string name="settings_splash_ad_dissuade_confirm1">是的，我要關閉</string>
+    <string name="settings_splash_ad_dissuade_cancel1">不了，保持開啟</string>
+    <string name="settings_splash_ad_dissuade_title2">真的不再考慮一下嗎？</string>
+    <string name="settings_splash_ad_dissuade_text2">每一次展示都是對我們的莫大支持！🙏 沒有了廣告收入，我們將很難繼續維護這個項目。您真的、真的確定嗎？</string>
+    <string name="settings_splash_ad_dissuade_confirm2">好吧，仍要關閉</string>
+    <string name="settings_splash_ad_dissuade_cancel2">OK，我還是留著吧</string>
     <string name="just_now">現在</string>
     <string name="minutes_ago">%d 分鐘前</string>
     <string name="hours_ago">%d 小時前</string>

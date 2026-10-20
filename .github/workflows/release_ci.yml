@@ -14,8 +14,9 @@ jobs:
     with:
       variant: Release
     secrets:
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
 
@@ -55,10 +56,10 @@ jobs:
 
           echo "Found $(ls ./mappings/ | wc -l) mapping file(s)"
 
+
       - name: Upload To Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.event.release.tag_name }}
           files: |
             ./apks/*.apk
             ./mappings/*.txt

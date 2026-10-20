@@ -22,6 +22,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:name=".ZLApplication"
@@ -57,11 +59,19 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- 友盟U-App集成测试：扫码唤起App实时调试 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="um.6a65eb27d679c36d9c7dc574" />
+            </intent-filter>
         </activity>
 
         <activity-alias
             android:label="@string/import_modpack"
-            android:name="com.movtery.activity.ImportModpackActivity"
+            android:name="com.tzhd427.activity.ImportModpackActivity"
             android:exported="true"
             android:targetActivity=".ui.activities.SplashActivity">
 
@@ -85,7 +95,7 @@
 
         <activity-alias
             android:label="@string/control_manage_import"
-            android:name="com.movtery.activity.ImportControlsActivity"
+            android:name="com.tzhd427.activity.ImportControlsActivity"
             android:exported="true"
             android:targetActivity=".ui.activities.SplashActivity">
 
@@ -221,6 +231,46 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+
+        <!-- 友盟推送 -->
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="" />
+        <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="" />
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="GitHub" />
+
+        <!-- 友盟推送消息接收服务 -->
+        <service
+            android:name=".push.PushMessageService"
+            android:exported="false" />
+
+        <activity
+            android:name="com.tungsten.fclauncher.MfrMessageActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="${applicationId}"
+                    android:path="/thirdpush"
+                    android:scheme="agoo" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name="com.umeng.message.UmengMessageReceiver"
+            android:exported="true"
+            android:process=":channel">
+            <intent-filter>
+                <action android:name="org.android.agoo.client.MessageReceiverService" />
+            </intent-filter>
+        </receiver>
     </application>
     <queries>
         <package android:name="net.kdt.pojavlaunch.ffmpeg"/>

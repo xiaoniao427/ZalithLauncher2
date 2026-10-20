@@ -145,6 +145,7 @@
     <string name="splash_screen_unpack_desc">The launcher needs to install these files to ensure Minecraft runs properly. They are included in the app and must be extracted first. Click the button below to start extraction and update.</string>
     <string name="splash_screen_installing">The launcher is extracting these files. Once done, it will automatically enter the main screen. Please wait patiently.</string>
     <string name="splash_screen_agree">Install</string>
+    <string name="splash_screen_unofficial_warning">⚠️ This is an unofficial modified version. It is not affiliated with or endorsed by the official developers. Use at your own risk.</string>
     <!--  Notification  -->
     <string name="notification_title">Check Notification Permission</string>
     <string name="notification_request">Request Permission</string>
@@ -169,6 +170,7 @@
     <string name="unpack_screen_lwjgl">Lightweight Java Game Library (required by Minecraft)</string>
     <string name="unpack_screen_launcher">Essential launcher components</string>
     <string name="unpack_screen_jna">Enables Minecraft to directly call low-level OS functions</string>
+    <string name="unpack_screen_minecraft">Essential Minecraft config and resource files</string>
     <!-- Main Menu -->
     <string name="main_launch_game">Launch</string>
     <string name="launch_check_mods">Checking mods</string>
@@ -1111,6 +1113,31 @@
     <string name="settings_launcher_background_blur_summary">Adjust the background blur effect. This option consumes significant performance.</string>
     <string name="settings_launcher_festivals_effects_title">Festival Easter Eggs</string>
     <string name="settings_launcher_festivals_effects_summary">Display persistent easter egg effects during specific time periods</string>
+    <string name="settings_launcher_home_page_title">Home Page</string>
+    <string name="settings_launcher_home_page_type_blank">Blank</string>
+    <string name="settings_launcher_home_page_type_local">Load from Local</string>
+    <string name="settings_launcher_home_page_type_url">Load from URL</string>
+    <string name="settings_launcher_home_page_type_local_tip">Edit the launcher\'s local home page file. The launcher uses an extended Markdown syntax to describe the home page. After editing, click Refresh to reload the home page.</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc">Generate Document</string>
+    <string name="settings_launcher_home_page_type_local_gen_doc_exists">A home page file already exists. Are you sure you want to overwrite the existing home page and regenerate the official documentation home page?</string>
+    <string name="settings_launcher_home_page_type_url_tip">Fetch the launcher home page file from the specified link and cache it, then periodically refresh and reload the home page</string>
+    <string name="settings_launcher_home_page_type_warning">Custom home pages are third-party content. The launcher does not provide any guarantee for their content. Please be cautious when accepting unfamiliar home pages!</string>
+    <string name="settings_launcher_home_page_url">Home Page Download URL:</string>
+    <string name="settings_launcher_home_page_loading">Loading Home Page</string>
+    
+    <!-- 开屏广告设置 -->
+    <string name="settings_splash_ad_title">Display Splash Ad</string>
+    <string name="settings_splash_ad_summary_on">Splash ads help support development. Tap 3 times quickly to turn off.</string>
+    <string name="settings_splash_ad_summary_off">Splash ads are turned off. Tap to turn on and support us!</string>
+    <string name="settings_splash_ad_tap_hint">Splash ads are currently disabled 🥺</string>
+    <string name="settings_splash_ad_dissuade_title1">Turn Off Splash Ads?</string>
+    <string name="settings_splash_ad_dissuade_text1">Ads help us keep the app free and support ongoing development. Are you sure you want to disable splash ads?</string>
+    <string name="settings_splash_ad_dissuade_confirm1">Yes, I want to turn off</string>
+    <string name="settings_splash_ad_dissuade_cancel1">No, keep them on</string>
+    <string name="settings_splash_ad_dissuade_title2">Are You Absolutely Sure?</string>
+    <string name="settings_splash_ad_dissuade_text2">Every view makes a difference! 🙏 Without ads, we\'d have a harder time maintaining this project. Are you really, really sure?</string>
+    <string name="settings_splash_ad_dissuade_confirm2">Fine, turn them off</string>
+    <string name="settings_splash_ad_dissuade_cancel2">OK, I\'ll keep them on</string>
     <!--  Control  -->
     <string name="control_keyboard_bind_title">Bind Key</string>
     <string name="control_keyboard_bind_summary">Press the key you want to bind on your keyboard</string>

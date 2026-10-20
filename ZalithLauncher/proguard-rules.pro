@@ -41,6 +41,8 @@
 
 
 -keep class com.movtery.zalithlauncher.bridge.** { *; }
+-keep class com.movtery.zalithlauncher.components.** { *; }
+-keep class com.movtery.zalithlauncher.context.** { *; }
 -keep class com.movtery.zalithlauncher.utils.device.VulkanChecker {
     *;
 }
@@ -59,3 +61,22 @@
 
 # SoraEditor language-textmate
 -keep class org.jcodings.** { *; }
+
+#umeng
+-keep class com.umeng.** {*;}
+
+-keep class org.repackage.** {*;}
+
+-keep class com.uyumao.** { *; }
+
+# U-AppWin 广告SDK
+-keep class com.umeng.union.** {*;}
+
+-keepclassmembers class * {
+   public <init> (org.json.JSONObject);
+}
+
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}

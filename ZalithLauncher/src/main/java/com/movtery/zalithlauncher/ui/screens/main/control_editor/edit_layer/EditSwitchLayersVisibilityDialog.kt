@@ -35,7 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.scrollbar
+import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -47,11 +47,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.movtery.layer_controller.event.ClickEvent
+import com.movtery.layer_controller.observable.ObservableClickEventsProvider
 import com.movtery.layer_controller.observable.ObservableControlLayer
-import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutItem
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
@@ -59,12 +60,12 @@ import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 
 /**
- * 编辑按钮点击事件：切换控件层可见性
+ * 编辑点击事件：切换控件层可见性
  * @param type 控制控件层的类型
  */
 @Composable
 fun EditSwitchLayersVisibilityDialog(
-    data: ObservableNormalData,
+    data: ObservableClickEventsProvider,
     layers: List<ObservableControlLayer>,
     type: ClickEvent.Type,
     onDismissRequest: () -> Unit
@@ -85,7 +86,7 @@ fun EditSwitchLayersVisibilityDialog(
         }
 
         if (unsafeEvents.isNotEmpty()) {
-            data.removeAllEvent(unsafeEvents)
+            data.onRemoveAllEvents(unsafeEvents)
             return@LaunchedEffect
         }
 
@@ -106,13 +107,15 @@ fun EditSwitchLayersVisibilityDialog(
         onDismissRequest = onDismissRequest
     ) {
         BoxWithConstraints(
-            modifier = Modifier.fillMaxHeight(),
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .padding(all = 3.dp)
-                    .heightIn(max = maxHeight - 6.dp)
+                    .heightIn(max = (maxHeight - 6.dp).coerceAtMost(rememberDialogMaxHeight()))
                     .wrapContentHeight(),
                 shadowElevation = 3.dp,
                 color = cardColor(false),
@@ -141,8 +144,8 @@ fun EditSwitchLayersVisibilityDialog(
                             .fadeEdge(state = scrollState)
                             .weight(1f, fill = false)
                             .fillMaxWidth()
-                            .scrollbar(
-                                state = scrollState.scrollIndicatorState,
+                            .nonInteractiveScrollbar(
+                                state = scrollState.scrollIndicatorState!!,
                                 orientation = Orientation.Vertical,
                             ),
                         state = scrollState,
@@ -157,9 +160,9 @@ fun EditSwitchLayersVisibilityDialog(
                                 onSelectedChange = { selected ->
                                     val event = ClickEvent(type, layer.uuid)
                                     if (selected) {
-                                        data.addEvent(event)
+                                        data.onAddEvent(event)
                                     } else {
-                                        data.removeEvent(event)
+                                        data.onRemoveEvent(event)
                                     }
                                 }
                             )

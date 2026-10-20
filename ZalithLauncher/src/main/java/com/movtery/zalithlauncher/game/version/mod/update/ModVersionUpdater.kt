@@ -22,139 +22,64 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
-import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
+import com.movtery.zalithlauncher.game.download.engine.findHttpCode
+import com.movtery.zalithlauncher.game.version.download.DEFAULT_DOWNLOAD_THREADS
+import com.movtery.zalithlauncher.game.version.download.DownloadTask
+import com.movtery.zalithlauncher.game.version.download.runBatchDownloads
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.formatFileSize
-import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.network.downloadFromMirrorListSuspend
-import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.time.Duration.Companion.milliseconds
+import java.io.FileNotFoundException
 
 private const val TAG = "ModVersionUpdater"
 
 class ModVersionUpdater(
     val mods: List<PlatformVersion>,
     private val targetDir: File,
-    private val maxDownloadThreads: Int = 64
+    private val maxDownloadThreads: Int = DEFAULT_DOWNLOAD_THREADS
 ) {
-    //文件下载进度计数
-    private var downloadedFileCount: AtomicLong = AtomicLong(0)
-    private var downloadedFileSize: AtomicLong = AtomicLong(0)
-    private val downloadFailedTasks = mutableSetOf<PlatformVersion>()
-
-    /** 用于速率监测的已写入大小记录 */
-    private val mSpeedReport = AtomicLong(0L)
-
     suspend fun startDownload(task: Task) {
-        downloadAll(
-            task = task,
-            taskMessageRes = R.string.mods_update_updating
-        )
-        if (downloadFailedTasks.isNotEmpty()) {
-            downloadedFileCount.set(0)
-            downloadedFileSize.set(0L)
-            downloadAll(
-                task = task,
-                tasks = downloadFailedTasks.toList(),
-                taskMessageRes = R.string.mods_update_updating_retry
+        val tasks = mods.map { newVersion ->
+            DownloadTask(
+                urls = newVersion.platformDownloadUrl().mapMCIMMirrorUrls(),
+                verifyIntegrity = true,
+                targetFile = File(targetDir, newVersion.platformFileName()),
+                sha1 = newVersion.platformSha1()
             )
         }
-        if (downloadFailedTasks.isNotEmpty()) throw DownloadFailedException()
-        //清除任务信息
-        task.updateProgress(1f)
-        task.updateMessage(null)
-    }
 
-    private suspend fun downloadAll(
-        task: Task,
-        tasks: List<PlatformVersion> = mods,
-        taskMessageRes: Int,
-        totalFileCount: Int = tasks.size
-    ) = withContext(Dispatchers.IO) {
-        coroutineScope {
-            downloadFailedTasks.clear()
-
-            val semaphore = Semaphore(maxDownloadThreads)
-
-            val downloadJobs = tasks.map { newVersion ->
-                launch {
-                    semaphore.withPermit {
-                        val urls = newVersion
-                            .platformDownloadUrl()
-                            .mapMCIMMirrorUrls()
-                        val outputFile = File(targetDir, newVersion.platformFileName())
-
-                        runCatching {
-                            downloadFromMirrorListSuspend(
-                                urls = urls,
-                                sha1 = newVersion.platformSha1(),
-                                outputFile = outputFile
-                            ) { size ->
-                                downloadedFileSize.addAndGet(size)
-                                mSpeedReport.addAndGet(size)
-                            }
-                            //下载成功
-                            downloadedFileCount.incrementAndGet()
-                        }.onFailure { e ->
-                            if (e is CancellationException) return@onFailure
-                            Logger.error(TAG, "Download failed: ${outputFile.absolutePath}, urls: ${urls.joinToString(", ")}", e)
-                            downloadFailedTasks.add(newVersion)
-                        }
-                    }
-                }
-            }
-
-            val progressJob = launch(Dispatchers.Main) {
-                while (isActive) {
-                    ensureActive()
-                    val currentFileCount = downloadedFileCount.get()
-                    task.updateProgress(
-                        (currentFileCount.toFloat() / totalFileCount.toFloat()).coerceIn(0f, 1f)
-                    )
+        try {
+            task.runBatchDownloads(
+                tasks = tasks,
+                maxConnections = maxDownloadThreads,
+                retryRounds = 1,
+                onSnapshot = { snapshot ->
+                    task.updateSpeed(snapshot.speedBytesPerSec)
                     task.updateMessage(
                         androidText(
-                            taskMessageRes,
-                            downloadedFileCount.get(), totalFileCount,
-                            formatFileSize(downloadedFileSize.get())
+                            R.string.mods_update_updating,
+                            snapshot.downloadedFiles, snapshot.totalFiles,
+                            formatFileSize(snapshot.downloadedBytes)
                         )
                     )
-                    delay(100L.milliseconds)
-                }
-            }
-
-            try {
-                withSpeedReport(
-                    onTimeReport = {
-                        val currentBytes = mSpeedReport.getAndSet(0L)
-                        task.updateSpeed(currentBytes)
-                    },
-                    onClear = {
-                        mSpeedReport.set(0L)
-                        task.clearSpeed()
+                },
+                acceptFailure = { modTask, error ->
+                    val skipped = error is FileNotFoundException || error.findHttpCode() == 404
+                    if (skipped) {
+                        //已上架又下架的资源，直接删除本地旧版并视为完成
+                        modTask.targetFile.delete()
                     }
-                ) {
-                    downloadJobs.joinAll()
+                    skipped
                 }
-            } catch (e: CancellationException) {
-                downloadJobs.forEach { it.cancel("Parent cancelled", e) }
-                throw e
-            } finally {
-                progressJob.cancel()
-            }
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            throw e
         }
+
+        task.updateProgress(1f)
+        task.updateMessage(null)
     }
 }

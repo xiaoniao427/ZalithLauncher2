@@ -20,9 +20,10 @@ package com.movtery.zalithlauncher.game.input;
 
 import static org.lwjgl.glfw.CallbackBridge.sendKeyPress;
 
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode;
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode;
 
 import org.lwjgl.glfw.CallbackBridge;
 
@@ -36,7 +37,7 @@ public class EfficientAndroidLWJGLKeycode {
     //This old version of this class was using an ArrayMap, a generic Key -> Value data structure.
     //The key being the android keycode from a KeyEvent
     //The value its LWJGL equivalent.
-    private static final int KEYCODE_COUNT = 106;
+    private static final int KEYCODE_COUNT = 112;
     private static final int[] sAndroidKeycodes = new int[KEYCODE_COUNT];
     private static final short[] sLwjglKeycodes = new short[KEYCODE_COUNT];
     private static int mTmpCount = 0;
@@ -124,20 +125,25 @@ public class EfficientAndroidLWJGLKeycode {
         add(KeyEvent.KEYCODE_APOSTROPHE, LwjglGlfwKeycode.GLFW_KEY_APOSTROPHE);
         add(KeyEvent.KEYCODE_SLASH, LwjglGlfwKeycode.GLFW_KEY_SLASH); //76
         add(KeyEvent.KEYCODE_AT, LwjglGlfwKeycode.GLFW_KEY_2);
-
         add(KeyEvent.KEYCODE_PLUS, LwjglGlfwKeycode.GLFW_KEY_KP_ADD);
+        add(KeyEvent.KEYCODE_MENU, LwjglGlfwKeycode.GLFW_KEY_MENU);
 
         // Page keys
         add(KeyEvent.KEYCODE_PAGE_UP, LwjglGlfwKeycode.GLFW_KEY_PAGE_UP); //92
         add(KeyEvent.KEYCODE_PAGE_DOWN, LwjglGlfwKeycode.GLFW_KEY_PAGE_DOWN);
 
         add(KeyEvent.KEYCODE_ESCAPE, LwjglGlfwKeycode.GLFW_KEY_ESCAPE);
+        add(KeyEvent.KEYCODE_FORWARD_DEL, LwjglGlfwKeycode.GLFW_KEY_DELETE);
 
         // Control keys
         add(KeyEvent.KEYCODE_CTRL_LEFT, LwjglGlfwKeycode.GLFW_KEY_LEFT_CONTROL);
         add(KeyEvent.KEYCODE_CTRL_RIGHT, LwjglGlfwKeycode.GLFW_KEY_RIGHT_CONTROL);
 
         add(KeyEvent.KEYCODE_CAPS_LOCK, LwjglGlfwKeycode.GLFW_KEY_CAPS_LOCK);
+        add(KeyEvent.KEYCODE_SCROLL_LOCK, LwjglGlfwKeycode.GLFW_KEY_SCROLL_LOCK);
+        add(KeyEvent.KEYCODE_META_LEFT, LwjglGlfwKeycode.GLFW_KEY_LEFT_SUPER);
+        add(KeyEvent.KEYCODE_META_RIGHT, LwjglGlfwKeycode.GLFW_KEY_RIGHT_SUPER);
+        add(KeyEvent.KEYCODE_SYSRQ, LwjglGlfwKeycode.GLFW_KEY_PRINT_SCREEN);
         add(KeyEvent.KEYCODE_BREAK, LwjglGlfwKeycode.GLFW_KEY_PAUSE);
         add(KeyEvent.KEYCODE_MOVE_HOME, LwjglGlfwKeycode.GLFW_KEY_HOME);
         add(KeyEvent.KEYCODE_MOVE_END, LwjglGlfwKeycode.GLFW_KEY_END);
@@ -177,7 +183,8 @@ public class EfficientAndroidLWJGLKeycode {
         add(KeyEvent.KEYCODE_NUMPAD_DOT, LwjglGlfwKeycode.GLFW_KEY_KP_DECIMAL);
         add(KeyEvent.KEYCODE_NUMPAD_COMMA, LwjglGlfwKeycode.GLFW_KEY_COMMA);
         add(KeyEvent.KEYCODE_NUMPAD_ENTER, LwjglGlfwKeycode.GLFW_KEY_KP_ENTER);
-        add(KeyEvent.KEYCODE_NUMPAD_EQUALS, LwjglGlfwKeycode.GLFW_KEY_EQUAL); //161
+        add(KeyEvent.KEYCODE_NUMPAD_EQUALS, LwjglGlfwKeycode.GLFW_KEY_KP_EQUAL); //161
+
     }
 
     public static boolean containsIndex(int index){
@@ -192,12 +199,11 @@ public class EfficientAndroidLWJGLKeycode {
         CallbackBridge.holdingNumlock = keyEvent.isNumLockOn();
         CallbackBridge.holdingShift = keyEvent.isShiftPressed();
 
-        System.out.println(keyEvent.getKeyCode() + " " +keyEvent.getDisplayLabel());
         char key = (char)(keyEvent.getUnicodeChar() != 0 ? keyEvent.getUnicodeChar() : '\u0000');
         sendKeyPress(
                 getValueByIndex(valueIndex),
                 key,
-                0,
+                keyEvent.getScanCode(),
                 CallbackBridge.getCurrentMods(),
                 keyEvent.getAction() == KeyEvent.ACTION_DOWN);
     }
@@ -221,7 +227,7 @@ public class EfficientAndroidLWJGLKeycode {
         for (int i = 0; i < sLwjglKeycodes.length; i++) {
             if(sLwjglKeycodes[i] == lwjglKey) return i;
         }
-        return 0;
+        return -1;
     }
 
     private static void add(int androidKeycode, short LWJGLKeycode){
@@ -229,5 +235,48 @@ public class EfficientAndroidLWJGLKeycode {
         sLwjglKeycodes[mTmpCount] = LWJGLKeycode;
 
         mTmpCount ++;
+    }
+
+    private static final KeyCharacterMap mKcm = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
+    private static final char[] buffer = new char[1];
+
+    /**
+     * Takes a GLFW keycode and returns equivalent android keycode.
+     */
+    public static int getAndroidKeycode(int lwjglGlfwKeycode){
+        if (lwjglGlfwKeycode == LwjglGlfwKeycode.GLFW_KEY_2) return KeyEvent.KEYCODE_2;
+        if (lwjglGlfwKeycode == LwjglGlfwKeycode.GLFW_KEY_3) return KeyEvent.KEYCODE_3;
+        int index = getIndexByValue(lwjglGlfwKeycode);
+        return index >= 0 && index < sAndroidKeycodes.length
+                ? sAndroidKeycodes[index]
+                : KeyEvent.KEYCODE_UNKNOWN;
+    }
+
+    public static int getSdlAndroidKeycode(int lwjglGlfwKeycode) {
+        return switch (lwjglGlfwKeycode) {
+            case LwjglGlfwKeycode.GLFW_KEY_ESCAPE -> KeyEvent.KEYCODE_ESCAPE;
+            case LwjglGlfwKeycode.GLFW_KEY_HOME -> KeyEvent.KEYCODE_MOVE_HOME;
+            case LwjglGlfwKeycode.GLFW_KEY_END -> KeyEvent.KEYCODE_MOVE_END;
+            case LwjglGlfwKeycode.GLFW_KEY_KP_ADD -> KeyEvent.KEYCODE_NUMPAD_ADD;
+            case LwjglGlfwKeycode.GLFW_KEY_KP_DECIMAL -> KeyEvent.KEYCODE_NUMPAD_DOT;
+            case LwjglGlfwKeycode.GLFW_KEY_KP_ENTER -> KeyEvent.KEYCODE_NUMPAD_ENTER;
+            case LwjglGlfwKeycode.GLFW_KEY_DELETE -> KeyEvent.KEYCODE_FORWARD_DEL;
+            case LwjglGlfwKeycode.GLFW_KEY_KP_EQUAL -> KeyEvent.KEYCODE_NUMPAD_EQUALS;
+            case LwjglGlfwKeycode.GLFW_KEY_LEFT_SUPER -> KeyEvent.KEYCODE_META_LEFT;
+            case LwjglGlfwKeycode.GLFW_KEY_RIGHT_SUPER -> KeyEvent.KEYCODE_META_RIGHT;
+            case LwjglGlfwKeycode.GLFW_KEY_MENU -> KeyEvent.KEYCODE_MENU;
+            default -> getAndroidKeycode(lwjglGlfwKeycode);
+        };
+    }
+
+    /**
+     * Takes a char and returns equivalent android keycode.
+     */
+    public static int getAndroidKeycode(char c){
+        buffer[0] = c;
+        KeyEvent[] events = mKcm.getEvents(buffer);
+        return events != null && events.length > 0
+                ? events[0].getKeyCode()
+                : KeyEvent.KEYCODE_UNKNOWN;
     }
 }

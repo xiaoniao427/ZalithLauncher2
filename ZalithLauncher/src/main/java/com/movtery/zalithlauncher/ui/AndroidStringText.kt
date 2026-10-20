@@ -59,7 +59,7 @@ sealed interface AndroidStringText {
      * 通过 Android 资源 ID 加载字符串，支持格式化参数
      *
      * @property key 字符串资源 ID
-     * @property args 格式化参数
+     * @property args 格式化参数，支持 [AndroidStringText]
      */
     data class StringRes(
         @field:androidx.annotation.StringRes
@@ -243,7 +243,14 @@ fun resolveAndroidString(text: AndroidStringText): AnnotatedString {
                 if (args == null) {
                     stringResource(text.key)
                 } else {
-                    stringResource(text.key, *args)
+                    val resolvedArgs = args.map { arg ->
+                        if (arg is AndroidStringText) {
+                            resolveAndroidString(arg).text
+                        } else {
+                            arg
+                        }
+                    }.toTypedArray()
+                    stringResource(text.key, *resolvedArgs)
                 }
             )
         }
@@ -268,7 +275,14 @@ fun AndroidStringText.toAndroidString(context: Context): String = when (this) {
     is AndroidStringText.StringRes -> if (args == null) {
         context.getString(key)
     } else {
-        context.getString(key, *args)
+        val resolvedArgs = args.map { arg ->
+            if (arg is AndroidStringText) {
+                arg.toAndroidString(context)
+            } else {
+                arg
+            }
+        }.toTypedArray()
+        context.getString(key, *resolvedArgs)
     }
     is AndroidStringText.Appended -> texts.joinToString("") { it.toAndroidString(context) }
 }

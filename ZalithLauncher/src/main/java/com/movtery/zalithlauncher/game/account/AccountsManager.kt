@@ -25,10 +25,8 @@ import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServerDao
-import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.utils.isInGreaterChina
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +36,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
-import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 private const val TAG = "AccountManager"
@@ -63,8 +61,8 @@ object AccountsManager {
     /** 控制刷新所有账号衣橱 */
     val refreshWardrobe = _refreshWardrobe.asStateFlow()
 
-    private val _isOffline = MutableStateFlow(false)
-    val isOffline = _isOffline
+    //本次启动器会话内已通过服务端校验的账号
+    private val sessionValidatedAccounts: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     private lateinit var database: AppDatabase
     private lateinit var accountDao: AccountDao
@@ -180,11 +178,32 @@ object AccountsManager {
                 onSuccess = { account, task ->
                     task.updateMessage(androidText(R.string.account_logging_in_saving))
                     account.downloadYggdrasil()
+                    markSessionValidated(account)
                     suspendSaveAccount(account)
                 },
                 onFailed = onFailed
             )
         }
+    }
+
+    /**
+     * 该账号在本次会话中是否已通过服务端校验
+     */
+    fun isSessionValidated(account: Account): Boolean =
+        sessionValidatedAccounts.contains(account.uniqueUUID)
+
+    fun markSessionValidated(account: Account) {
+        sessionValidatedAccounts.add(account.uniqueUUID)
+    }
+
+    /**
+     * 是否需要执行启动前的账号校验
+     */
+    fun isLaunchCheckNeeded(account: Account): Boolean = when {
+        account.isNoLoginRequired() -> false
+        account.isMicrosoftAccount() -> !isSessionValidated(account) ||
+                System.currentTimeMillis() > account.expiresAt - 5 * 60 * 1000
+        else -> !isSessionValidated(account)
     }
 
     /**
@@ -212,18 +231,7 @@ object AccountsManager {
      * 刷新当前账号，同时刷新非中国大陆地区的正版状态
      */
     private fun refreshCurrentAccountState() {
-        val currentAccount = getCurrentAccount()
-        val isOffline = checkLimit()
-        _currentAccountFlow.update {
-            //若处于非正版状态，不允许使用账号
-            if (isOffline) null else currentAccount
-        }
-        _isOffline.update { isOffline }
-    }
-
-    private fun checkLimit(): Boolean {
-        val circumventLimit = File(PathManager.DIR_FILES_EXTERNAL, "circumventLimit")
-        return !circumventLimit.exists() && !isInGreaterChina() && !hasMicrosoftAccount()
+        _currentAccountFlow.update { getCurrentAccount() }
     }
 
     /**
@@ -284,11 +292,6 @@ object AccountsManager {
             reloadAuthServers()
         }
     }
-
-    /**
-     * 是否已登录过微软账号
-     */
-    fun hasMicrosoftAccount(): Boolean = _accounts.any { it.isMicrosoftAccount() }
 
     /**
      * 通过账号的profileId读取账号

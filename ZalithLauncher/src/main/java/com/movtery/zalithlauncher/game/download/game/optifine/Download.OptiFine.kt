@@ -22,15 +22,14 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersions
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.isChinaMainland
-import com.movtery.zalithlauncher.utils.network.downloadFileSuspend
+import com.movtery.zalithlauncher.utils.network.downloadFile
 import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,18 +37,11 @@ import java.io.File
 
 const val OPTIFINE_DOWNLOAD_ID = "Download.OptiFine"
 
-fun targetTempOptiFineInstaller(tempGameDir: File, tempMinecraftDir: File, fileName: String, isNewVersion: Boolean): File {
-    return if (isNewVersion) File(tempGameDir, ".temp/OptiFine.jar")
-    else {
-        val nameFileCleaned = fileName
-            .replace("OptiFine_", "")
-            .replace(".jar", "")
-            .replace("preview_", "")
-        val nameFileFormatted = fileName
-            .replace("OptiFine_", "OptiFine-")
-            .replace("preview_", "")
-        File(tempMinecraftDir, "libraries/optifine/OptiFine/$nameFileCleaned/$nameFileFormatted")
-    }
+/**
+ * OptiFine installer 的临时下载路径
+ */
+fun targetTempOptiFineInstaller(tempGameDir: File): File {
+    return File(tempGameDir, ".temp/OptiFine.jar")
 }
 
 fun getOptiFineDownloadTask(
@@ -78,7 +70,7 @@ fun getOptiFineDownloadTask(
                     task.clearSpeed()
                 }
             ) {
-                downloadFileSuspend(
+                downloadFile(
                     url = optifineUrl,
                     outputFile = targetTempInstaller
                 )
@@ -114,7 +106,7 @@ fun getOptiFineModsDownloadTask(
                     task.clearSpeed()
                 }
             ) { report ->
-                downloadFileSuspend(
+                downloadFile(
                     url = optifineUrl,
                     outputFile = File(tempModsDir, optifine.fileName),
                     sizeCallback = report
@@ -129,16 +121,10 @@ private suspend fun getOFUrlMirrorable(
 ): String {
     return if (isChinaMainland()) {
         runMirrorable(
-            when (AllSettings.fileDownloadSource.getValue()) {
-                MirrorSourceType.OFFICIAL_FIRST -> listOf(
-                    fetchOptiFineDownloadUrl(optifine, 5),
-                    getDownloadUrlWithBMCLAPI(optifine, 5 + 30)
-                )
-                MirrorSourceType.MIRROR_FIRST -> listOf(
-                    getDownloadUrlWithBMCLAPI(optifine, 30),
-                    fetchOptiFineDownloadUrl(optifine, 30 + 60)
-                )
-            }
+            listOf(
+                fetchOfficialOptiFineUrlSource(optifine),
+                fetchBMCLOptiFineUrlSource(optifine)
+            ).orderedByGameSourcePreference()
         )!!
     } else {
         fetchOptiFineDownloadUrl(optifine)
@@ -148,15 +134,11 @@ private suspend fun getOFUrlMirrorable(
 /**
  * 从官方源获取 OptiFine 主文件下载链接
  */
-private fun fetchOptiFineDownloadUrl(
-    optifine: OptiFineVersion,
-    delayMillis: Long
-): MirrorSource<String> = MirrorSource(
-    delayMillis = delayMillis,
-    type = SourceType.OFFICIAL
-) {
-    fetchOptiFineDownloadUrl(optifine)
-}
+private fun fetchOfficialOptiFineUrlSource(optifine: OptiFineVersion): MirrorSource<String> =
+    MirrorSource(SourceType.OFFICIAL) { fetchOptiFineDownloadUrl(optifine) }
+
+private fun fetchBMCLOptiFineUrlSource(optifine: OptiFineVersion): MirrorSource<String> =
+    MirrorSource(SourceType.BMCLAPI) { getDownloadUrlWithBMCLAPI(optifine) }
 
 private suspend fun fetchOptiFineDownloadUrl(
     optifine: OptiFineVersion
@@ -164,16 +146,7 @@ private suspend fun fetchOptiFineDownloadUrl(
     OptiFineVersions.fetchOptiFineDownloadUrl(optifine.fileName) ?: throw CantFetchingOptiFineUrlException()
 }
 
-/**
- * 从镜像源获取 OptiFine 主文件下载链接
- */
-private fun getDownloadUrlWithBMCLAPI(
-    optifine: OptiFineVersion,
-    delayMillis: Long
-): MirrorSource<String> = MirrorSource(
-    delayMillis = delayMillis,
-    type = SourceType.BMCLAPI
-) {
+private fun getDownloadUrlWithBMCLAPI(optifine: OptiFineVersion): String {
     val inherit = if (optifine.inherit == "1.8" || optifine.inherit == "1.9") "${optifine.inherit}.0" else optifine.inherit
     val displayNameStripped = optifine.displayName.removePrefix("${optifine.inherit} ")
 
@@ -183,5 +156,5 @@ private fun getDownloadUrlWithBMCLAPI(
         "HD_U/$displayNameStripped"
     }
 
-    "https://bmclapi2.bangbang93.com/optifine/$inherit/$suffix"
+    return "https://bmclapi2.bangbang93.com/optifine/$inherit/$suffix"
 }

@@ -31,8 +31,10 @@ import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okhttp3.ConnectionPool
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody
 import java.util.concurrent.TimeUnit
@@ -41,7 +43,7 @@ val URL_USER_AGENT: String = "${BuildKeys.LAUNCHER_SHORT_NAME}/Android_${BuildCo
 val TIME_OUT = TimeUnit.SECONDS.toMillis(30L)
 
 const val HOST_CURSEFORGE_API = "api.curseforge.com"
-const val HOST_CURSEFORGE_EDGE = "edge.forgecdn.net"
+const val CURSEFORGE_CDN_SUFFIX = "forgecdn.net"
 
 const val URL_MCMOD: String = "https://www.mcmod.cn/"
 const val URL_MINECRAFT_VERSION_REPOS: String = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
@@ -63,16 +65,20 @@ const val URL_CLOUD_RENDERER_PLUGINS = "https://www.123865.com/s/YLIUVv-hae0v"
 const val URL_CLOUD_DRIVE_DRIVER_PLUGINS = "https://www.123865.com/s/YLIUVv-3ae0v"
 const val URL_CLOUD_NATIVE_LIB_PLUGINS = "https://www.123865.com/s/YLIUVv-Hae0v"
 
+private fun isCurseForgeHost(host: String): Boolean =
+    host == HOST_CURSEFORGE_API ||
+            host == CURSEFORGE_CDN_SUFFIX ||
+            host.endsWith(".$CURSEFORGE_CDN_SUFFIX")
+
 /**
  * An [Interceptor] for CurseForge API requests.
  *
- * It automatically injects the `x-api-key` header when the request host matches
- * [HOST_CURSEFORGE_API] or [HOST_CURSEFORGE_EDGE], provided the API key is not blank.
+ * It automatically injects the `x-api-key` header when the request targets a
+ * CurseForge host, provided the API key is not blank.
  */
 private val CURSEFORGE_INTERCEPTOR = Interceptor { chain ->
     val request = chain.request()
-    val host = request.url.host
-    if (host == HOST_CURSEFORGE_API || host == HOST_CURSEFORGE_EDGE) {
+    if (isCurseForgeHost(request.url.host)) {
         val apiKey = BuildKeys.CURSEFORGE_API
         if (apiKey.isNotBlank()) {
             val newRequest = request.newBuilder()
@@ -121,15 +127,12 @@ val GLOBAL_CLIENT = HttpClient(OkHttp) {
         header(HttpHeaders.UserAgent, URL_USER_AGENT)
     }
     engine {
-        // 使用内置的 OkHttp 客户端：遵循系统代理设置，并具备容灾 DNS 解析能力
+        // 使用内置的 OkHttp 客户端
         preconfigured = createOkHttpClientBuilder().build()
     }
 }.apply {
     requestPipeline.intercept(HttpRequestPipeline.State) {
-        // 检查 host 是否为 CurseForge
-        // 自动添加 CurseForge 的 api 密钥
-        val host = context.url.host
-        if (host == HOST_CURSEFORGE_API || host == HOST_CURSEFORGE_EDGE) {
+        if (isCurseForgeHost(context.url.host)) {
             val apiKey = BuildKeys.CURSEFORGE_API
             if (apiKey.isNotBlank()) {
                 context.header("x-api-key", apiKey)
@@ -148,14 +151,13 @@ fun createRequestBuilder(url: String, body: RequestBody?): Request.Builder {
     return request
 }
 
-fun createOkHttpClient(): OkHttpClient = createOkHttpClientBuilder().build()
-
 /**
  * 创建一个OkHttpClient，可自定义一些内容
  */
 fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkHttpClient.Builder {
     return OkHttpClient.Builder()
         .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
+        .protocols(listOf(Protocol.HTTP_1_1))
         .callTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
         .addInterceptor(CURSEFORGE_INTERCEPTOR)
         .addInterceptor(USER_AGENT_INTERCEPTOR)
@@ -163,19 +165,28 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
 }
 
 /**
- * 创建用于文件下载的 OkHttpClient。
- * 与普通 API 调用不同，文件下载需要更长的超时配置，且不设 callTimeout
- * （因为文件大小差异很大，不能用一个固定值限制整体下载时间）。
+ * 创建用于网络请求的 OkHttpClient。
+ * 与普通 API 调用不同，该客户端不设 callTimeout
+ * （因为请求目标的大小差异很大，不能用一个固定值限制整体时间）。
  *
  * 使用 OkHttp 替代 HttpURLConnection 的主要原因是：
  * OkHttp 使用自实现的 AsyncTimeout 机制，比依赖操作系统 socket 超时的
  * HttpURLConnection 在 Android 上更加可靠，能有效避免"卡 0b/s"问题。
  */
 val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
-    OkHttpClient.Builder()
+    buildDownloadClient(listOf(Protocol.HTTP_1_1))
+}
+
+private fun buildDownloadClient(
+    allowedProtocols: List<Protocol>?,
+    readTimeoutMillis: Long = 15_000L
+): OkHttpClient {
+    return OkHttpClient.Builder()
         .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
+        .apply { allowedProtocols?.let { protocols(it) } } //不指定时默认协商 h2：单条多路复用连接承载海量小请求
+        .connectionPool(ConnectionPool(64, 5, TimeUnit.MINUTES))
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .addInterceptor(CURSEFORGE_INTERCEPTOR)

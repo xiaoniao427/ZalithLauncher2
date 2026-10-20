@@ -86,6 +86,8 @@ class SplashActivity : BaseAppCompatActivity() {
     private val unpackItems: MutableList<InstallableItem> = ArrayList()
     private val finishedTaskCount = AtomicInteger(0)
 
+    private var pendingImportIntent: Intent? = null
+
     private val backStackViewModel: SplashBackStackViewModel by viewModels()
 
     /** 是否已经跳转到主界面 */
@@ -266,9 +268,12 @@ class SplashActivity : BaseAppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
 
-        //若依赖未完成，忽略所有外部导入
+        //若依赖未完成，暂存外部导入，待依赖完成后处理
         if (!areAllTasksFinished()) {
-            Logger.info(TAG, "Import intent received but dependencies are not ready, ignoring.")
+            if (isImportIntent(intent) && !isLauncherIntent(intent)) {
+                pendingImportIntent = intent
+                Logger.info(TAG, "Import intent received but dependencies are not ready, deferring.")
+            }
             return
         }
 

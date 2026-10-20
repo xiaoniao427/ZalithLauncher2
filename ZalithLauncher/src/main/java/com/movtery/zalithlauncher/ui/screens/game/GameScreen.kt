@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -50,20 +49,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.inputmap.keycodes.ControlEventKeycode
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
+import com.movtery.inputmap.keycodes.OPEN_CHAT
+import com.movtery.inputmap.keycodes.OPEN_CHAT_VALUE
 import com.movtery.layer_controller.ControlBoxLayout
 import com.movtery.layer_controller.data.HideLayerWhen
 import com.movtery.layer_controller.event.ClickEvent
@@ -71,34 +70,23 @@ import com.movtery.layer_controller.event.EventHandler
 import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.layout.EmptyControlLayout
 import com.movtery.layer_controller.layout.loadLayoutFromFile
-import com.movtery.layer_controller.observable.DefaultObservableJoystickStyle
 import com.movtery.layer_controller.observable.ObservableControlLayout
-import com.movtery.layer_controller.observable.ObservableJoystickStyle
-import com.movtery.layer_controller.observable.ObservableSpecial
-import com.movtery.layer_controller.utils.widgetPosition
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
-import com.movtery.zalithlauncher.game.keycodes.OPEN_CHAT
-import com.movtery.zalithlauncher.game.keycodes.OPEN_CHAT_VALUE
-import com.movtery.zalithlauncher.game.keycodes.SPRING
-import com.movtery.zalithlauncher.game.keycodes.SPRING_VALUE
-import com.movtery.zalithlauncher.game.keycodes.mapToControlEvent
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
+import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerTouchModifier
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
 import com.movtery.zalithlauncher.terracotta.Terracotta
-import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
@@ -106,21 +94,18 @@ import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
 import com.movtery.zalithlauncher.ui.control.event.launcherEvent
 import com.movtery.zalithlauncher.ui.control.event.lwjglEvent
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadKeyListener
+import com.movtery.zalithlauncher.ui.control.gamepad.GamepadOnActionListener
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadStickMovementListener
 import com.movtery.zalithlauncher.ui.control.gamepad.SimpleGamepadCapture
 import com.movtery.zalithlauncher.ui.control.gyroscope.GyroscopeReader
 import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.control.hotbarPercentage
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
-import com.movtery.zalithlauncher.ui.control.joystick.JoystickDirectionListener
-import com.movtery.zalithlauncher.ui.control.joystick.StyleableJoystick
-import com.movtery.zalithlauncher.ui.control.joystick.loadJoystickStyle
-import com.movtery.zalithlauncher.ui.control.joystick.saveJoystickStyle
 import com.movtery.zalithlauncher.ui.control.mouse.SwitchableMouseLayout
 import com.movtery.zalithlauncher.ui.screens.game.elements.DraggableGameBall
 import com.movtery.zalithlauncher.ui.screens.game.elements.ForceCloseOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.GameMenuSubscreen
-import com.movtery.zalithlauncher.ui.screens.game.elements.JoystickManageOperation
+import com.movtery.zalithlauncher.ui.screens.game.elements.GamepadModePromptDialog
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogBox
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogState
 import com.movtery.zalithlauncher.ui.screens.game.elements.ReplacementControlOperation
@@ -130,13 +115,11 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeState
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperation
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
+import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
-import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
-import com.movtery.zalithlauncher.viewmodel.JoystickMovementViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -154,6 +137,11 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameScreen"
+
+/** 帧率历史记录的最大时间节点数 */
+private const val FPS_HISTORY_SIZE = 15
+/** 最高/最低帧所在节点被清理后，重算前等待的时间节点数 */
+private const val FPS_RESYNC_NODES = 10
 
 private class GameViewModel(
     private val version: Version,
@@ -177,9 +165,29 @@ private class GameViewModel(
     /** 游戏内帧率状态 */
     var gameFps by mutableIntStateOf(0)
         private set
+    /** 帧率历史记录（最多保留最近15个时间节点） */
+    var fpsHistory by mutableStateOf<List<Int>>(emptyList())
+        private set
+    /** 记录范围内的历史最高帧 */
+    var fpsMax by mutableIntStateOf(0)
+        private set
+    /** 记录范围内的历史最低帧 */
+    var fpsMin by mutableIntStateOf(0)
+        private set
+    /** 最高帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMaxResyncCountdown = -1
+    /** 最低帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMinResyncCountdown = -1
     private var fpsJob: Job? = null
     /** 开始帧率捕获 */
     fun startFpsCapture() {
+        if (fpsJob?.isActive == true) return
+        //新一轮捕获，重置历史记录
+        fpsHistory = emptyList()
+        fpsMax = 0
+        fpsMin = 0
+        fpsMaxResyncCountdown = -1
+        fpsMinResyncCountdown = -1
         //开启一个新的协程，每秒更新一次帧率数据
         fpsJob = viewModelScope.launch(Dispatchers.Default) {
             while (true) {
@@ -188,7 +196,7 @@ private class GameViewModel(
                 }.onFailure {
                     break
                 }
-                gameFps = CallbackBridge.getCurrentFps()
+                recordFps(CallbackBridge.getCurrentFps())
                 delay(1000L.milliseconds)
             }
         }
@@ -199,20 +207,50 @@ private class GameViewModel(
         fpsJob = null
     }
 
-    /** 启动器默认摇杆样式 */
-    var launcherJoystickStyle by mutableStateOf(DefaultObservableJoystickStyle)
-    /** 保存启动器默认摇杆样式 */
-    fun saveLauncherJoystickStyle(
-        onFailed: (Throwable) -> Unit,
-        onSuccess: suspend () -> Unit
-    ) {
-        viewModelScope.launch {
-            saveJoystickStyle(
-                path = PathManager.DIR_STYLES,
-                launcherJoystickStyle,
-                onFailed = onFailed,
-                onSuccess = onSuccess
-            )
+    /**
+     * 记录一次帧率采样，并维护记录范围内的最高/最低帧。
+     * 被清理的最老节点若恰好是最高/最低帧，不立即重算：
+     * 若之后10个时间节点内没有出现更高/更低的帧，才用当前记录的所有节点重算一次
+     */
+    private fun recordFps(fps: Int) {
+        gameFps = fps
+        //衰减重算倒计时，归零说明等待期内没有出现更高/更低的帧
+        if (fpsMaxResyncCountdown > 0) fpsMaxResyncCountdown--
+        if (fpsMinResyncCountdown > 0) fpsMinResyncCountdown--
+        if (fpsMaxResyncCountdown == 0) {
+            fpsMax = fpsHistory.max()
+            fpsMaxResyncCountdown = -1
+        }
+        if (fpsMinResyncCountdown == 0) {
+            fpsMin = fpsHistory.min()
+            fpsMinResyncCountdown = -1
+        }
+
+        if (fpsHistory.isEmpty()) {
+            fpsMax = fps
+            fpsMin = fps
+        } else {
+            if (fps > fpsMax) {
+                fpsMax = fps
+                fpsMaxResyncCountdown = -1
+            }
+            if (fps < fpsMin) {
+                fpsMin = fps
+                fpsMinResyncCountdown = -1
+            }
+        }
+        fpsHistory = fpsHistory + fps
+
+        //超出最大节点数时清理最老的节点
+        if (fpsHistory.size > FPS_HISTORY_SIZE) {
+            val removed = fpsHistory.first()
+            fpsHistory = fpsHistory.drop(1)
+            if (removed == fpsMax && fpsHistory.none { it == fpsMax }) {
+                fpsMaxResyncCountdown = FPS_RESYNC_NODES
+            }
+            if (removed == fpsMin && fpsHistory.none { it == fpsMin }) {
+                fpsMinResyncCountdown = FPS_RESYNC_NODES
+            }
         }
     }
 
@@ -365,7 +403,6 @@ private class GameViewModel(
     init {
         viewModelScope.launch(Dispatchers.Main) {
             loadControlLayout()
-            launcherJoystickStyle = loadJoystickStyle(PathManager.DIR_STYLES)
         }
     }
 
@@ -465,9 +502,16 @@ private class GameTextSender(private val scope: CoroutineScope) {
 
     private suspend fun sendMessage(text: String, inGame: Boolean) {
         withContext(Dispatchers.Main) {
+            // 仅 SDL 渲染路径（MC 26.3+）经 SDL 通道提交；仅手柄子系统初始化 SDL 时游戏输入仍走 GLFW 桥
+            val useSdl = SdlBridge.sdlEnabled && SdlBridge.isSdlRenderActive()
+
             fun sendText() {
                 for (ch in text) {
-                    LWJGLCharSender.sendChar(ch)
+                    if (useSdl) {
+                        SdlTextSender.sendChar(ch)
+                    } else {
+                        LWJGLCharSender.sendChar(ch)
+                    }
                 }
             }
 
@@ -475,11 +519,21 @@ private class GameTextSender(private val scope: CoroutineScope) {
                 //根据options.txt中的配置，找到打开聊天栏的键
                 //如果找不到，则忽略这次事件
                 mapToKeycode(OPEN_CHAT, OPEN_CHAT_VALUE)?.let { openChat ->
-                    CallbackBridge.sendKeyPress(openChat)
-                    delay(50L.milliseconds)
-                    sendText()
-                    delay(50L.milliseconds)
-                    LWJGLCharSender.sendEnter()
+                    if (useSdl) {
+                        SdlTextSender.sendKey(openChat)
+                        // 等待游戏侧激活文本输入通道，未激活就提交的文本会被 SDL 丢弃
+                        if (SdlTextSender.awaitTextInputActive()) {
+                            sendText()
+                            delay(50L.milliseconds)
+                            SdlTextSender.sendEnter()
+                        }
+                    } else {
+                        CallbackBridge.sendKeyPress(openChat)
+                        delay(50L.milliseconds)
+                        sendText()
+                        delay(50L.milliseconds)
+                        LWJGLCharSender.sendEnter()
+                    }
                 }
             } else {
                 //如果当前不在游戏内，则直接发送文本
@@ -522,7 +576,6 @@ fun GameScreen(
     getAccountName: () -> String?,
     eventViewModel: EventViewModel,
     gamepadViewModel: GamepadViewModel,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     val context = LocalContext.current
     val viewModel = rememberGameViewModel(version) { mode ->
@@ -533,7 +586,6 @@ fun GameScreen(
     val isGrabbing = remember(cursorMode) {
         cursorMode == CURSOR_DISABLED
     }
-    val joystickMovementViewModel: JoystickMovementViewModel = viewModel()
     val terracottaViewModel = rememberTerracottaViewModel(
         keyTag = gameHandler.toString() + "_Terracotta",
         gameHandler = gameHandler,
@@ -541,10 +593,10 @@ fun GameScreen(
         getUserName = getAccountName
     )
 
-    LaunchedEffect(viewModel.isEditingLayout) {
-        val state = viewModel.isEditingLayout
-        //向VMActivity同步状态，编辑控制布局时，不会继续处理按键事件
-        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(state.not()))
+    LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState) {
+        //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
+        val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
+        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(allowKeyHandle))
     }
 
     SendKeycodeOperation(
@@ -583,6 +635,15 @@ fun GameScreen(
         val screenSize = rememberBoxSize()
 
         if (!viewModel.isEditingLayout) {
+            if (AllSettings.gamepadControl.state) {
+                GamepadOnActionListener(
+                    gamepadViewModel = gamepadViewModel,
+                    onAction = {
+                        viewModel.switchControlLayer(HideLayerWhen.WhenGamepad)
+                    }
+                )
+            }
+
             if (AllSettings.gamepadControl.state && gamepadViewModel.gamepadEngaged) {
                 //手柄事件监听
                 GamepadKeyListener(
@@ -592,9 +653,6 @@ fun GameScreen(
                         events.forEach { event ->
                             viewModel.onKeyEvent(event, pressed)
                         }
-                    },
-                    onAction = {
-                        viewModel.switchControlLayer(HideLayerWhen.WhenGamepad)
                     }
                 )
 
@@ -616,7 +674,8 @@ fun GameScreen(
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
                 opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
-                isUsingJoystick = isGrabbing && AllSettings.enableJoystickControl.state,
+                onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
+                onReleasePointer = { viewModel.occupiedPointers.remove(it) },
                 isCursorGrabbing = isGrabbing,
                 hideLayerWhen = viewModel.controlLayerHideState,
                 isDark = isLauncherInDarkTheme()
@@ -642,6 +701,7 @@ fun GameScreen(
             }
 
             //物品栏触发层
+            val gameDisplayLayout = currentGameDisplayLayout(screenSize)
             MinecraftHotbar(
                 screenSize = screenSize,
                 rule = AllSettings.hotbarRule.state,
@@ -651,26 +711,10 @@ fun GameScreen(
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,
-                resolutionRatio = AllSettings.resolutionRatio.state,
+                displayOffset = gameDisplayLayout.offset,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )
-
-            //摇杆控制层
-            viewModel.observableLayout?.let { layout ->
-                val special by layout.special.collectAsStateWithLifecycle()
-                JoystickControlLayout(
-                    screenSize = screenSize,
-                    isGrabbing = isGrabbing,
-                    special = special,
-                    defaultStyle = viewModel.launcherJoystickStyle,
-                    hideLayerWhen = viewModel.controlLayerHideState,
-                    viewModel = joystickMovementViewModel,
-                    onKeyEvent = { event, pressed ->
-                        viewModel.onKeyEvent(event, pressed)
-                    }
-                )
-            }
         }
 
         //陀螺仪控制
@@ -726,9 +770,6 @@ fun GameScreen(
             },
             onSendKeycode = { viewModel.sendKeycodeState = SendKeycodeState.ShowDialog },
             onReplacementControl = { viewModel.replacementControlState = ReplacementControlState.Show },
-            onManageJoystick = {
-                joystickMovementViewModel.operation = JoystickManageOperation.Manage
-            },
             onEditLayout = {
                 viewModel.startControlEditor(
                     editorVM = editorViewModel
@@ -745,6 +786,14 @@ fun GameScreen(
                 gamepadViewModel = gamepadViewModel
             )
         }
+
+        //手柄输入模式选择询问
+        GamepadModePromptDialog(
+            visible = gamepadViewModel.modePromptVisible,
+            onConfirm = { mode ->
+                gamepadViewModel.confirmModePrompt(mode)
+            }
+        )
 
         if (viewModel.isEditingLayout) {
             viewModel.currentControlFile?.let {
@@ -790,6 +839,10 @@ fun GameScreen(
                         AllSettings.menuBallPos.save()
                     },
                     gameFps = gameFps,
+                    fpsDisplayMode = AllSettings.fpsDisplayMode.state,
+                    fpsHistory = viewModel.fpsHistory,
+                    fpsMax = viewModel.fpsMax,
+                    fpsMin = viewModel.fpsMin,
                     showMemory = AllSettings.showMemory.state,
                     opened = viewModel.gameMenuState == MenuState.SHOW,
                     alpha = AllSettings.menuBallOpacity.state / 100f,
@@ -800,29 +853,6 @@ fun GameScreen(
             }
         }
     }
-
-    //摇杆管理状态操作
-    //包含覆盖全屏类UI组件，只能放到顶部
-    JoystickManageOperation(
-        operation = joystickMovementViewModel.operation,
-        onChanged = { joystickMovementViewModel.operation = it },
-        launcherJoystick = viewModel.launcherJoystickStyle,
-        onSaveStyle = {
-            viewModel.saveLauncherJoystickStyle(
-                onFailed = { th ->
-                    submitError(
-                        ErrorViewModel.ThrowableMessage(
-                            title = androidText(R.string.game_styles_save_failed),
-                            message = androidText(th.getMessageOrToString())
-                        )
-                    )
-                },
-                onSuccess = {
-                    eventViewModel.sendToast(androidText(R.string.generic_saved))
-                }
-            )
-        }
-    )
 
     LaunchedEffect(Unit) {
         eventViewModel.events
@@ -996,7 +1026,8 @@ private fun MouseControlLayout(
             onMouse = onMouseMoved,
             gamepadViewModel = gamepadViewModel,
             onTap = { position ->
-                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), position.x.sumPosition(), position.y.sumPosition())
+                val gamePosition = currentGameDisplayLayout(screenSize).mapToGame(position)
+                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
             },
             onCapturedTap = {
                 if (AllSettings.gestureControl.state) {
@@ -1020,7 +1051,7 @@ private fun MouseControlLayout(
                 }
             },
             onPointerMove = { pos ->
-                pos.sendPosition()
+                pos.sendPosition(screenSize)
             },
             onCapturedMove = { delta ->
                 CallbackBridge.sendCursorDelta(
@@ -1037,125 +1068,16 @@ private fun MouseControlLayout(
             },
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
-            onReleasePointer = onReleasePointer
-        )
-    }
-}
-
-private fun Offset.sendPosition() {
-    CallbackBridge.sendCursorPos(x.sumPosition(), y.sumPosition())
-}
-
-private fun Float.sumPosition(): Float {
-    return (this * (AllSettings.resolutionRatio.state / 100f))
-}
-
-/**
- * 摇杆控制层
- * @param isGrabbing 当前游戏是否处于抓获鼠标的状态，根据这个判断是否处于游戏中
- * @param special 由控制布局提供的特殊设定，摇杆会根据这里的配置应用样式
- * @param defaultStyle 由启动器提供的摇杆样式，如果控制布局未提供样式，则使用这个
- * @param hideLayerWhen 复用控制布局的隐藏层逻辑，在鼠标、手柄操作时，根据设置判断是否隐藏摇杆
- * @param viewModel 摇杆移动监听 ViewModel
- * @param onKeyEvent 由
- */
-@Composable
-private fun JoystickControlLayout(
-    isGrabbing: Boolean,
-    screenSize: IntSize,
-    special: ObservableSpecial,
-    defaultStyle: ObservableJoystickStyle,
-    hideLayerWhen: HideLayerWhen,
-    viewModel: JoystickMovementViewModel,
-    onKeyEvent: (ClickEvent, pressed: Boolean) -> Unit
-) {
-    val joystickStyle by special.joystickStyle.collectAsStateWithLifecycle()
-
-    val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
-
-    val hideState = when (hideLayerWhen) {
-        HideLayerWhen.WhenMouse -> AllSettings.joystickHideWhenMouse.state
-        HideLayerWhen.WhenGamepad -> AllSettings.joystickHideWhenGamepad.state
-        HideLayerWhen.None -> false
-    }
-
-    //仅在游戏中或者管理摇杆状态中，显示摇杆
-    if (
-        ((isGrabbing && !hideState) || viewModel.operation == JoystickManageOperation.Manage) &&
-        AllSettings.enableJoystickControl.state
-    ) {
-        val size = AllSettings.joystickControlSize.state.dp
-        val x = AllSettings.joystickControlX.state
-        val y = AllSettings.joystickControlY.state
-
-        val position = remember(screenSize, size, x, y, layoutDirection) {
-            val widgetSize = with(density) {
-                val pixelSize = size.roundToPx()
-                IntSize(
-                    width = pixelSize,
-                    height = pixelSize
-                )
-            }
-
-            val originalPosition = widgetPosition(
-                xPercentage = x / 10000f,
-                yPercentage = y / 10000f,
-                widgetSize = widgetSize,
-                screenSize = screenSize
-            )
-
-            if (layoutDirection == LayoutDirection.Rtl) {
-                //fix: RTL布局下需手动反转X轴，避免使用absoluteOffset
-                // 不然控件会飞到屏幕外面去 #1034
-                val mirroredX = screenSize.width - originalPosition.x - widgetSize.width
-                Offset(x = mirroredX, y = originalPosition.y)
-            } else {
-                originalPosition
-            }
-        }
-
-        StyleableJoystick(
-            modifier = Modifier
-                .offset {
-                    IntOffset(x = position.x.toInt(), y = position.y.toInt())
-                },
-            style = if (AllSettings.joystickUseStyleByLayout.state) {
-                //启用后，优先使用控制布局提供的样式
-                joystickStyle ?: defaultStyle
-            } else {
-                defaultStyle
-            },
-            size = size,
-            onDirectionChanged = { direction ->
-                viewModel.onListen(direction)
-            },
-            deadZoneRatio = AllSettings.joystickDeadZoneRatio.state / 100f,
-            lockThreshold = AllSettings.joystickLockThreshold.state / 100f,
-            canLock = AllSettings.joystickControlCanLock.state,
-            onCanLock = { lock ->
-                if (AllSettings.joystickControlLockSpring.state) {
-                    mapToControlEvent(SPRING, SPRING_VALUE)?.let { key ->
-                        val event = ClickEvent(
-                            type = ClickEvent.Type.Key,
-                            key = key
-                        )
-                        if (lock) {
-                            onKeyEvent(event, true)
-                        } else {
-                            onKeyEvent(event, false)
-                        }
-                    }
-                }
+            onReleasePointer = onReleasePointer,
+            enableScrollGesture = AllSettings.gestureControl.state,
+            onScrollGesture = { scroll ->
+                CallbackBridge.sendScroll(scroll.x.toDouble(), scroll.y.toDouble())
             }
         )
     }
+}
 
-    JoystickDirectionListener(
-        viewModel = viewModel,
-        isGrabbing = isGrabbing,
-        onKeyEvent = { event, pressed ->
-            onKeyEvent(event, pressed)
-        }
-    )
+private fun Offset.sendPosition(screenSize: IntSize) {
+    val gamePosition = currentGameDisplayLayout(screenSize).mapToGame(this)
+    CallbackBridge.sendCursorPos(gamePosition.x, gamePosition.y)
 }

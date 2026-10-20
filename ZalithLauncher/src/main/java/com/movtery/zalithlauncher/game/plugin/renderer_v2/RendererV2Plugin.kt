@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.plugin.renderer_v2
 
+import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.data.RendererConfig
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.data.RendererEnv
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
@@ -25,19 +26,24 @@ import com.movtery.zalithlauncher.game.renderer.RendererInterface
 /**
  * V2 渲染器插件项
  * @param packageName 插件包名
+ * @param nativePath 插件的原生库路径
  * @param renderer 外部插件导入的渲染器配置
  */
 class RendererV2Data(
     val packageName: String,
+    val nativePath: String,
     val summary: String,
     val renderer: RendererConfig,
     genSummary: (metaString: String) -> String?,
-): RendererInterface {
+): RendererInterface, Plugin {
     val env = RendererEnv(
         packageName = packageName,
         envs = renderer.env,
         genSummary = genSummary,
     )
+
+    override fun getIdentifier(): String = packageName
+    override fun getNativeLibPath(): String = nativePath
 
     override fun getRendererId(): String = renderer.rendererId
     override fun getUniqueIdentifier(): String = packageName

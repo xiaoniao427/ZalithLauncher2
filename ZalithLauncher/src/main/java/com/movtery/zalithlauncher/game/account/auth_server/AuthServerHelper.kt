@@ -110,6 +110,42 @@ class AuthServerHelper(
     }
 
     /**
+     * 启动前自检
+     * @return 两者都被服务端拒绝时返回 false
+     */
+    suspend fun validateOrRefresh(context: Context, account: Account): Boolean {
+        if (apiServer.validate(context, account)) return true
+
+        return try {
+            val authResult = apiServer.refreshToken(context, account, select = true)
+            account.accessToken = authResult.accessToken
+            true
+        } catch (e: ResponseException) {
+            if (e.statusCode == 403) false else throw e
+        }
+    }
+
+    /**
+     * 使用账号密码重新登录并匹配当前角色，仅在 validate 与 refresh 均被拒绝时调用
+     */
+    suspend fun passwordLogin(context: Context, account: Account) {
+        val authResult = apiServer.authenticate(context, account.otherAccount!!, password)
+        val selected = authResult.selectedProfile
+        val matchedName: String
+        val matchedId: String
+        if (selected != null && selected.id == account.profileId) {
+            matchedId = selected.id
+            matchedName = selected.name
+        } else {
+            val profile = authResult.availableProfiles?.find { it.id == account.profileId }
+                ?: throw ResponseException(context.getString(R.string.account_other_login_role_not_found))
+            matchedId = profile.id
+            matchedName = profile.name
+        }
+        updateAccountInfo(account, authResult, matchedName, matchedId)
+    }
+
+    /**
      * 从账号管理中查找同一个配置Id的账号（当前账号类型）
      */
     private fun loadFromProfileID(profileId: String): Account {

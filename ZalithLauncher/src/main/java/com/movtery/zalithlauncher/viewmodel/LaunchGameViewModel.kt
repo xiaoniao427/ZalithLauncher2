@@ -18,22 +18,75 @@
 
 package com.movtery.zalithlauncher.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.app.Activity
 import androidx.lifecycle.ViewModel
-import com.movtery.zalithlauncher.game.launch.LaunchGame
+import androidx.lifecycle.viewModelScope
+import com.movtery.zalithlauncher.game.launch.GameLaunchFlow
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.LaunchGameOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.QuickPlay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class LaunchGameViewModel : ViewModel() {
+    private val _launchFlow = MutableStateFlow<GameLaunchFlow?>(null)
+    /**
+     * 游戏启动流程
+     */
+    val launchFlow = _launchFlow.asStateFlow()
+
+    private val _launchGameOperation = MutableStateFlow<LaunchGameOperation>(LaunchGameOperation.None)
     /**
      * 启动游戏操作状态
      */
-    var launchGameOperation by mutableStateOf<LaunchGameOperation>(LaunchGameOperation.None)
-        private set
+    val launchGameOperation = _launchGameOperation.asStateFlow()
+
+    fun start(
+        activity: Activity,
+        version: Version,
+        exitActivity: () -> Unit,
+        submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+        quickPlay: QuickPlay?,
+        skipAccountRefresh: Boolean
+    ) {
+        _launchFlow.update {
+            GameLaunchFlow(viewModelScope).also {
+                it.launch(
+                    context = activity,
+                    version = version,
+                    exitActivity = exitActivity,
+                    submitError = submitError,
+                    onReloginRequired = { account ->
+                        activity.runOnUiThread {
+                            updateOperation(
+                                LaunchGameOperation.AccountRelogin(account, version, quickPlay)
+                            )
+                        }
+                        cancel()
+                    },
+                    onRefreshFailed = { account, th ->
+                        activity.runOnUiThread {
+                            updateOperation(
+                                LaunchGameOperation.AccountRefreshFailed(account, th, version, quickPlay)
+                            )
+                        }
+                        cancel()
+                    },
+                    onComplete = {
+                        _launchFlow.update { null }
+                    },
+                    skipAccountRefresh = skipAccountRefresh
+                )
+            }
+        }
+    }
+
+    fun cancel() {
+        _launchFlow.value?.cancel()
+        _launchFlow.update { null }
+    }
 
     /**
      * 尝试启动游戏
@@ -41,9 +94,11 @@ class LaunchGameViewModel : ViewModel() {
     fun tryLaunch(
         version: Version? = null
     ) {
-        if (launchGameOperation == LaunchGameOperation.None) {
-            launchGameOperation = LaunchGameOperation.TryLaunch(
-                version ?: VersionsManager.currentVersion.value
+        if (launchGameOperation.value == LaunchGameOperation.None && _launchFlow.value == null) {
+            updateOperation(
+                LaunchGameOperation.TryLaunch(
+                    version ?: VersionsManager.currentVersion.value
+                )
             )
         }
     }
@@ -56,10 +111,12 @@ class LaunchGameViewModel : ViewModel() {
         version: Version,
         saveName: String
     ) {
-        if (launchGameOperation == LaunchGameOperation.None && !LaunchGame.isLaunching) {
-            launchGameOperation = LaunchGameOperation.TryLaunch(
-                version = version,
-                quickPlay = QuickPlay.Save(saveName),
+        if (launchGameOperation.value == LaunchGameOperation.None && _launchFlow.value == null) {
+            updateOperation(
+                LaunchGameOperation.TryLaunch(
+                    version = version,
+                    quickPlay = QuickPlay.Save(saveName),
+                )
             )
         }
     }
@@ -81,15 +138,17 @@ class LaunchGameViewModel : ViewModel() {
         version: Version,
         address: String
     ) {
-        if (launchGameOperation == LaunchGameOperation.None && !LaunchGame.isLaunching) {
-            launchGameOperation = LaunchGameOperation.TryLaunch(
-                version = version,
-                quickPlay = QuickPlay.Server(address),
+        if (launchGameOperation.value == LaunchGameOperation.None && _launchFlow.value == null) {
+            updateOperation(
+                LaunchGameOperation.TryLaunch(
+                    version = version,
+                    quickPlay = QuickPlay.Server(address),
+                )
             )
         }
     }
 
     fun updateOperation(operation: LaunchGameOperation) {
-        this.launchGameOperation = operation
+        this._launchGameOperation.update { operation }
     }
 }

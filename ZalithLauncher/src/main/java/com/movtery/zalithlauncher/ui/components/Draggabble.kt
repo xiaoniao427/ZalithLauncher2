@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
@@ -78,7 +79,7 @@ fun FloatingBall(
             .alpha(alpha)
             .fillMaxSize()
             .onSizeChanged { size ->
-                if (isInitialized && currentPosition != Offset.Zero) {
+                if (currentPosition != Offset.Zero) {
                     val maxX = (size.width - ballSize.width).toFloat().coerceAtLeast(0f)
                     val maxY = (size.height - ballSize.height).toFloat().coerceAtLeast(0f)
 
@@ -95,7 +96,7 @@ fun FloatingBall(
         val parentHeight by rememberUpdatedState(constraints.maxHeight)
 
         Surface(
-            modifier = modifier
+            modifier = Modifier
                 .onSizeChanged { size ->
                     ballSize = size
                     if (isInitialized || currentPosition != Offset.Zero) return@onSizeChanged
@@ -105,7 +106,12 @@ fun FloatingBall(
                     onPositionChanged(Offset(positionX, positionY))
                 }
                 .offset {
-                    IntOffset(currentPosition.x.roundToInt(), currentPosition.y.roundToInt())
+                    val maxX = (parentWidth - ballSize.width).coerceAtLeast(0)
+                    val maxY = (parentHeight - ballSize.height).coerceAtLeast(0)
+                    IntOffset(
+                        currentPosition.x.roundToInt().coerceIn(0, maxX),
+                        currentPosition.y.roundToInt().coerceIn(0, maxY)
+                    )
                 }
                 .pointerInput(Unit) {
                     awaitEachGesture {
@@ -114,7 +120,16 @@ fun FloatingBall(
                         val startPosition = down.position
                         var isDragging = false
 
-                        drag(down.id) { change ->
+                        val clampedX = currentPosition.x
+                            .coerceIn(0f, (parentWidth - ballSize.width).toFloat().coerceAtLeast(0f))
+                        val clampedY = currentPosition.y
+                            .coerceIn(0f, (parentHeight - ballSize.height).toFloat().coerceAtLeast(0f))
+                        if (clampedX != currentPosition.x || clampedY != currentPosition.y) {
+                            onPositionChanged(Offset(clampedX, clampedY))
+                        }
+
+                        //drag 返回 false 表示手势被取消，此时不触发点击与保存
+                        val completed = drag(down.id) { change ->
                             val delta = change.positionChange()
                             val distanceFromStart = (change.position - startPosition).getDistance()
 
@@ -137,14 +152,23 @@ fun FloatingBall(
                             change.consume()
                         }
 
-                        if (isDragging) {
-                            currentOnSavePos()
+                        val upConsumed = if (completed) {
+                            //复核抬起事件是否已被上层消费
+                            awaitPointerEvent(PointerEventPass.Final)
+                                .changes.firstOrNull { it.id == down.id }?.isConsumed ?: true
                         } else {
-                            //非拖动事件，判定为一次点击
-                            currentOnClick()
+                            true
+                        }
+                        if (!upConsumed) {
+                            if (isDragging) {
+                                currentOnSavePos()
+                            } else {
+                                //非拖动事件，判定为一次点击
+                                currentOnClick()
+                            }
                         }
                     }
-                },
+                }.then(modifier),
             color = color,
             contentColor = contentColor,
             shape = shape

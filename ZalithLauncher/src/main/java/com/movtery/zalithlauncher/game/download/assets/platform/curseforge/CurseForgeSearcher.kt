@@ -33,10 +33,14 @@ import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.httpPostJson
 import io.ktor.http.Parameters
 import io.ktor.server.plugins.NotFoundException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.File
 
 class CurseForgeSearcher(
@@ -136,7 +140,32 @@ class CurseForgeSearcher(
             ?.firstOrNull()
             ?.file
     }
+
+    /**
+     * 通过多个本地文件的 CurseForge 指纹批量获取对应的文件信息
+     * @return 键为文件指纹，值为匹配到的文件，未命中的指纹不在结果中
+     */
+    suspend fun getFilesByFingerprints(
+        fingerprints: List<Long>
+    ): Map<Long, CurseForgeFile> {
+        if (fingerprints.isEmpty()) return emptyMap()
+        val matches = httpPostJson<CurseForgeFingerprintsMatches>(
+            url = "$api/fingerprints",
+            body = CurseForgeFingerprintsRequest(fingerprints = fingerprints)
+        )
+        return matches.data.exactMatches.orEmpty()
+            .associate { it.file.fileFingerprint to it.file }
+    }
 }
+
+/**
+ * 批量获取文件指纹匹配的请求体
+ */
+@Serializable
+private data class CurseForgeFingerprintsRequest(
+    @SerialName("fingerprints")
+    val fingerprints: List<Long>
+)
 
 /**
  * 持续分页获取项目的所有版本文件，直到全部加载完成
@@ -156,60 +185,62 @@ private suspend fun <E, T> getAllVersions(
     checkNotEmpty: (E) -> Boolean,
     asyncVersions: suspend (index: Int, pageSize: Int) -> E,
     processVersions: suspend (E?) -> Pair<List<T>, Int>
-): List<T> = coroutineScope {
-    val allVersions = mutableListOf<T>()
-    /** 当前区间编号 */
-    var currentChunk = 1
-    /** 起始页码 */
-    var startPage = 0
-    /** 是否已经到达过最后一页，控制是否进入下一区间 */
-    var reachedEnd = false
+): List<T> = withContext(Dispatchers.IO) {
+    coroutineScope {
+        val allVersions = mutableListOf<T>()
+        /** 当前区间编号 */
+        var currentChunk = 1
+        /** 起始页码 */
+        var startPage = 0
+        /** 是否已经到达过最后一页，控制是否进入下一区间 */
+        var reachedEnd = false
 
-    val semaphore = Semaphore(maxConcurrent)
+        val semaphore = Semaphore(maxConcurrent)
 
-    while (!reachedEnd) {
-        //创建当前区间的任务列表
-        val jobs = (0 until chunkSize).map { offset ->
-            val pageIndex = startPage + offset
-            val index = pageIndex * pageSize
+        while (!reachedEnd) {
+            //创建当前区间的任务列表
+            val jobs = (0 until chunkSize).map { offset ->
+                val pageIndex = startPage + offset
+                val index = pageIndex * pageSize
 
-            async {
-                semaphore.withPermit {
-                    val response = asyncVersions(index, pageSize)
-                    //检查当前页返回的结果是否正常
-                    //如果是最后一页之后的内容，则这里的列表是空的
-                    if (checkNotEmpty(response)) {
-                        //有东西，回调即可
-                        pageCallback(currentChunk, pageIndex + 1)
-                        response
-                    } else null
+                async {
+                    semaphore.withPermit {
+                        val response = asyncVersions(index, pageSize)
+                        //检查当前页返回的结果是否正常
+                        //如果是最后一页之后的内容，则这里的列表是空的
+                        if (checkNotEmpty(response)) {
+                            //有东西，回调即可
+                            pageCallback(currentChunk, pageIndex + 1)
+                            response
+                        } else null
+                    }
                 }
             }
-        }
 
-        for ((i, job) in jobs.withIndex()) {
-            val (files, realSize) = processVersions(job.await())
-            files.takeIf { it.isNotEmpty() }?.let { list ->
-                allVersions.addAll(list)
-            }
-
-            //少于pageSize，已经是最后一页
-            if (realSize < pageSize) {
-                reachedEnd = true
-                //取消后续页
-                for (j in (i + 1) until jobs.size) {
-                    jobs[j].cancel()
+            for ((i, job) in jobs.withIndex()) {
+                val (files, realSize) = processVersions(job.await())
+                files.takeIf { it.isNotEmpty() }?.let { list ->
+                    allVersions.addAll(list)
                 }
-                break
+
+                //少于pageSize，已经是最后一页
+                if (realSize < pageSize) {
+                    reachedEnd = true
+                    //取消后续页
+                    for (j in (i + 1) until jobs.size) {
+                        jobs[j].cancel()
+                    }
+                    break
+                }
+            }
+
+            //如果没发现最后一页，则进入下一区间
+            if (!reachedEnd) {
+                startPage += chunkSize
+                currentChunk++
             }
         }
 
-        //如果没发现最后一页，则进入下一区间
-        if (!reachedEnd) {
-            startPage += chunkSize
-            currentChunk++
-        }
+        return@coroutineScope allVersions
     }
-
-    return@coroutineScope allVersions
 }

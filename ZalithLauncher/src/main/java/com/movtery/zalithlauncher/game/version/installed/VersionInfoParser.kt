@@ -23,10 +23,7 @@ import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest.Library
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.file.child
-import com.movtery.zalithlauncher.utils.logging.Logger
 import java.io.File
-
-private const val TAG = "VersionInfoParser"
 
 class VersionInfoParser(private val version: Version) {
     private var gameManifest: GameManifest? = null
@@ -92,35 +89,10 @@ private fun getGameManifest(
             target = inheritsManifest,
         )
 
-        // Go through the libraries, remove the ones overridden by the custom version
-        val inheritLibraryList: MutableList<Library> = ArrayList(inheritsManifest.libraries)
-        outer_loop@ for (library in gameManifest0.libraries) {
-            // Clean libraries overridden by the custom version
-            val libName: String = library.name.substring(0, library.name.lastIndexOf(":"))
-
-            for (inheritLibrary in inheritLibraryList) {
-                val inheritLibName: String =
-                    inheritLibrary.name.substring(0, inheritLibrary.name.lastIndexOf(":"))
-
-                if (libName == inheritLibName) {
-                    Logger.debug(TAG,
-                        "Library " + libName + ": Replaced version " +
-                                libName.substring(libName.lastIndexOf(":") + 1) + " with " +
-                                inheritLibName.substring(inheritLibName.lastIndexOf(":") + 1)
-                    )
-
-                    // Remove the library , superseded by the overriding libs
-                    inheritLibraryList.remove(inheritLibrary)
-                    continue@outer_loop
-                }
-            }
-        }
-
-
         // Fuse libraries
+        val inheritLibraryList: MutableList<Library> = ArrayList(inheritsManifest.libraries)
         inheritLibraryList += gameManifest0.libraries
         inheritsManifest.libraries = inheritLibraryList
-        processLibraries { inheritsManifest.libraries }
 
         // Inheriting Minecraft 1.13+ with append custom args
         if (inheritsManifest.arguments != null && gameManifest0.arguments != null) {
@@ -161,15 +133,15 @@ private fun getGameManifest(
         }
 
         gameManifest0 = inheritsManifest
-    } else {
-        processLibraries { gameManifest0.libraries }
     }
+
+    processLibraries { gameManifest0.libraries }
 
     if (gameManifest0.javaVersion?.majorVersion == 0) {
         gameManifest0.javaVersion.majorVersion = gameManifest0.javaVersion.version
     }
 
-    return gameManifest0
+    return uniqueLibraries(gameManifest0)
 }
 
 private inline fun <T> mergeField(

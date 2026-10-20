@@ -59,6 +59,8 @@ object JVMSocketServer {
     ) {
         this.ip = ip
         this.port = port
+        //清空上一轮的接收结果，防止陈旧退出码被当作本轮结果消费
+        receiveMsg = null
 
         scope?.let {
             it.cancel()

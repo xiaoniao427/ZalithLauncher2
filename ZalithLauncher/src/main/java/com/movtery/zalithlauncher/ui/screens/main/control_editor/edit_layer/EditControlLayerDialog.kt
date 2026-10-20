@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_layer
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,10 +53,12 @@ import androidx.compose.ui.window.DialogProperties
 import com.movtery.layer_controller.data.VisibilityType
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutListItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSwitchItem
@@ -79,16 +80,19 @@ fun EditControlLayerDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             dismissOnClickOutside = false,
+            decorFitsSystemWindows = false
         )
     ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxHeight(),
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .padding(all = 3.dp)
-                    .heightIn(max = maxHeight - 6.dp)
+                    .heightIn(max = (maxHeight - 6.dp).coerceAtMost(rememberDialogMaxHeight()))
                     .wrapContentHeight(),
                 shadowElevation = 3.dp,
                 color = cardColor(false),
@@ -179,14 +183,6 @@ fun EditControlLayerDialog(
                             title = stringResource(R.string.control_editor_layers_attribute_hide_when_gamepad),
                             value = layer.hideWhenGamepad,
                             onValueChange = { layer.hideWhenGamepad = it }
-                        )
-
-                        //在摇杆组件启用时隐藏
-                        InfoLayoutSwitchItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            title = stringResource(R.string.control_editor_layers_attribute_hide_when_joystick),
-                            value = layer.hideWhenJoystick,
-                            onValueChange = { layer.hideWhenJoystick = it }
                         )
 
                         //合并控件至下层

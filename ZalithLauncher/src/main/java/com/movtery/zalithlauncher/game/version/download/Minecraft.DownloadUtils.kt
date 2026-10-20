@@ -48,7 +48,6 @@ suspend fun <T> downloadAndParseJson(
     targetFile: File,
     url: String,
     expectedSHA: String?,
-    verifyIntegrity: Boolean,
     classOfT: Class<T>
 ): T {
     suspend fun downloadAndParse(): T {
@@ -69,7 +68,7 @@ suspend fun <T> downloadAndParseJson(
     }
 
     if (targetFile.exists()) {
-        if (!verifyIntegrity || compareSHA1(targetFile, expectedSHA)) {
+        if (compareSHA1(targetFile, expectedSHA)) {
             return runCatching {
                 targetFile.readText().parseTo(classOfT)
             }.getOrElse {
@@ -134,6 +133,8 @@ private fun updateLibrary(
         path = replacement.newPath
         sha1 = replacement.newSha1
         url = replacement.newUrl
+        //新版本的大小与旧版本必然不同，残留旧值会令下载器提前截断文件
+        if (replacement.newSize > 0) size = replacement.newSize
     }
 }
 

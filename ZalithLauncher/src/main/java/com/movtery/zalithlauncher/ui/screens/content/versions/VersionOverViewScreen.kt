@@ -24,11 +24,9 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.contract.MediaPickerContract
@@ -69,16 +68,18 @@ import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.DeleteVersionDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportFileButton
 import com.movtery.zalithlauncher.ui.screens.content.elements.RenameVersionDialog
+import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardDir
+import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardManager
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionOverviewItem
 import com.movtery.zalithlauncher.utils.file.ensureDirectory
-import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.utils.image.isImageFile
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import org.apache.commons.io.FileUtils
 import java.io.File
 
@@ -108,8 +109,7 @@ fun VersionOverViewScreen(
         var versionSummary by remember { mutableStateOf(version.getVersionSummary()) }
         var refreshVersionIcon by remember { mutableIntStateOf(0) }
 
-        val context = LocalContext.current
-        var iconFileExists by remember { mutableStateOf(VersionsManager.getVersionIconFile(version).exists()) }
+        var iconFileExists by remember { mutableStateOf(version.getVersionIconFile().exists()) }
 
         var versionsOperation by remember { mutableStateOf<VersionsOperation>(VersionsOperation.None) }
         VersionsOperation(
@@ -117,7 +117,7 @@ fun VersionOverViewScreen(
             updateOperation = { versionsOperation = it },
             submitError = submitError,
             resetIcon = {
-                val iconFile = VersionsManager.getVersionIconFile(version)
+                val iconFile = version.getVersionIconFile()
                 FileUtils.deleteQuietly(iconFile)
                 refreshVersionIcon++
                 iconFileExists = iconFile.exists()
@@ -147,7 +147,7 @@ fun VersionOverViewScreen(
                     submitError = submitError,
                     refreshKey = refreshVersionIcon,
                     onIconPicked = {
-                        iconFileExists = VersionsManager.getVersionIconFile(version).exists()
+                        iconFileExists = version.getVersionIconFile().exists()
                         versionsOperation = VersionsOperation.None
                         refreshVersionIcon++
                     },
@@ -191,14 +191,12 @@ fun VersionOverViewScreen(
                             )
                             return@VersionQuickActions
                         }
-                        shareFile(context, folder) {
-                            submitError(
-                                ErrorViewModel.ThrowableMessage(
-                                    title = androidText(R.string.generic_error),
-                                    message = androidText(R.string.versions_overview_cant_share_folder_message)
-                                )
+                        eventViewModel.sendEvent(
+                            EventViewModel.Event.OpenFileManager(
+                                rootPath = version.getGameHome(),
+                                currentPath = folder.absolutePath,
                             )
-                        }
+                        )
                     }
                 )
             }
@@ -220,7 +218,7 @@ private fun VersionInfoLayout(
     val context = LocalContext.current
     val errorImportImageText = stringResource(R.string.error_import_image)
     val iconFile = remember {
-        VersionsManager.getVersionIconFile(version)
+        version.getVersionIconFile()
     }
 
     VersionChunkBackground(
@@ -242,7 +240,29 @@ private fun VersionInfoLayout(
                 versionSummary = versionSummary,
                 refreshKey = refreshKey
             )
-            Row {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                //添加卡片到主界面
+                val cardExists by remember(version) {
+                    VersionCardManager.cards.map { states ->
+                        states.any {
+                            it.record.versionName == version.getVersionName() &&
+                                    it.record.dir == VersionCardDir.fromGameHome(version.getGameHome())
+                        }
+                    }
+                }.collectAsStateWithLifecycle(
+                    VersionCardManager.hasCard(version.getVersionName(), version.getGameHome())
+                )
+                IconTextButton(
+                    onClick = { VersionCardManager.addCard(version) },
+                    painter = painterResource(R.drawable.ic_add_box_outlined),
+                    contentDescription = stringResource(R.string.home_add_version_card),
+                    text = stringResource(R.string.home_add_version_card),
+                    enabled = !cardExists
+                )
+
                 ImportFileButton(
                     contract = MediaPickerContract(
                         allowImages = true,
@@ -280,7 +300,6 @@ private fun VersionInfoLayout(
                     text = stringResource(R.string.versions_overview_custom_version_icon)
                 )
                 if (iconFileExists) {
-                    Spacer(modifier = Modifier.width(12.dp))
                     IconTextButton(
                         onClick = resetIcon,
                         painter = painterResource(R.drawable.ic_restart_alt),
@@ -305,7 +324,7 @@ private fun VersionManagementLayout(
     onDelete: () -> Unit,
 ) {
     val logFile = remember(version) {
-        VersionsManager.getLatestLog(version)
+        version.getLatestLog()
     }
     val logExists = remember(logFile) {
         logFile.exists()
@@ -515,6 +534,11 @@ private fun VersionsOperation(
                             title = R.string.versions_manage_rename_version,
                             task = {
                                 VersionsManager.renameVersion(versionsOperation.version, it)
+                                VersionCardManager.onVersionRenamed(
+                                    gameHome = versionsOperation.version.getGameHome(),
+                                    oldName = versionsOperation.version.getVersionName(),
+                                    newName = it
+                                )
                             }
                         )
                     )

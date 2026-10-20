@@ -49,7 +49,7 @@ class GameAssetCleaner(
     /**
      * 基础下载器
      */
-    private val downloader = BaseMinecraftDownloader(verifyIntegrity = true)
+    private val downloader = BaseMinecraftDownloader()
 
     /**
      * 已安装的全部的文件

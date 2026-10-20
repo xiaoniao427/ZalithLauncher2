@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.plugin.renderer
 
+import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 
 class RendererPlugin(
@@ -33,7 +34,10 @@ class RendererPlugin(
     private val env: Map<String, String>,
     private val dlopen: List<String>,
     val isConfigurable: Boolean = false,
-): RendererInterface {
+): RendererInterface, Plugin {
+    override fun getIdentifier(): String = packageName
+    override fun getNativeLibPath(): String = path
+
     override fun getRendererId(): String = id
     override fun getUniqueIdentifier(): String = packageName
     override fun getRendererName(): String = displayName

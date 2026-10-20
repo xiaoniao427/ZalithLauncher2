@@ -76,7 +76,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.modlike.ModVersion
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
-import com.movtery.zalithlauncher.ui.buildAppendedText
+import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.rememberMaxHeight
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
@@ -112,6 +112,27 @@ private fun AddonTextLayout(
         title = title,
         summary = {
             Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    )
+}
+
+/**
+ * 简易 Addon 文本占位
+ */
+@Composable
+private fun AddonTextLayout(
+    modifier: Modifier = Modifier,
+    title: String,
+    summary: AndroidStringText
+) {
+    AddonTextLayout(
+        modifier = modifier,
+        title = title,
+        summary = {
+            AndroidStringText(
                 text = summary,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -359,14 +380,10 @@ private fun <E> AddonListHeader(
                 AddonTextLayout(
                     modifier = Modifier.weight(1f),
                     title = title,
-                    summary = {
-                        AndroidStringText(
-                            text = buildAppendedText {
-                                append(R.string.download_game_addon_list_load_error)
-                                append(state.message)
-                            }
-                        )
-                    },
+                    summary = androidText(
+                        R.string.download_game_addon_list_load_error,
+                        state.message
+                    )
                 )
                 IconButton(
                     modifier = Modifier

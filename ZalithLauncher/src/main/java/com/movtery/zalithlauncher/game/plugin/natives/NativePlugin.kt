@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.plugin.natives
 
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
+import com.movtery.zalithlauncher.game.plugin.Plugin
 
 class NativePlugin(
     packageName: String,
@@ -33,4 +34,7 @@ class NativePlugin(
     packageName = packageName,
     appName = appName,
     appVersion = appVersion
-)
+), Plugin {
+    override fun getIdentifier(): String = packageName
+    override fun getNativeLibPath(): String = path
+}

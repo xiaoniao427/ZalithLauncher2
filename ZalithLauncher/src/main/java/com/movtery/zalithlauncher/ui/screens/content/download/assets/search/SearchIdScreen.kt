@@ -61,6 +61,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProjectsRepository
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -73,8 +74,8 @@ import com.movtery.zalithlauncher.game.download.assets.utils.getMcMod
 import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.download.assets.utils.getTranslations
 import com.movtery.zalithlauncher.ui.AndroidStringText
+import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
-import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
@@ -327,10 +328,10 @@ private fun ContentResult(
                         modifier = Modifier.align(Alignment.Center),
                         text = {
                             AndroidStringText(
-                                text = buildAppendedText {
-                                    append(R.string.download_assets_failed_to_get_result)
-                                    append(operation.message)
-                                }
+                                text = androidText(
+                                    R.string.download_assets_failed_to_get_result,
+                                    operation.message
+                                )
                             )
                         },
                         onClick = onReload
@@ -377,7 +378,6 @@ private fun ResultLayout(
     val iconUrl = remember(project) { project.platformIconUrl() }
     val author = remember(project) { project.platformAuthor() }
     val downloads = remember(project) { project.platformDownloadCount() }
-    val follows = remember(project) { project.platformFollows() }
     val modloaders = remember(project) { project.platformModLoaders() }
     val classes = remember(project) { project.platformClasses(defaultClasses) }
     val categories = remember(project, classes) { project.platformCategories(classes) }
@@ -400,9 +400,12 @@ private fun ResultLayout(
                 iconUrl = iconUrl,
                 author = author,
                 downloads = downloads,
-                follows = follows,
                 modloaders = modloaders,
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
+                isFavorite = FavoriteProjectsRepository.isFavorite(platform, project.platformId()),
+                onFavoriteClick = {
+                    FavoriteProjectsRepository.toggle(project, classes)
+                },
                 onClick = {
                     onView(platform, classes, project.platformId(), iconUrl)
                 }

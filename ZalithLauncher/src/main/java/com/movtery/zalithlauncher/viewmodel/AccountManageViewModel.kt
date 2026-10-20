@@ -29,18 +29,15 @@ import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.accountErrorText
 import com.movtery.zalithlauncher.game.account.addOtherServer
 import com.movtery.zalithlauncher.game.account.auth_server.AuthServerHelper
-import com.movtery.zalithlauncher.game.account.auth_server.ResponseException
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
+import com.movtery.zalithlauncher.game.account.isReloginRequired
 import com.movtery.zalithlauncher.game.account.localLogin
 import com.movtery.zalithlauncher.game.account.microsoft.MINECRAFT_SERVICES_URL
-import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException
-import com.movtery.zalithlauncher.game.account.microsoft.NotPurchasedMinecraftException
-import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
-import com.movtery.zalithlauncher.game.account.microsoft.toLocal
 import com.movtery.zalithlauncher.game.account.microsoftLogin
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
 import com.movtery.zalithlauncher.game.account.wardrobe.EmptyCape
@@ -53,13 +50,13 @@ import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.cacheAllCapes
 import com.movtery.zalithlauncher.game.account.yggdrasil.changeCape
 import com.movtery.zalithlauncher.game.account.yggdrasil.executeWithAuthorization
+import com.movtery.zalithlauncher.game.account.yggdrasil.findUsing
 import com.movtery.zalithlauncher.game.account.yggdrasil.getFile
 import com.movtery.zalithlauncher.game.account.yggdrasil.getPlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.uploadSkin
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountSkinOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.ChangeCape
@@ -69,12 +66,14 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.LoginMenuOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.OtherLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.ServerOperation
-import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.toLocal
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,15 +85,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.net.ConnectException
-import java.net.UnknownHostException
-import java.nio.channels.UnresolvedAddressException
 import java.util.UUID
-import javax.inject.Inject
 import io.ktor.client.plugins.ResponseException as KtorResponseException
 import kotlinx.coroutines.flow.combine as kotlinxCombine
-
-private const val TAG = "AccountManageVM"
 
 /**
  * 账号管理界面用户意图 (MVI Intent)
@@ -172,20 +165,23 @@ sealed interface AccountManageIntent {
     /** 刷新账号的登录凭据（Token） */
     data class RefreshAccount(val account: Account) : AccountManageIntent
 
+    /** 凭据失效后，使用新密码重新登录外置账号 */
+    data class ReloginOtherAccount(
+        val account: Account,
+        val password: String
+    ) : AccountManageIntent
+
     /** 将账号皮肤重置为默认状态 */
     data class ResetSkin(val account: Account) : AccountManageIntent
 }
 
 /**
  * 账号管理界面单次副作用 (MVI Effect)
- * 用于处理 Toast、错误弹窗或 UI 通知等瞬时事件
+ * 用于处理错误弹窗等瞬时事件
  */
 sealed class AccountManageEffect {
     /** 在 UI 层显示错误信息对话框 */
     data class ShowError(val title: AndroidStringText, val message: AndroidStringText) : AccountManageEffect()
-
-    /** 在 UI 层显示 Toast 提示 */
-    data class ShowToast(val text: AndroidStringText, val duration: Int) : AccountManageEffect()
 }
 
 /**
@@ -196,10 +192,15 @@ sealed class AccountManageEffect {
  * 
  * @property context 全局应用上下文
  */
-@HiltViewModel
-class AccountManageViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AccountManageViewModel.Factory::class)
+class AccountManageViewModel @AssistedInject constructor(
+    @Assisted private val eventViewModel: EventViewModel,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+    @AssistedFactory
+    interface Factory {
+        fun create(eventViewModel: EventViewModel): AccountManageViewModel
+    }
     private val _loginMenuOp = MutableStateFlow<LoginMenuOperation>(LoginMenuOperation.None)
 
     private val _microsoftLoginOp =
@@ -251,14 +252,12 @@ class AccountManageViewModel @Inject constructor(
         AccountsManager.currentAccountFlow,
         AccountsManager.authServersFlow,
         _accountCapeOpMap,
-        AccountsManager.isOffline
-    ) { accounts, currentAccount, authServers, accountCapeOpMap, isOffline ->
+    ) { accounts, currentAccount, authServers, accountCapeOpMap ->
         ProfileUiState(
             accounts = accounts,
             currentAccount = currentAccount,
             authServers = authServers,
             accountCapeOpMap = accountCapeOpMap,
-            isOffline = isOffline
         )
     }.stateIn(
         scope = viewModelScope,
@@ -271,7 +270,6 @@ class AccountManageViewModel @Inject constructor(
         val currentAccount: Account? = null,
         val authServers: List<AuthServer> = emptyList(),
         val accountCapeOpMap: Map<String, List<PlayerProfile.Cape>> = emptyMap(),
-        val isOffline: Boolean = false
     )
 
     /**
@@ -366,6 +364,7 @@ class AccountManageViewModel @Inject constructor(
             is AccountManageIntent.DeleteServer -> deleteServer(intent.server)
             is AccountManageIntent.DeleteAccount -> deleteAccount(intent.account)
             is AccountManageIntent.RefreshAccount -> refreshAccount(intent.account)
+            is AccountManageIntent.ReloginOtherAccount -> reloginOtherAccount(intent)
             is AccountManageIntent.ResetSkin -> resetSkin(intent.account)
         }
     }
@@ -434,9 +433,7 @@ class AccountManageViewModel @Inject constructor(
         text: AndroidStringText,
         duration: Int = Toast.LENGTH_SHORT
     ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            _effect.send(AccountManageEffect.ShowToast(text, duration))
-        }
+        eventViewModel.sendToast(text, duration)
     }
 
     /** 执行微软登录流程 */
@@ -530,19 +527,29 @@ class AccountManageViewModel @Inject constructor(
                     )
                 },
                 onError = { th ->
-                    if (th is KtorResponseException) {
-                        emitError(
-                            androidText(
-                                R.string.account_change_skin_failed_to_upload,
-                                th.response.status.value
-                            ),
-                            th.toLocal()
-                        )
-                    } else {
-                        emitError(
-                            androidText(R.string.generic_error),
-                            formatAccountError(th)
-                        )
+                    when {
+                        th.isReloginRequired() -> {
+                            onIntent(
+                                AccountManageIntent.UpdateAccountOp(
+                                    AccountOperation.OnRelogin(account)
+                                )
+                            )
+                        }
+                        th is KtorResponseException -> {
+                            emitError(
+                                androidText(
+                                    R.string.account_change_skin_failed_to_upload,
+                                    th.response.status.value
+                                ),
+                                th.toLocal()
+                            )
+                        }
+                        else -> {
+                            emitError(
+                                androidText(R.string.generic_error),
+                                formatAccountError(th)
+                            )
+                        }
                     }
                 }
             )
@@ -564,18 +571,45 @@ class AccountManageViewModel @Inject constructor(
                         task.updateMessage(androidText(R.string.account_change_cape_cache_all))
                         cacheAllCapes(profile)
                         //同时更新本地的皮肤/披风
-                        account.downloadYggdrasil()
+                        runCatching {
+                            account.downloadYggdrasil(refresh = false)
+                        }.onFailure { e ->
+                            if (e is CancellationException) throw e
+                        }
+
+                        val activeCape = profile.capes.findUsing()
+                        val targetCape = account.getCapeFile()
+                        if (activeCape != null) {
+                            val activeCapeFile = activeCape.getFile(PathManager.DIR_ACCOUNT_CAPE)
+                            if (activeCapeFile.exists()) {
+                                runCatching {
+                                    activeCapeFile.copyTo(targetCape, overwrite = true)
+                                }
+                            }
+                        } else {
+                            FileUtils.deleteQuietly(targetCape)
+                        }
+
                         _accountCapeOpMap.update { it + (account.uniqueUUID to profile.capes) }
+                        AccountsManager.refreshWardrobe()
                     }, onRefreshRequest = {
                         account.refreshMicrosoft(task = task, coroutineContext = coroutineContext)
                         AccountsManager.suspendSaveAccount(account)
                     })
                 },
                 onError = { th ->
-                    emitError(
-                        androidText(R.string.account_change_cape_fetch_all_failed),
-                        androidText(th.getMessageOrToString())
-                    )
+                    if (th.isReloginRequired()) {
+                        onIntent(
+                            AccountManageIntent.UpdateAccountOp(
+                                AccountOperation.OnRelogin(account)
+                            )
+                        )
+                    } else {
+                        emitError(
+                            androidText(R.string.account_change_cape_fetch_all_failed),
+                            androidText(th.getMessageOrToString())
+                        )
+                    }
                 }
             )
         )
@@ -634,33 +668,44 @@ class AccountManageViewModel @Inject constructor(
                         }
                     }
 
-                    if (isReset) emitToast(androidText(R.string.account_change_cape_apply_reset))
-                    else emitToast(
-                        buildAppendedText {
-                            append(R.string.account_change_cape_apply_success)
-                            val capeLocal = cape.capeLocalRes()
-                            if (capeLocal == null) {
-                                append(cape.alias)
-                            } else {
-                                append(capeLocal)
-                            }
-                        }
-                    )
+                    if (isReset) {
+                        emitToast(androidText(R.string.account_change_cape_apply_reset))
+                    } else {
+                        val capeName = cape.capeLocalRes()?.let { localRes ->
+                            androidText(localRes)
+                        } ?: androidText(cape.alias)
+                        emitToast(
+                            androidText(
+                                R.string.account_change_cape_apply_success,
+                                capeName
+                            )
+                        )
+                    }
                 },
                 onError = { th ->
-                    if (th is KtorResponseException) {
-                        emitError(
-                            androidText(
-                                R.string.account_change_cape_apply_failed,
-                                th.response.status.value
-                            ),
-                            th.toLocal()
-                        )
-                    } else {
-                        emitError(
-                            androidText(R.string.generic_error),
-                            formatAccountError(th)
-                        )
+                    when {
+                        th.isReloginRequired() -> {
+                            onIntent(
+                                AccountManageIntent.UpdateAccountOp(
+                                    AccountOperation.OnRelogin(account)
+                                )
+                            )
+                        }
+                        th is KtorResponseException -> {
+                            emitError(
+                                androidText(
+                                    R.string.account_change_cape_apply_failed,
+                                    th.response.status.value
+                                ),
+                                th.toLocal()
+                            )
+                        }
+                        else -> {
+                            emitError(
+                                androidText(R.string.generic_error),
+                                formatAccountError(th)
+                            )
+                        }
                     }
                 }
             )
@@ -710,8 +755,43 @@ class AccountManageViewModel @Inject constructor(
 
     /** 强制刷新账号凭据 */
     private fun refreshAccount(account: Account) {
-        AccountsManager.refreshAccount(context, account) {
-            onIntent(AccountManageIntent.UpdateAccountOp(AccountOperation.OnFailed(it)))
+        AccountsManager.refreshAccount(context, account) { th ->
+            onIntent(
+                AccountManageIntent.UpdateAccountOp(
+                    if (th.isReloginRequired()) {
+                        AccountOperation.OnRelogin(account)
+                    } else {
+                        AccountOperation.OnFailed(th)
+                    }
+                )
+            )
+        }
+    }
+
+    /** 凭据失效后，使用新密码重新登录外置账号 */
+    private fun reloginOtherAccount(intent: AccountManageIntent.ReloginOtherAccount) {
+        val account = intent.account
+        AuthServerHelper(
+            baseUrl = account.otherBaseUrl!!,
+            serverName = account.accountType!!,
+            email = account.otherAccount!!,
+            password = intent.password,
+            onSuccess = { acc, task ->
+                task.updateMessage(androidText(R.string.account_logging_in_saving))
+                acc.downloadYggdrasil()
+                AccountsManager.markSessionValidated(acc)
+                AccountsManager.suspendSaveAccount(acc)
+                onIntent(AccountManageIntent.UpdateAccountOp(AccountOperation.None))
+            },
+            onFailed = { th ->
+                onIntent(
+                    AccountManageIntent.UpdateAccountOp(
+                        AccountOperation.OnRelogin(account, error = th)
+                    )
+                )
+            }
+        ).let { helper ->
+            TaskSystem.submitTask(helper.justLogin(context, account))
         }
     }
 
@@ -779,20 +859,5 @@ class AccountManageViewModel @Inject constructor(
      * @param th 捕获的异常
      * @return 格式化后的错误提示
      */
-    fun formatAccountError(th: Throwable): AndroidStringText = when (th) {
-        is NotPurchasedMinecraftException -> toLocal()
-        is MinecraftProfileException -> th.toLocal()
-        is XboxLoginException -> th.toLocal()
-        is HttpRequestTimeoutException -> androidText(R.string.error_timeout)
-        is UnknownHostException, is UnresolvedAddressException -> androidText(R.string.error_network_unreachable)
-        is ConnectException -> androidText(R.string.error_connection_failed)
-        is KtorResponseException -> th.toLocal()
-        is ResponseException -> androidText(th.responseMessage)
-        else -> {
-            Logger.error(TAG, "An unknown exception was caught!", th)
-            androidText(
-                th.localizedMessage ?: th.message ?: th::class.qualifiedName ?: "Unknown error"
-            )
-        }
-    }
+    fun formatAccountError(th: Throwable): AndroidStringText = accountErrorText(th)
 }

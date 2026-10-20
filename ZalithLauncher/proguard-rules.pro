@@ -1,5 +1,6 @@
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn com.github.luben.zstd.**
+-dontwarn org.brotli.dec.**
 -dontwarn java.lang.management.**
 -dontwarn io.ktor.util.debug.**
 
@@ -11,6 +12,9 @@
     @androidx.room.* <fields>;
     @androidx.room.* <methods>;
 }
+
+# SDL
+-keep class org.libsdl.app.** { *; }
 
 # Launcher
 -keep class org.lwjgl.glfw.CallbackBridge {
@@ -54,6 +58,9 @@
 
 # Libraries
 -keep class com.github.steveice10.opennbt.** { *; }
+
+# SoraEditor language-textmate
+-keep class org.jcodings.** { *; }
 
 #umeng
 -keep class com.umeng.** {*;}

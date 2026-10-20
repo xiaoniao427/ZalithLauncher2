@@ -33,10 +33,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.inputmap.keycodes.ControlEventKeycode
 import com.movtery.layer_controller.event.ClickEvent
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.game.keycodes.mapToControlEvent
+import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.game.sdl.handleGamepadMotionEvent
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_DOWN_SINGLE
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_UP_SINGLE
 import com.movtery.zalithlauncher.ui.control.joystick.allAction
@@ -48,6 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import org.libsdl.app.SDLActivity
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -104,21 +108,37 @@ fun SimpleGamepadCapture(
     }
 
     DisposableEffect(view, gamepadViewModel) {
-        val motionListener = View.OnGenericMotionListener { _, event ->
-            if (isBinding()) {
+        val motionListener = View.OnGenericMotionListener { motionView, event ->
+            if (event.isGamepadEvent() && AllSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+                //模式选择询问优先级最高
+                true
+            } else if (isBinding()) {
                 remapperViewModel.sendEvent(
                     GamepadRemapperViewModel.Event.Axis(event)
                 )
                 true
             } else if (event.isGamepadEvent() && event.action == MotionEvent.ACTION_MOVE) {
-                val deviceName = event.getDeviceName()
-                val remapper = remapperViewModel.findMapping(deviceName)
-                if (remapper == null) {
-                    remapperViewModel.startRemapperUI(deviceName)
+                if (AllSettings.gamepadControl.state && AllSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+                    if (SdlBridge.sdlEnabled) {
+                        gamepadViewModel.notifyActivity()
+                        handleGamepadMotionEvent(event)
+                        try {
+                            SDLActivity.forwardGenericMotionToSDL(motionView, event)
+                        } catch (_: UnsatisfiedLinkError) {
+                            //SDL native 未就绪时忽略
+                        }
+                    }
+                    true
                 } else {
-                    remapper.handleMotionEventInput(event, gamepadViewModel)
+                    val deviceName = event.getDeviceName()
+                    val remapper = remapperViewModel.findMapping(deviceName)
+                    if (remapper == null) {
+                        remapperViewModel.startRemapperUI(deviceName)
+                    } else {
+                        remapper.handleMotionEventInput(event, gamepadViewModel)
+                    }
+                    true
                 }
-                true
             } else false
         }
 
@@ -131,6 +151,7 @@ fun SimpleGamepadCapture(
 
     LaunchedEffect(gamepadViewModel.gamepadEngaged) {
         withContext(Dispatchers.Default) {
+            var lastPollTime = 0L
             while (true) {
                 try {
                     ensureActive()
@@ -140,7 +161,13 @@ fun SimpleGamepadCapture(
                     val pollLevel = gamepadViewModel.checkGamepadActive()
                     if (pollLevel == GamepadViewModel.PollLevel.Close) break
 
-                    gamepadViewModel.pollJoystick()
+                    // 按实际轮询间隔归一化本帧偏移量
+                    // 首轮询间隔记为0，避免重启循环后视角跳动
+                    val now = System.nanoTime()
+                    val deltaMs = if (lastPollTime == 0L) 0.0 else (now - lastPollTime) / 1_000_000.0
+                    lastPollTime = now
+
+                    gamepadViewModel.pollJoystick(deltaMs)
                     delay(pollLevel.delayMs.milliseconds)
                 } catch (_: CancellationException) {
                     break
@@ -170,17 +197,36 @@ private fun GamepadEventListener(
 }
 
 /**
+ * 手柄活动监听者
+ */
+@Composable
+fun GamepadOnActionListener(
+    gamepadViewModel: GamepadViewModel,
+    onAction: () -> Unit
+) {
+    val currentOnAction by rememberUpdatedState(onAction)
+
+    DisposableEffect(gamepadViewModel) {
+        val listener: () -> Unit = {
+            currentOnAction()
+        }
+        gamepadViewModel.registerActionListener(listener)
+        onDispose {
+            gamepadViewModel.unregisterActionListener(listener)
+        }
+    }
+}
+
+/**
  * 统一实现的手柄按键事件监听器
  * @param isGrabbing 用于判断是否处于游戏中，区分游戏内、菜单内的按键绑定
  * @param onKeyEvent 键盘映射事件回调
- * @param onAction 手柄触发任意操作时
  */
 @Composable
 fun GamepadKeyListener(
     gamepadViewModel: GamepadViewModel,
     isGrabbing: Boolean,
-    onKeyEvent: (targets: List<ClickEvent>, pressed: Boolean) -> Unit,
-    onAction: () -> Unit
+    onKeyEvent: (targets: List<ClickEvent>, pressed: Boolean) -> Unit
 ) {
     fun guessEvent(event: String): ClickEvent {
         return when (event) {
@@ -198,7 +244,6 @@ fun GamepadKeyListener(
 
     val inGame by rememberUpdatedState(isGrabbing)
     val currentOnKeyEvent by rememberUpdatedState(onKeyEvent)
-    val currentOnAction by rememberUpdatedState(onAction)
 
     val lastPressKey = remember { mutableStateMapOf<Int, List<ClickEvent>>() }
     val lastPressDpad = remember { mutableStateMapOf<DpadDirection, List<ClickEvent>>() }
@@ -206,8 +251,6 @@ fun GamepadKeyListener(
     GamepadEventListener(
         gamepadViewModel = gamepadViewModel,
         listener = { event ->
-            currentOnAction()
-
             when (event) {
                 is GamepadViewModel.Event.Button -> {
                     if (!event.pressed) {

@@ -20,12 +20,11 @@ package com.movtery.zalithlauncher.game.addons.modloader.forgelike.forge
 
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.ResponseTooShortException
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.path.URL_USER_AGENT
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
@@ -57,16 +56,7 @@ object ForgeVersions {
     suspend fun fetchForgeList(mcVersion: String): List<ForgeVersion>? = withContext(Dispatchers.Default) {
         if (isChinaMainland()) {
             runMirrorable(
-                when (AllSettings.fetchModLoaderSource.getValue()) {
-                    MirrorSourceType.OFFICIAL_FIRST -> listOf(
-                        fetchListWithOfficial(mcVersion, 5),
-                        fetchListWithBMCLAPI(mcVersion, 5 + 30)
-                    )
-                    MirrorSourceType.MIRROR_FIRST -> listOf(
-                        fetchListWithBMCLAPI(mcVersion, 30),
-                        fetchListWithOfficial(mcVersion, 30 + 60)
-                    )
-                }
+                listOf(officialSource(mcVersion), bmclapiSource(mcVersion)).orderedByGameSourcePreference()
             )
         } else {
             fetchListWithOfficial(mcVersion)
@@ -78,11 +68,16 @@ object ForgeVersions {
     /**
      * 从官方源获取版本列表
      */
-    private fun fetchListWithOfficial(mcVersion: String, delayMillis: Long): MirrorSource<List<ForgeVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
+    private fun officialSource(mcVersion: String): MirrorSource<List<ForgeVersion>?> = MirrorSource(
         type = SourceType.OFFICIAL
     ) {
         fetchListWithOfficial(mcVersion)
+    }
+
+    private fun bmclapiSource(mcVersion: String): MirrorSource<List<ForgeVersion>?> = MirrorSource(
+        type = SourceType.BMCLAPI
+    ) {
+        fetchListWithBMCLAPI(mcVersion)
     }
 
     private suspend fun fetchListWithOfficial(mcVersion: String) = withContext(Dispatchers.IO) {
@@ -126,13 +121,10 @@ object ForgeVersions {
      * 从镜像源获取版本列表
      * [Reference PCL2](https://github.com/Meloong-Git/PCL/blob/28ef67e/Plain%20Craft%20Launcher%202/Modules/Minecraft/ModDownload.vb#L702-L751)
      */
-    private fun fetchListWithBMCLAPI(mcVersion: String, delayMillis: Long): MirrorSource<List<ForgeVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
-        type = SourceType.BMCLAPI
-    ) {
+    private suspend fun fetchListWithBMCLAPI(mcVersion: String): List<ForgeVersion>? {
         val url = "https://bmclapi2.bangbang93.com/forge/minecraft/${mcVersion.replace("-", "_")}" //兼容 Forge 1.7.10-pre4
 
-        try {
+        return try {
             val tokens: List<ForgeVersionToken> = withContext(Dispatchers.IO) {
                 withRetry(TAG, maxRetries = 2) {
                     GLOBAL_CLIENT.get(url).safeBodyAsJson()

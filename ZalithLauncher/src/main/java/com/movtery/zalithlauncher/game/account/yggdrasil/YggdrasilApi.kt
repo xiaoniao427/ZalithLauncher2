@@ -22,10 +22,11 @@ import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileExcepti
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException.ExceptionStatus.FREQUENT
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException.ExceptionStatus.PROFILE_NOT_EXISTS
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
+import com.movtery.zalithlauncher.game.download.engine.BatchDownloader
+import com.movtery.zalithlauncher.game.version.download.DownloadTask
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.network.downloadFileSuspend
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
 import com.movtery.zalithlauncher.utils.network.withRetry
 import io.ktor.client.plugins.ResponseException
@@ -40,13 +41,7 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -155,33 +150,29 @@ suspend fun cacheAllCapes(
     maxThreads: Int = 6
 ) = runCatching {
     withContext(Dispatchers.IO) {
-        val semaphore = Semaphore(maxThreads)
-
-        val downloadJobs = profile.capes.map { cape ->
-            launch {
-                semaphore.withPermit {
-                    val file = cape.getFile(PathManager.DIR_ACCOUNT_CAPE)
-                    if (file.exists()) {
-                        if (file.lastModified() + TimeUnit.DAYS.toMillis(7) < System.currentTimeMillis()) {
-                            //超过一周，更新一次缓存
-                            FileUtils.deleteQuietly(file)
-                        } else {
-                            return@withPermit
-                        }
-                    }
-                    downloadFileSuspend(
-                        url = cape.url,
-                        outputFile = file
-                    )
+        val tasks = profile.capes.mapNotNull { cape ->
+            val file = cape.getFile(PathManager.DIR_ACCOUNT_CAPE)
+            if (file.exists()) {
+                if (file.lastModified() + TimeUnit.DAYS.toMillis(7) < System.currentTimeMillis()) {
+                    //超过一周，更新一次缓存
+                    FileUtils.deleteQuietly(file)
+                } else {
+                    return@mapNotNull null
                 }
             }
+            DownloadTask(
+                urls = listOf(cape.url),
+                verifyIntegrity = false,
+                targetFile = file
+            )
         }
 
-        try {
-            downloadJobs.joinAll()
-        } catch (e: CancellationException) {
-            downloadJobs.forEach { it.cancel("Parent cancelled", e) }
-            throw e
+        if (tasks.isNotEmpty()) {
+            BatchDownloader(
+                requests = tasks.map { it.toRequest() },
+                maxConnections = maxThreads,
+                retryRounds = 0
+            ).run()
         }
     }
 }.onFailure { e ->

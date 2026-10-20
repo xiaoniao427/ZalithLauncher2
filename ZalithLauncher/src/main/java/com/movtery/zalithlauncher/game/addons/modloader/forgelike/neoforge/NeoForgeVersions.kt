@@ -20,11 +20,10 @@ package com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge
 
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.models.BMCLAPIMaven
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.models.NeoForgedMaven
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.httpGetJson
@@ -39,7 +38,6 @@ object NeoForgeVersions {
 
     /**
      * 获取 NeoForge 版本列表
-     * [Reference PCL2](https://github.com/Meloong-Git/PCL/blob/28ef67e/Plain%20Craft%20Launcher%202/Modules/Minecraft/ModDownload.vb#L811-L830)
      */
     suspend fun fetchNeoForgeList(
         force: Boolean = false,
@@ -51,19 +49,10 @@ object NeoForgeVersions {
 
         if (isChinaMainland()) {
             runMirrorable(
-                when (AllSettings.fetchModLoaderSource.getValue()) {
-                    MirrorSourceType.OFFICIAL_FIRST -> listOf(
-                        fetchListWithOfficial(5),
-                        fetchListWithBMCLAPI(5 + 30)
-                    )
-                    MirrorSourceType.MIRROR_FIRST -> listOf(
-                        fetchListWithBMCLAPI(30),
-                        fetchListWithOfficial(30 + 60)
-                    )
-                }
+                listOf(fetchListWithOfficial(), fetchListWithBMCLAPI()).orderedByGameSourcePreference()
             )
         } else {
-            fetchListWithOfficial()
+            fetchOfficialVersions()
         }?.also {
             cacheResult = it
         }?.outputVersionList(gameVersion)
@@ -82,14 +71,13 @@ object NeoForgeVersions {
     /**
      * 在官方源获取版本列表
      */
-    private fun fetchListWithOfficial(delayMillis: Long): MirrorSource<List<NeoForgeVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
+    private fun fetchListWithOfficial(): MirrorSource<List<NeoForgeVersion>?> = MirrorSource(
         type = SourceType.OFFICIAL
     ) {
-        fetchListWithOfficial()
+        fetchOfficialVersions()
     }
 
-    private suspend fun fetchListWithOfficial() = withContext(Dispatchers.IO) {
+    private suspend fun fetchOfficialVersions() = withContext(Dispatchers.IO) {
         processVersionList(SourceType.OFFICIAL) {
             val neoforge = withRetry(TAG, maxRetries = 2) {
                 httpGetJson<NeoForgedMaven>(url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")
@@ -105,8 +93,7 @@ object NeoForgeVersions {
     /**
      * 在BMCL API源获取版本列表
      */
-    private fun fetchListWithBMCLAPI(delayMillis: Long): MirrorSource<List<NeoForgeVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
+    private fun fetchListWithBMCLAPI(): MirrorSource<List<NeoForgeVersion>?> = MirrorSource(
         type = SourceType.BMCLAPI
     ) {
         processVersionList(SourceType.BMCLAPI) {

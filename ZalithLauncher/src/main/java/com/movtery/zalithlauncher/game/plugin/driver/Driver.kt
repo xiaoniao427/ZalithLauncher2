@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.plugin.driver
 
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
+import com.movtery.zalithlauncher.game.plugin.Plugin
 
 class Driver(
     val id: String,
@@ -32,4 +33,7 @@ class Driver(
     packageName = id,
     appName = appName,
     appVersion = appVersion
-)
+), Plugin {
+    override fun getIdentifier(): String = id
+    override fun getNativeLibPath(): String = path
+}

@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -54,14 +56,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.movtery.layer_controller.observable.ObservableLocalizedString
 import com.movtery.layer_controller.observable.ObservableTranslatableString
 import com.movtery.layer_controller.utils.toSimpleLangTag
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -102,10 +107,17 @@ fun EditTranslatableTextDialog(
             if (onDismissRequest != null) {
                 onDismissRequest()
             }
-        }
+        },
+        properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
-        Surface(
-            modifier = Modifier.padding(all = 3.dp),
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier.padding(all = 3.dp),
             shadowElevation = 3.dp,
             color = cardColor(false),
             contentColor = onCardColor(),
@@ -208,6 +220,7 @@ fun EditTranslatableTextDialog(
                         }
                     }
                 }
+            }
             }
         }
     }

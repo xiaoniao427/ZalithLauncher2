@@ -18,4 +18,7 @@
 
 package com.movtery.zalithlauncher.game.version.download
 
-class DownloadFailedException : RuntimeException()
+class DownloadFailedException(
+    message: String? = null,
+    cause: Throwable? = null
+) : RuntimeException(message, cause)

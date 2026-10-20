@@ -20,7 +20,7 @@ package com.movtery.zalithlauncher.game.download.game.cleanroom
 
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.addons.modloader.cleanroom.CleanroomVersion
-import com.movtery.zalithlauncher.utils.network.downloadFileSuspend
+import com.movtery.zalithlauncher.utils.network.downloadFile
 import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import java.io.File
 
@@ -43,7 +43,7 @@ fun getCleanroomDownloadTask(
                     task.clearSpeed()
                 }
             ) { report ->
-                downloadFileSuspend(
+                downloadFile(
                     url = cleanroomVersion.installerUrl,
                     outputFile = targetTempInstaller,
                     sizeCallback = report

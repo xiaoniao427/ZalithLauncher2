@@ -20,11 +20,10 @@ package com.movtery.zalithlauncher.game.addons.modloader.optifine
 
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.ResponseTooShortException
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
@@ -40,9 +39,6 @@ import kotlinx.coroutines.withContext
 
 private const val TAG = "OptiFineVersions"
 
-/**
- * [Some logic refers to PCL2](https://github.com/Hex-Dragon/PCL2/blob/44aea3e/Plain%20Craft%20Launcher%202/Modules/Minecraft/ModDownload.vb#L375-L409)
- */
 object OptiFineVersions {
     private const val OPTIFINE_URL = "https://optifine.net"
     private const val OPTIFINE_DOWNLOAD_URL = "$OPTIFINE_URL/downloads"
@@ -59,38 +55,22 @@ object OptiFineVersions {
     ): List<OptiFineVersion>? = withContext(Dispatchers.IO) {
         if (isChinaMainland()) {
             runMirrorable(
-                when (AllSettings.fetchModLoaderSource.getValue()) {
-                    MirrorSourceType.OFFICIAL_FIRST -> listOf(
-                        fetchListWithOfficial(force, 5),
-                        fetchListWithBMCLAPI(force, 5 + 30)
-                    )
-                    MirrorSourceType.MIRROR_FIRST -> listOf(
-                        fetchListWithBMCLAPI(force, 30),
-                        fetchListWithOfficial(force, 30 + 60)
-                    )
-                }
+                listOf(fetchOfficialSource(force), fetchBMCLAPISource(force)).orderedByGameSourcePreference()
             )
         } else {
-            fetchListWithOfficial(force)
+            fetchOfficialVersions(force)
         }?.filter {
             it.inherit == gameVersion
         }
     }
 
-    /**
-     * 从官方源获取版本列表
-     */
-    private fun fetchListWithOfficial(
-        force: Boolean = false,
-        delayMillis: Long
-    ): MirrorSource<List<OptiFineVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
-        type = SourceType.OFFICIAL
-    ) {
-        fetchListWithOfficial(force)
-    }
+    private fun fetchOfficialSource(force: Boolean): MirrorSource<List<OptiFineVersion>?> =
+        MirrorSource(SourceType.OFFICIAL) { fetchOfficialVersions(force) }
 
-    private suspend fun fetchListWithOfficial(force: Boolean) = withContext(Dispatchers.Default) {
+    private fun fetchBMCLAPISource(force: Boolean): MirrorSource<List<OptiFineVersion>?> =
+        MirrorSource(SourceType.BMCLAPI) { fetchListWithBMCLAPI(force) }
+
+    private suspend fun fetchOfficialVersions(force: Boolean) = withContext(Dispatchers.Default) {
         if (!force) cacheResult?.let { return@withContext it }
 
         try {
@@ -177,18 +157,8 @@ object OptiFineVersions {
         }
     }
 
-    /**
-     * 从镜像源获取版本列表
-     */
-    private fun fetchListWithBMCLAPI(
-        force: Boolean = false,
-        delayMillis: Long
-    ): MirrorSource<List<OptiFineVersion>?> = MirrorSource(
-        delayMillis = delayMillis,
-        type = SourceType.BMCLAPI
-    ) {
-        withContext(Dispatchers.Default) {
-            if (!force) cacheResult?.let { return@withContext it }
+    private suspend fun fetchListWithBMCLAPI(force: Boolean): List<OptiFineVersion>? = withContext(Dispatchers.Default) {
+        if (!force) cacheResult?.let { return@withContext it }
 
             try {
                 val tokens: List<OptiFineVersionToken> = withContext(Dispatchers.IO) {
@@ -228,7 +198,6 @@ object OptiFineVersions {
                 Logger.warning(TAG, "Failed to fetch OptiFine list!", e)
                 throw e
             }
-        }
     }
 
     /**

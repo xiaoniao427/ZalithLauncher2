@@ -72,6 +72,8 @@ typealias CursorMode = Int
  * @param isMoveOnlyPointer         指针是否被父级标记为仅可滑动指针
  * @param onOccupiedPointer         占用指针回调
  * @param onReleasePointer          释放指针回调
+ * @param enableScrollGesture       是否启用双指滑动滚动手势
+ * @param onScrollGesture           双指滑动滚动回调，参数为滚轮滚动的偏移量
  * @param mouseSize                 指针大小
  * @param cursorSensitivity         指针灵敏度（滑动模式生效）
  */
@@ -101,6 +103,8 @@ fun SwitchableMouseLayout(
     isMoveOnlyPointer: (PointerId) -> Boolean = { false },
     onOccupiedPointer: (PointerId) -> Unit = {},
     onReleasePointer: (PointerId) -> Unit = {},
+    enableScrollGesture: Boolean = false,
+    onScrollGesture: (Offset) -> Unit = {},
     mouseSize: Dp = AllSettings.mouseSize.state.dp,
     cursorSensitivity: Int = AllSettings.cursorSensitivity.state,
     gamepadCursorSensitivity: Int = AllSettings.gamepadCursorSensitivity.state,
@@ -166,6 +170,9 @@ fun SwitchableMouseLayout(
             else requestPointerCapture
         )
     }
+
+    val textInputActive = rememberTextInputActive()
+    val capturePointer = isCaptured || (requestPointerCapture1 && !textInputActive)
 
     fun updatePointerPos(pos: Offset) {
         lastVirtualMousePos.value = pos
@@ -237,7 +244,7 @@ fun SwitchableMouseLayout(
             },
             enableMouseClick = enableMouseClick,
             longPressTimeoutMillis = longPressTimeoutMillis,
-            requestPointerCapture = requestPointerCapture1,
+            requestPointerCapture = capturePointer,
             pointerIcon = cursorShape.composeIcon,
             onTouch = {
                 onTouch()
@@ -315,7 +322,7 @@ fun SwitchableMouseLayout(
                         onCapturedMove(offset)
                     }
                     CURSOR_ENABLED -> {
-                        if (requestPointerCapture) {
+                        if (capturePointer) {
                             updateMousePointer(true)
                             pointerPosition = Offset(
                                 x = (pointerPosition.x + offset.x * speedFactor).coerceIn(0f, screenWidth),
@@ -336,6 +343,8 @@ fun SwitchableMouseLayout(
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
             onReleasePointer = onReleasePointer,
+            enableScrollGesture = enableScrollGesture && cursorMode == CURSOR_ENABLED,
+            onScrollGesture = onScrollGesture,
             requestFocusKey = cursorMode
         )
     }

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -165,15 +166,54 @@ fun GamepadSettingsScreen(
         }
     )
 
-    BaseScreen(
+BaseScreen(
         Triple(key, mainScreenKey, false),
         Triple(NormalNavKey.Settings.Gamepad, settingsScreenKey, false)
     ) { isVisible ->
+        //重映射相关设置仅在映射模式下可用
+        val remapEnabled = AllSettings.gamepadControl.state &&
+            AllSettings.gamepadInputMode.state == GamepadInputMode.Mapped
+
         AnimatedLazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(12.dp),
             isVisible = isVisible
         ) { scope ->
+            animatedItem(scope) { yOffset ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                ) {
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
+                        unit = AllSettings.gamepadControl,
+                        title = stringResource(R.string.settings_gamepad_title),
+                        summary = stringResource(R.string.settings_gamepad_summary)
+                    )
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.gamepadInputMode,
+                        items = GamepadInputMode.entries,
+                        title = stringResource(R.string.settings_gamepad_input_mode_title),
+                        getItemText = { mode ->
+                            stringResource(mode.titleRes)
+                        },
+                        getItemSummary = { mode ->
+                            Text(
+                                modifier = Modifier.alpha(0.7f),
+                                text = stringResource(mode.summaryRes),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        enabled = AllSettings.gamepadControl.state
+                    )
+                }
+            }
+
             animatedItem(scope) { yOffset ->
                 SettingsCardColumn(
                     modifier = Modifier
@@ -187,6 +227,7 @@ fun GamepadSettingsScreen(
                         position = CardPosition.Top,
                         title = stringResource(R.string.settings_gamepad_remapping_reset_title),
                         summary = stringResource(R.string.settings_gamepad_remapping_reset_summary),
+                        enabled = remapEnabled,
                         onClick = {
                             scope.launch(Dispatchers.IO) {
                                 val mmkv = remapperMMKV()
@@ -198,14 +239,6 @@ fun GamepadSettingsScreen(
                         }
                     )
 
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gamepadControl,
-                        title = stringResource(R.string.settings_gamepad_title),
-                        summary = stringResource(R.string.settings_gamepad_summary)
-                    )
-
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
@@ -214,7 +247,7 @@ fun GamepadSettingsScreen(
                         summary = stringResource(R.string.settings_gamepad_deadzone_summary),
                         valueRange = AllSettings.gamepadDeadZoneScale.floatRange,
                         suffix = "%",
-                        enabled = AllSettings.gamepadControl.state,
+                        enabled = remapEnabled,
                         fineTuningControl = true
                     )
 
@@ -226,7 +259,7 @@ fun GamepadSettingsScreen(
                         summary = stringResource(R.string.settings_gamepad_cursor_sensitivity_summary),
                         valueRange = AllSettings.gamepadCursorSensitivity.floatRange,
                         suffix = "%",
-                        enabled = AllSettings.gamepadControl.state,
+                        enabled = remapEnabled,
                         fineTuningControl = true
                     )
 
@@ -238,7 +271,7 @@ fun GamepadSettingsScreen(
                         summary = stringResource(R.string.settings_gamepad_camera_sensitivity_summary),
                         valueRange = AllSettings.gamepadCameraSensitivity.floatRange,
                         suffix = "%",
-                        enabled = AllSettings.gamepadControl.state,
+                        enabled = remapEnabled,
                         fineTuningControl = true
                     )
 
@@ -259,7 +292,7 @@ fun GamepadSettingsScreen(
                                 style = MaterialTheme.typography.labelSmall
                             )
                         },
-                        enabled = AllSettings.gamepadControl.state
+                        enabled = remapEnabled
                     )
                 }
             }
@@ -287,7 +320,7 @@ fun GamepadSettingsScreen(
                             getItemId = { it },
                             title = stringResource(R.string.settings_gamepad_config_title),
                             summary = stringResource(R.string.settings_gamepad_config_summary),
-                            enabled = AllSettings.gamepadControl.state,
+                            enabled = remapEnabled,
                             onValueChange = {
                                 viewModel.reloadAllMappings()
                                 refreshed = refreshed.not()
@@ -301,6 +334,7 @@ fun GamepadSettingsScreen(
                             position = CardPosition.Middle,
                             title = stringResource(R.string.settings_gamepad_config_delete),
                             innerPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                            enabled = remapEnabled,
                             onClick = {
                                 createConfigOperation = CreateNewConfigOperation.Delete
                             }
@@ -312,6 +346,7 @@ fun GamepadSettingsScreen(
                         position = if (isCreateOnly) CardPosition.Single else CardPosition.Bottom,
                         title = stringResource(R.string.settings_gamepad_config_create),
                         innerPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                        enabled = remapEnabled,
                         onClick = {
                             createConfigOperation = CreateNewConfigOperation.Create
                         }
@@ -336,7 +371,8 @@ fun GamepadSettingsScreen(
                             },
                             onClick = {
                                 editKeyInGame = true
-                            }
+                            },
+                            enabled = remapEnabled
                         )
 
                         //菜单内
@@ -347,7 +383,8 @@ fun GamepadSettingsScreen(
                             },
                             onClick = {
                                 editKeyInGame = false
-                            }
+                            },
+                            enabled = remapEnabled
                         )
                     }
                 }
@@ -362,6 +399,7 @@ fun GamepadSettingsScreen(
                             .fillMaxWidth()
                             .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                         position = CardPosition.Single,
+                        enabled = remapEnabled,
                         onClick = {
                             bindKeyOperation = BindKeyOperation.OnBind(item)
                         }
@@ -421,7 +459,8 @@ fun GamepadSettingsScreen(
                                     onClick = {
                                         viewModel.currentMapping?.resetMapping(item, editKeyInGame)
                                         refreshed = refreshed.not()
-                                    }
+                                    },
+                                    enabled = remapEnabled
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_restart_alt),

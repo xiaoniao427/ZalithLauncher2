@@ -4,10 +4,15 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.movtery.zalithlauncher.game.sdl.SdlBridge;
+
+import org.libsdl.app.SDLActivity;
 
 /**
  * [From PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/v3_openjdk/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/customcontrols/keyboard/TouchCharInput.java)
@@ -27,14 +32,58 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
     }
 
 
+    private static TouchCharInput sActiveInput;
     private boolean mIsDoingInternalChanges = false;
     private InputListener mListener;
 
     public void enableKeyboard() {
+        // 仅当游戏运行在 SDL 渲染路径（MC 26.3+）时由 SDL 输入框接管；
+        // 仅手柄子系统初始化 SDL 时（如 MC 26.2 挂 Controlify）游戏输入仍走 GLFW 桥，
+        // 委托给 SDL 通道只会被拒绝，须回落到启动器侧输入
+        if (SdlBridge.getSdlEnabled() && SdlBridge.isSdlRenderActive()) {
+            SDLActivity.enableSDLEditKeyboard();
+            return;
+        }
         InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
         enable();
+        sActiveInput = this;
+        SdlBridge.requestComposeFocus();
         imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT);
         clear();
+    }
+
+    public static void disableActiveInput() {
+        if (sActiveInput != null) {
+            sActiveInput.disableKeyboard();
+        }
+    }
+
+    /**
+     * 当前是否存在活跃的输入栏编辑器
+     */
+    public static boolean isActive() {
+        return sActiveInput != null;
+    }
+
+    public void disableKeyboard() {
+        // 与 enableKeyboard 同条件分流：非 SDL 渲染路径时输入走的是启动器侧编辑器，
+        // 此时把关闭动作委托给 SDL 通道只会落空
+        if (SdlBridge.getSdlEnabled() && SdlBridge.isSdlRenderActive()) {
+            SDLActivity.disableSDLEditKeyboard();
+            if (sActiveInput == this) {
+                sActiveInput = null;
+            }
+            return;
+        }
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getWindowToken(), 0);
+        clearFocus();
+        setVisibility(GONE);
+        setEnabled(false);
+        if (sActiveInput == this) {
+            sActiveInput = null;
+        }
+        SdlBridge.requestComposeFocus();
     }
 
     /**
@@ -52,12 +101,29 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
     private void enable(){
         setEnabled(true);
         setFocusable(true);
+        setVisibility(VISIBLE);
         requestFocus();
     }
 
     public void setListener(InputListener listener){
         mListener = listener;
     }
+
+    @Override
+    public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+            disableKeyboard();
+        }
+        return super.onKeyPreIme(keyCode, event);
+    }
+
+//    @Override
+//    public void onWindowFocusChanged(boolean hasWindowFocus) {
+//        super.onWindowFocusChanged(hasWindowFocus);
+//        if (!hasWindowFocus) {
+//            disableKeyboard();
+//        }
+//    }
 
     /** This function deals with anything that has to be executed when the constructor is called */
     private void setup() {
@@ -70,8 +136,8 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
             clear();
             return false;
         });
-        enable();
         clear();
+        disableKeyboard();
     }
 
     /**

@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.core.util.set
 import androidx.lifecycle.ViewModel
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.ui.control.gamepad.DpadDirection
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMap
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMapping
@@ -73,6 +74,28 @@ class GamepadViewModel : ViewModel() {
 
     private val eventListeners = mutableListOf<(Event) -> Unit>()
 
+    private val actionListeners = mutableListOf<() -> Unit>()
+
+    /**
+     * 注册一个手柄活动监听者
+     */
+    fun registerActionListener(listener: () -> Unit) {
+        actionListeners.add(listener)
+    }
+
+    /**
+     * 移除已注册的手柄活动监听者
+     */
+    fun unregisterActionListener(listener: () -> Unit) {
+        actionListeners.remove(listener)
+    }
+
+    private fun sendActionEvent() {
+        actionListeners.forEach { listener ->
+            listener()
+        }
+    }
+
     private val listMMKV = keyMappingListMMKV()
     private val oldMMKV = keyMappingMMKV()
 
@@ -99,6 +122,32 @@ class GamepadViewModel : ViewModel() {
     }
 
     /**
+     * 手柄输入模式选择询问是否正在显示
+     */
+    var modePromptVisible by mutableStateOf(false)
+        private set
+
+    /**
+     * 手柄活动上报：尚未完成选择询问时弹出对话框
+     * @return true 表示询问未完成，调用方应吞掉本次手柄输入，
+     * 保证选择确认前映射、SDL 直通、绑定向导均不响应手柄
+     */
+    fun checkModePrompt(): Boolean {
+        if (AllSettings.gamepadInputModePrompted.state) return false
+        modePromptVisible = true
+        return true
+    }
+
+    /**
+     * 用户确认了模式选择，保存并关闭
+     */
+    fun confirmModePrompt(selected: GamepadInputMode) {
+        AllSettings.gamepadInputMode.save(selected)
+        AllSettings.gamepadInputModePrompted.save(true)
+        modePromptVisible = false
+    }
+
+    /**
      * 检查并更新手柄是否活动中
      * @return 当前轮询频率等级
      */
@@ -120,12 +169,20 @@ class GamepadViewModel : ViewModel() {
 
     /** 激活状态更新 */
     private fun onActive() {
+        notifyActivity()
         val wasInactive = !gamepadEngaged
         lastActivityTime = System.nanoTime()
         if (wasInactive) {
             gamepadEngaged = true
             pollLevel = PollLevel.High
         }
+    }
+
+    /**
+     * 通知手柄活动
+     */
+    fun notifyActivity() {
+        sendActionEvent()
     }
 
     fun reloadAllMappings() {
@@ -328,10 +385,11 @@ class GamepadViewModel : ViewModel() {
 
     /**
      * 轮询调用，持续发送当前拥有的摇杆状态
+     * @param deltaMs 距离上次轮询经过的毫秒数
      */
-    fun pollJoystick() {
-        leftJoystick.onTick(::sendEvent)
-        rightJoystick.onTick(::sendEvent)
+    fun pollJoystick(deltaMs: Double) {
+        leftJoystick.onTick(deltaMs, ::sendEvent)
+        rightJoystick.onTick(deltaMs, ::sendEvent)
     }
 
     private fun sendEvent(event: Event) {
@@ -382,9 +440,9 @@ class GamepadViewModel : ViewModel() {
 
     enum class PollLevel(val delayMs: Long) {
         /**
-         * 高轮询等级：16ms延迟 ≈ 60fps
+         * 高轮询等级：4ms延迟 ≈ 250fps
          */
-        High(16L),
+        High(4L),
 
         /**
          * 不进行轮询

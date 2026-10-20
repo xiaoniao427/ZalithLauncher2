@@ -75,6 +75,7 @@ object RendererV2PluginManager : ApkPluginManager() {
         rendererPluginList.add(
             RendererV2Data(
                 packageName = packageName,
+                nativePath = info.nativeLibraryDir,
                 summary = context.getString(R.string.settings_renderer_from_plugins, appLabel),
                 renderer = config.resolveNativePaths(info.nativeLibraryDir)
             ) { metaString ->

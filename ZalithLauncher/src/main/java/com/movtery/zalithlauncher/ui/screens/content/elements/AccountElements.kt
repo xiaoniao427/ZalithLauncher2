@@ -61,6 +61,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -117,6 +119,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.accountErrorText
 import com.movtery.zalithlauncher.game.account.accountUUID
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.models.AuthResult
@@ -137,6 +140,7 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BaseIconTextButton
 import com.movtery.zalithlauncher.ui.components.IconTextButton
+import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ModelAnimation
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
@@ -146,6 +150,7 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -215,6 +220,13 @@ sealed interface AccountOperation {
     data object None : AccountOperation
     data class Delete(val account: Account) : AccountOperation
     data class OnFailed(val th: Throwable) : AccountOperation
+
+    /** 账号凭据已被服务端拒绝，需要重新登录 */
+    data class OnRelogin(
+        val account: Account,
+        val logging: Boolean = false,
+        val error: Throwable? = null
+    ) : AccountOperation
 }
 
 /**
@@ -244,57 +256,6 @@ sealed interface OtherLoginOperation {
         val profiles: List<AuthResult.AvailableProfiles>,
         val selected: (AuthResult.AvailableProfiles) -> Unit
     ) : OtherLoginOperation
-}
-
-@Composable
-fun AccountAvatar(
-    modifier: Modifier = Modifier,
-    account: Account?,
-    avatarSize: Dp = 64.dp,
-    refreshKey: Any? = null,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = modifier
-            .clip(shape = MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(all = 12.dp)
-        ) {
-            if (account != null) {
-                PlayerFace(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    account = account,
-                    avatarSize = avatarSize,
-                    refreshKey = refreshKey
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterHorizontally),
-                    painter = painterResource(R.drawable.ic_add),
-                    contentDescription = null
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = account?.username ?: stringResource(R.string.account_add_new_account),
-                maxLines = 1,
-                style = MaterialTheme.typography.titleSmall
-            )
-            if (account != null) {
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = getAccountTypeName(account),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
 }
 
 @Composable
@@ -383,20 +344,6 @@ fun AccountItem(
                 )
             }
             Row {
-                //更换皮肤/披风
-                Row {
-                    IconButton(
-                        onClick = { openChangeSkinDialog() },
-                        enabled = account.isSkinChangeAllowed()
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(R.drawable.ic_checkroom),
-                            contentDescription = stringResource(R.string.account_change_skin)
-                        )
-                    }
-                }
-
                 //刷新
                 IconButton(
                     onClick = onRefreshClick,
@@ -409,26 +356,62 @@ fun AccountItem(
                     )
                 }
 
-                //复制 UUID
-                IconButton(
-                    onClick = onCopyUUID
-                ) {
-                    Icon(
-                        modifier = Modifier.size(22.dp),
-                        painter = painterResource(R.drawable.ic_copy_all_outlined),
-                        contentDescription = stringResource(R.string.account_local_uuid_copy)
-                    )
-                }
-
-                //删除
-                IconButton(
-                    onClick = onDeleteClick
-                ) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(R.drawable.ic_delete_outlined),
-                        contentDescription = stringResource(R.string.generic_delete)
-                    )
+                //更多操作
+                var menuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(R.drawable.ic_more_vert),
+                            contentDescription = stringResource(R.string.generic_more)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_wardrobe)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_checkroom),
+                                    contentDescription = null
+                                )
+                            },
+                            enabled = account.isSkinChangeAllowed(),
+                            onClick = {
+                                menuExpanded = false
+                                openChangeSkinDialog()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_local_uuid_copy)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_copy_all_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onCopyUUID()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.generic_delete)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_delete_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -452,6 +435,7 @@ fun LoginMenuDialog(
         BoxWithConstraints(
             modifier = Modifier
                 .padding(all = 16.dp)
+                .heightIn(max = rememberDialogMaxHeight())
                 .fillMaxHeight()
                 .fillMaxWidth(0.6f),
             contentAlignment = Alignment.Center
@@ -460,7 +444,7 @@ fun LoginMenuDialog(
                 modifier = Modifier
                     .padding(all = 6.dp)
                     .fillMaxWidth()
-                    .heightIn(max = maxHeight - 12.dp),
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight())),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
                 contentColor = onCardColor(),
@@ -738,15 +722,20 @@ fun LocalLoginDialog(
 
     var editUUID by rememberSaveable { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismissRequest) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxHeight(),
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(decorFitsSystemWindows = false)
+    ) {
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .heightIn(max = maxHeight - 12.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
                     .wrapContentHeight(),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
@@ -963,15 +952,20 @@ fun OtherServerLoginDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismissRequest) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxHeight(),
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(decorFitsSystemWindows = false)
+    ) {
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .heightIn(max = maxHeight - 12.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
                     .wrapContentHeight(),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
@@ -1132,6 +1126,149 @@ fun OtherServerLoginDialog(
     }
 }
 
+@Composable
+fun MicrosoftReloginDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    SimpleAlertDialog(
+        title = stringResource(R.string.account_relogin_title),
+        text = {
+            Text(text = stringResource(R.string.account_relogin_microsoft_message))
+        },
+        confirmText = stringResource(R.string.account_relogin),
+        onConfirm = onConfirm,
+        onCancel = onDismissRequest,
+        onDismissRequest = onDismissRequest
+    )
+}
+
+@Composable
+fun OtherAccountReloginDialog(
+    account: Account,
+    logging: Boolean,
+    error: Throwable?,
+    onDismissRequest: () -> Unit,
+    onConfirm: (password: String) -> Unit
+) {
+    var password by rememberSaveable { mutableStateOf("") }
+    var showPassword by rememberSaveable { mutableStateOf(false) }
+
+    Dialog(
+        onDismissRequest = { if (!logging) onDismissRequest() },
+        properties = DialogProperties(decorFitsSystemWindows = false)
+    ) {
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(all = 6.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = cardColor(false),
+                contentColor = onCardColor(),
+                shadowElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = account.accountType ?: stringResource(R.string.account_relogin_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.size(16.dp))
+
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.account_relogin_password_message, account.username),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.size(12.dp))
+
+                    OwnOutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = password,
+                        onValueChange = { password = it },
+                        enabled = !logging,
+                        label = { Text(text = stringResource(R.string.account_label_password)) },
+                        visualTransformation = if (showPassword) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Transparent,
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (showPassword) {
+                                            R.drawable.ic_visibility_outlined
+                                        } else {
+                                            R.drawable.ic_visibility_off_outlined
+                                        }
+                                    ),
+                                    contentDescription = stringResource(R.string.account_label_password)
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            imeAction = ImeAction.Done,
+                            keyboardType = KeyboardType.Password
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (password.isNotEmpty() && !logging) onConfirm(password)
+                            }
+                        ),
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.large
+                    )
+
+                    error?.let { th ->
+                        Spacer(modifier = Modifier.size(8.dp))
+                        AndroidStringText(
+                            text = accountErrorText(th),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.size(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FilledTonalButton(
+                            modifier = Modifier.weight(1f),
+                            enabled = !logging,
+                            onClick = onDismissRequest
+                        ) {
+                            MarqueeText(text = stringResource(R.string.generic_cancel))
+                        }
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = !logging && password.isNotEmpty(),
+                            onClick = { onConfirm(password) }
+                        ) {
+                            MarqueeText(text = stringResource(R.string.account_relogin))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /**
  * 更改皮肤流程需要让 uri 与皮肤模型深度绑定
  * 重置或者确认更改时，能更方便的处理数据
@@ -1165,7 +1302,7 @@ sealed interface ChangeCape {
 @Composable
 fun ChangeSkinDialog(
     account: Account,
-    availableCapes: List<PlayerProfile.Cape> = emptyList(),
+    availableCapes: List<PlayerProfile.Cape>? = null,
     skinState: ChangeSkin,
     onSkinStateChange: (ChangeSkin) -> Unit,
     capeState: ChangeCape,
@@ -1196,7 +1333,7 @@ fun ChangeSkinDialog(
 
     LaunchedEffect(availableCapes) {
         if (account.isMicrosoftAccount()) {
-            if (availableCapes.isNotEmpty()) {
+            if (availableCapes != null) {
                 isFetchingCapes = false
                 val currentUsingCape0 = availableCapes.findUsing() ?: EmptyCape
                 currentUsingCape = currentUsingCape0
@@ -1217,10 +1354,23 @@ fun ChangeSkinDialog(
      * 初始化账号设置的皮肤
      */
     fun loadSkin() {
-        playerSkin.loadSkin(
-            skinId = account.uniqueUUID.takeIf { account.hasSkinFile },
-            model = account.skinModelType
-        )
+        if (account.hasSkinFile) {
+            runCatching {
+                account.getSkinFile().inputStream().use { stream ->
+                    playerSkin.loadSkin(stream, account.skinModelType)
+                }
+            }.onFailure {
+                playerSkin.loadSkin(
+                    skinId = account.uniqueUUID,
+                    model = account.skinModelType
+                )
+            }
+        } else {
+            playerSkin.loadSkin(
+                skinId = null,
+                model = account.skinModelType
+            )
+        }
     }
 
     /**
@@ -1239,6 +1389,7 @@ fun ChangeSkinDialog(
         BoxWithConstraints(
             modifier = Modifier
                 .padding(all = 16.dp)
+                .heightIn(max = rememberDialogMaxHeight())
                 .fillMaxHeight()
                 .fillMaxWidth(0.6f),
             contentAlignment = Alignment.Center
@@ -1246,8 +1397,8 @@ fun ChangeSkinDialog(
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .fillMaxHeight(0.85f)
-                    .heightIn(max = maxHeight - 12.dp),
+                    .heightIn(min = (maxHeight * 0.85f).coerceAtMost(rememberDialogMaxHeight()))
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight())),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
                 contentColor = onCardColor(),
@@ -1289,32 +1440,50 @@ fun ChangeSkinDialog(
                                         }
                                     )
                                 },
-                                update = {
-                                    if (pageFinished) {
-                                        when (skinState) {
-                                            ChangeSkin.None -> loadSkin()
-                                            is ChangeSkin.ChangeSkinData -> {
-                                                runCatching {
-                                                    skinState.cacheFile.inputStream().use { stream ->
-                                                        playerSkin.loadSkin(stream, skinState.skinModel)
-                                                    }
-                                                }.onFailure {
-                                                    playerSkin.loadSkin(
-                                                        skinId = null,
-                                                        skinState.skinModel
-                                                    )
-                                                }
-                                            }
-
-                                            is ChangeSkin.ResetSkin -> resetSkin()
-                                        }
-                                        if (account.isMicrosoftAccount()) {
-                                            playerSkin.loadCape(currentCapeToLoad)
-                                        }
-                                    }
-                                },
                                 modifier = Modifier.fillMaxSize()
                             )
+
+                            // 页面加载完成后立即展示皮肤预览，无需等待披风列表完成网络加载
+                            LaunchedEffect(pageFinished, skinState) {
+                                if (!pageFinished) return@LaunchedEffect
+                                when (skinState) {
+                                    ChangeSkin.None -> loadSkin()
+                                    is ChangeSkin.ChangeSkinData -> {
+                                        runCatching {
+                                            skinState.cacheFile.inputStream().use { stream ->
+                                                playerSkin.loadSkin(stream, skinState.skinModel)
+                                            }
+                                        }.onFailure {
+                                            playerSkin.loadSkin(
+                                                skinId = null,
+                                                skinState.skinModel
+                                            )
+                                        }
+                                    }
+
+                                    is ChangeSkin.ResetSkin -> resetSkin()
+                                }
+                            }
+
+                            // 独立加载披风：列表就绪前若本地有缓存披风则优先显示，列表加载完或切换时更新
+                            LaunchedEffect(pageFinished, currentCapeToLoad, availableCapes) {
+                                if (!pageFinished) return@LaunchedEffect
+                                if (account.isMicrosoftAccount()) {
+                                    if (currentCapeToLoad != EmptyCape) {
+                                        playerSkin.loadCape(currentCapeToLoad)
+                                    } else if (availableCapes == null && account.getCapeFile().exists()) {
+                                        runCatching {
+                                            account.getCapeFile().inputStream().use { stream ->
+                                                playerSkin.loadCape(stream)
+                                            }
+                                        }.onFailure {
+                                            playerSkin.loadCape(EmptyCape)
+                                        }
+                                    } else {
+                                        playerSkin.loadCape(EmptyCape)
+                                    }
+                                }
+                            }
                         }
 
                         Column(
@@ -1497,7 +1666,7 @@ fun ChangeSkinDialog(
         SelectCapeDialog(
             capes = buildList {
                 add(EmptyCape)
-                addAll(availableCapes)
+                addAll(availableCapes ?: emptyList())
             },
             selectedCape = cape,
             onSelected = { cape ->

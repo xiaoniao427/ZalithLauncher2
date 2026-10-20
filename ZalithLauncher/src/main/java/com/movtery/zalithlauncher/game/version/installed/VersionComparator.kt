@@ -30,22 +30,12 @@ object VersionComparator: Comparator<Version> {
             return if (pinned1) -1 else 1
         }
 
-        val ver1 = o1.getVersionInfo()?.minecraftVersion
-        val ver2 = o2.getVersionInfo()?.minecraftVersion
+        val key1 = o1.getVersionInfo()?.minecraftVersion ?: o1.getVersionName()
+        val key2 = o2.getVersionInfo()?.minecraftVersion ?: o2.getVersionName()
 
-        if (ver1 != null && ver2 != null) {
-            val versionCompare = GameVersionNumber.compare(ver1, ver2)
-            if (versionCompare != 0) {
-                return -versionCompare
-            }
-        }
-
-        val name1 = ver1 ?: o1.getVersionName()
-        val name2 = ver2 ?: o2.getVersionName()
-
-        val nameCompare = naturalCompare(name1, name2)
-        if (nameCompare != 0) {
-            return nameCompare
+        val versionCompare = GameVersionNumber.compare(key1, key2)
+        if (versionCompare != 0) {
+            return -versionCompare
         }
 
         return naturalCompare(o1.getVersionName(), o2.getVersionName())

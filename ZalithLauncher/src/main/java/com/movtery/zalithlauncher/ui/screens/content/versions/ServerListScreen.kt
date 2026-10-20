@@ -63,7 +63,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.scrollbar
+import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -91,6 +91,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -112,6 +113,7 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
+import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
@@ -120,10 +122,12 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
+import com.movtery.zalithlauncher.ui.screens.content.home.server.ServerCardManager
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ComponentText
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.MinecraftColorText
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.MinecraftColorTextNormal
@@ -584,6 +588,13 @@ fun ServerListScreen(
                             },
                             onDelete = { data ->
                                 viewModel.dataOperation = ServerDataOperation.DeleteServer(data)
+                            },
+                            onAddToHome = { server ->
+                                ServerCardManager.addCard(
+                                    name = server.name,
+                                    serverIp = server.originIp,
+                                    icon = server.icon
+                                )
                             }
                         )
                     }
@@ -676,14 +687,15 @@ private fun ServerListBody(
     onPlay: (String) -> Unit,
     onEdit: (ServerData) -> Unit,
     onDelete: (ServerData) -> Unit,
+    onAddToHome: (ServerData) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     servers?.let { list ->
         if (list.isNotEmpty()) {
             val scrollState = rememberLazyListState()
             LazyColumn(
-                modifier = modifier.scrollbar(
-                    state = scrollState.scrollIndicatorState,
+                modifier = modifier.nonInteractiveScrollbar(
+                    state = scrollState.scrollIndicatorState!!,
                     orientation = Orientation.Vertical,
                 ),
                 contentPadding = PaddingValues(all = 12.dp),
@@ -700,7 +712,8 @@ private fun ServerListBody(
                         onCopy = { onCopy(server.originIp) },
                         onPlay = { onPlay(server.originIp) },
                         onEdit = { onEdit(server) },
-                        onDelete = { onDelete(server) }
+                        onDelete = { onDelete(server) },
+                        onAddToHome = { onAddToHome(server) }
                     )
                 }
             }
@@ -735,6 +748,7 @@ private fun ServerItem(
     onPlay: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onAddToHome: () -> Unit,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.large,
@@ -970,6 +984,29 @@ private fun ServerItem(
                             }
                         )
 
+                        //添加到主页卡片
+                        val homeCards by ServerCardManager.cards.collectAsStateWithLifecycle()
+                        val addedToHome = remember(homeCards, item.originIp) {
+                            homeCards.any { it.record.cardId == item.originIp }
+                        }
+                        DropdownMenuItem(
+                            enabled = !addedToHome,
+                            text = {
+                                Text(text = stringResource(R.string.home_add_version_card))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    painter = painterResource(R.drawable.ic_add_box_filled),
+                                    contentDescription = stringResource(R.string.home_add_version_card)
+                                )
+                            },
+                            onClick = {
+                                onAddToHome()
+                                expanded = false
+                            }
+                        )
+
                         //编辑服务器
                         DropdownMenuItem(
                             enabled = !isSavingServer,
@@ -1098,11 +1135,12 @@ private fun ServerIcon(
  * 服务器描述文本渲染，尝试模仿 Minecraft 原版对于 Component 文本组件的渲染
  */
 @Composable
-private fun DescriptionTextRender(
+fun DescriptionTextRender(
     description: ServerDescription,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
+    softWrap: Boolean = false,
 ) {
     when(description) {
         is ComponentDescriptionRoot -> {
@@ -1110,7 +1148,8 @@ private fun DescriptionTextRender(
                 modifier = modifier,
                 descriptions = description.values,
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
         is ComponentDescription -> {
@@ -1118,7 +1157,8 @@ private fun DescriptionTextRender(
                 modifier = modifier,
                 descriptions = listOf(description),
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
         is StringDescription -> {
@@ -1127,7 +1167,8 @@ private fun DescriptionTextRender(
                 modifier = modifier,
                 inputText = value,
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
     }
@@ -1155,16 +1196,19 @@ private fun ServerEditDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxHeight(),
+        ImePanContainer(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .heightIn(max = maxHeight - 12.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
                     .wrapContentHeight(),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),

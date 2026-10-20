@@ -25,7 +25,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.forgelike.forge.ForgeVer
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.forge.ForgeVersions
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoForgeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoForgeVersions
-import com.movtery.zalithlauncher.utils.network.downloadFromMirrorListSuspend
+import com.movtery.zalithlauncher.utils.network.downloadFileFromSources
 import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import java.io.File
 
@@ -61,7 +61,7 @@ fun getForgeLikeDownloadTask(
                     task.clearSpeed()
                 }
             ) { report ->
-                downloadFromMirrorListSuspend(
+                downloadFileFromSources(
                     urls = url.mapBMCLMirrorUrls(),
                     outputFile = targetTempInstaller,
                     sizeCallback = report

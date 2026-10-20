@@ -22,6 +22,7 @@ import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
@@ -31,18 +32,20 @@ import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.installed.getVersionIconFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.network.downloadFileSuspend
-import com.movtery.zalithlauncher.utils.network.downloadFromMirrorListSuspend
+import com.movtery.zalithlauncher.utils.network.downloadFile
+import com.movtery.zalithlauncher.utils.network.downloadFileFromSources
 import com.movtery.zalithlauncher.utils.network.isUsingMobileData
 import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -67,6 +70,10 @@ class ModPackInstaller(
 ) {
     private val taskExecutor = TaskFlowExecutor(scope)
     val tasksFlow: StateFlow<List<TitledTask>> = taskExecutor.tasksFlow
+
+    private val _logOutput = MutableStateFlow<TaskLogOutput?>(null)
+    /** 安装 JVM 实时日志输出 */
+    val logOutput: StateFlow<TaskLogOutput?> = _logOutput.asStateFlow()
 
     /**
      * 整合包文件解析出的信息
@@ -172,7 +179,7 @@ class ModPackInstaller(
                             task.clearSpeed()
                         }
                     ) { report ->
-                        downloadFromMirrorListSuspend(
+                        downloadFileFromSources(
                             urls = version
                                 .platformDownloadUrl()
                                 .mapMCIMMirrorUrls(),
@@ -189,7 +196,7 @@ class ModPackInstaller(
                     task.updateProgress(-1f)
                     task.updateMessage(null)
                     iconUrl?.let { iconUrl ->
-                        downloadFileSuspend(
+                        downloadFile(
                             url = iconUrl,
                             outputFile = tempIconFile
                         )
@@ -242,7 +249,12 @@ class ModPackInstaller(
                     )
 
                     //开始安装游戏！切换到下一阶段！
-                    val gameInstaller = GameInstaller(context, gameDownloadInfo, scope)
+                    val gameInstaller = GameInstaller(
+                        context = context,
+                        info = gameDownloadInfo,
+                        scope = scope,
+                        logOutputHolder = _logOutput
+                    )
                     taskExecutor.addPhases(
                         phases = gameInstaller.getTaskPhase(
                             createIsolation = false,
@@ -309,7 +321,7 @@ class ModPackInstaller(
 
             //复制整合包icon
             if (tempIconFile.exists() && tempIconFile.isFile) {
-                val iconFile = VersionsManager.getVersionIconFile(targetClientDir)
+                val iconFile = getVersionIconFile(targetClientDir)
                 if (iconFile.exists()) FileUtils.deleteQuietly(iconFile)
                 tempIconFile.copyTo(iconFile)
             }

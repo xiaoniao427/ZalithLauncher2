@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.version.download
 
 import com.movtery.zalithlauncher.game.addons.mirror.mapBMCLMirrorUrls
 import com.movtery.zalithlauncher.game.path.getAssetsHome
+import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.game.path.getLibrariesHome
 import com.movtery.zalithlauncher.game.path.getResourcesHome
 import com.movtery.zalithlauncher.game.path.getVersionsHome
@@ -40,15 +41,16 @@ const val MINECRAFT_RES: String = "https://resources.download.minecraft.net/"
 
 /**
  * 设计为通用化 Minecraft 原版完整下载
+ * @param gameHome 下载目标所在的游戏目录
  */
 class BaseMinecraftDownloader(
-    private val verifyIntegrity: Boolean
+    gameHome: String = getGameHome()
 ) {
     //Dir
-    val assetsTarget = File(getAssetsHome()).ensureDirectory()
-    val resourcesTarget = File(getResourcesHome()).ensureDirectory()
-    val versionsTarget = File(getVersionsHome()).ensureDirectory()
-    val librariesTarget = File(getLibrariesHome()).ensureDirectory()
+    val assetsTarget = File(getAssetsHome(gameHome)).ensureDirectory()
+    val resourcesTarget = File(getResourcesHome(gameHome)).ensureDirectory()
+    val versionsTarget = File(getVersionsHome(gameHome)).ensureDirectory()
+    val librariesTarget = File(getLibrariesHome(gameHome)).ensureDirectory()
     val assetIndexTarget = File(assetsTarget, "indexes").ensureDirectory()
 
     suspend fun findVersion(version: String): Version? {
@@ -82,7 +84,6 @@ class BaseMinecraftDownloader(
             targetFile = getVersionJsonPath(targetVersion, mcFolder),
             url = version.url,
             expectedSHA = version.sha1,
-            verifyIntegrity = verifyIntegrity,
             classOfT = GameManifest::class.java
         )
     }
@@ -100,7 +101,6 @@ class BaseMinecraftDownloader(
                 targetFile = indexFile,
                 url = assetIndex.url,
                 expectedSHA = assetIndex.sha1,
-                verifyIntegrity = verifyIntegrity,
                 classOfT = AssetIndexJson::class.java
             )
         }

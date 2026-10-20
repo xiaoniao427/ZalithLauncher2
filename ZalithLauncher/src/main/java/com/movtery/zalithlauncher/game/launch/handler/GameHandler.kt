@@ -27,18 +27,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.game.input.EfficientAndroidLWJGLKeycode
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.game.launch.GameLauncher
 import com.movtery.zalithlauncher.game.launch.LaunchConfig
 import com.movtery.zalithlauncher.game.launch.MCOptions
 import com.movtery.zalithlauncher.game.launch.loadLanguage
+import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.game.sdl.handleGamepadKeyEvent
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.control.gamepad.isGamepadKeyEvent
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
@@ -51,6 +54,7 @@ import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.libsdl.app.SDLActivity
 import org.lwjgl.glfw.CallbackBridge
 
 class GameHandler(
@@ -95,9 +99,9 @@ class GameHandler(
             set("fullscreen", "false")
             set("touchscreen", "false")
 
-            //关闭文本转语音功能
-            set("options.narrator", "0")
-            set("narrator", "0")
+//            //关闭文本转语音功能
+//            set("options.narrator", "0")
+//            set("narrator", "0")
 
             if (version.getVersionInfo()!!.minecraftVersion.isLowerVer("1.13")) {
                 //fix: 牢版本按键事件
@@ -157,6 +161,24 @@ class GameHandler(
         if (event.action == KeyEvent.ACTION_UP && (event.flags and KeyEvent.FLAG_CANCELED) != 0) return false
 
         if (event.isGamepadKeyEvent()) {
+            if (AllSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+                //模式选择询问完成前，吞掉所有手柄按键输入
+                return false
+            }
+            if (AllSettings.gamepadControl.state && AllSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+                //SDL 直通模式下，按键原样交给 SDL native
+                if (SdlBridge.sdlEnabled) {
+                    //让控制布局等注册方感知到手柄使用中
+                    gamepadViewModel.notifyActivity()
+                    handleGamepadKeyEvent(event)
+                    try {
+                        SDLActivity.handleKeyEvent(null, event.keyCode, event, null)
+                    } catch (_: UnsatisfiedLinkError) {
+                        //SDL native 未就绪时忽略
+                    }
+                }
+                return false
+            }
             return if (AllSettings.gamepadControl.state) {
                 //开启时，提前发送事件，在UI层处理（或重映射）
                 gamepadViewModel.sendKeyEvent(event)
@@ -179,6 +201,8 @@ class GameHandler(
                 LWJGLCharSender.sendEnter()
                 return false
             }
+            //输入法产生的字符类按键事件不能转发给游戏
+            if (event.getUnicodeChar() != 0) return true
         }
 
         EfficientAndroidLWJGLKeycode.getIndexByKey(event.keyCode).takeIf { it >= 0 }?.let { index ->
@@ -221,9 +245,6 @@ class GameHandler(
             getAccountName = { account.username },
             eventViewModel = eventViewModel,
             gamepadViewModel = gamepadViewModel,
-            submitError = {
-                errorViewModel.showError(it)
-            }
         )
     }
 

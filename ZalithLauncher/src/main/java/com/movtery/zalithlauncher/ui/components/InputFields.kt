@@ -24,8 +24,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,17 +36,25 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldLabelPosition
+import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -52,6 +62,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,9 +87,10 @@ fun SimpleTextInputField(
     textStyle: TextStyle = TextStyle(color = contentColor).copy(fontSize = 12.sp),
     cursorBrush: Brush = SolidColor(LocalTextSelectionColors.current.handleColor),
     singleLine: Boolean = false,
+    imePanEnabled: Boolean = true,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
         color = color,
         contentColor = contentColor,
         shape = shape
@@ -121,25 +133,37 @@ fun SimpleTextInputField(
     }
 }
 
+private class SimpleTextFieldLabelScope(
+    override val labelMinimizedProgress: Float
+) : TextFieldLabelScope
+
 @Composable
 fun SmallOutlinedEditField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    hint: (@Composable () -> Unit)? = null,
+    labelPosition: TextFieldLabelPosition = TextFieldLabelPosition.Attached(),
+    label: @Composable (TextFieldLabelScope.() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    contentColor: Color? = null,
     shape: Shape = OutlinedTextFieldDefaults.shape,
-    textStyle: TextStyle = TextStyle(color = contentColor).copy(fontSize = 12.sp),
+    textStyle: TextStyle = TextStyle(fontSize = 12.sp),
     cursorBrush: Brush = SolidColor(LocalTextSelectionColors.current.handleColor),
     keyboardOptions: KeyboardOptions? = null,
     keyboardActions: KeyboardActions? = null,
     singleLine: Boolean = false,
     interactionSource: MutableInteractionSource? = null,
+    imePanEnabled: Boolean = true,
 ) {
     val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isFocused = interactionSource.collectIsFocusedAsState().value
     val focusManager = LocalFocusManager.current
+
+    val effectiveContentColor = contentColor ?: LocalContentColor.current
+    val effectiveTextStyle = textStyle.copy(color = effectiveContentColor)
 
     val borderWidth by animateDpAsState(
         if (isFocused) 2.dp else 1.dp
@@ -147,15 +171,21 @@ fun SmallOutlinedEditField(
     val borderColor by animateColorAsState(
         if (isFocused) colors.focusedIndicatorColor else colors.unfocusedIndicatorColor
     )
+    val labelScope = remember(labelPosition) {
+        SimpleTextFieldLabelScope(
+            if (labelPosition is TextFieldLabelPosition.Attached) 1f else 0f
+        )
+    }
+
     BasicTextField(
-        modifier = modifier,
+        modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
         value = value,
         onValueChange = { new ->
             onValueChange(
                 if (singleLine) new.toSingleLine() else new
             )
         },
-        textStyle = textStyle,
+        textStyle = effectiveTextStyle,
         cursorBrush = cursorBrush,
         singleLine = singleLine,
         keyboardOptions = keyboardOptions
@@ -193,16 +223,37 @@ fun SmallOutlinedEditField(
                     .border(width = borderWidth, color = borderColor, shape = shape),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    if (value.isEmpty()) {
-                        hint?.invoke()
+                    if (label != null) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            label(labelScope)
+                        }
                     }
-                    innerTextField()
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        leadingIcon?.invoke()
+
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (value.isEmpty() && label == null) {
+                                placeholder?.invoke()
+                            }
+                            innerTextField()
+                        }
+
+                        trailingIcon?.invoke()
+                    }
                 }
             }
         },
@@ -236,6 +287,7 @@ fun OwnOutlinedTextField(
     interactionSource: MutableInteractionSource? = null,
     shape: Shape = OutlinedTextFieldDefaults.shape,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    imePanEnabled: Boolean = true,
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -248,7 +300,7 @@ fun OwnOutlinedTextField(
                 onValueChange(string)
             }
         },
-        modifier = modifier,
+        modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
         enabled = enabled,
         readOnly = readOnly,
         textStyle = textStyle,
@@ -296,5 +348,47 @@ fun OwnOutlinedTextField(
         interactionSource = interactionSource,
         shape = shape,
         colors = colors,
+    )
+}
+
+/**
+ * 有范围约束的整数输入框，仅允许输入数字
+ * 输入为空或非法时不提交
+ */
+@Composable
+fun IntInputField(
+    value: Int,
+    permitted: IntRange,
+    label: String,
+    onValueChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    fun toText(value: Int): String = value.takeIf { it > 0 }?.toString().orEmpty()
+
+    var text by remember { mutableStateOf(toText(value)) }
+    var focused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(value) {
+        if (!focused) text = toText(value)
+    }
+
+    OwnOutlinedTextField(
+        modifier = modifier.onFocusChanged { state ->
+            focused = state.isFocused
+            if (!state.isFocused) text = toText(value)
+        },
+        value = text,
+        onValueChange = { input ->
+            val filtered = input.filter { it.isDigit() }.take(6)
+            text = filtered
+            filtered.toIntOrNull()?.takeIf { it > 0 }?.let { nonZero ->
+                onValueChange(nonZero.coerceIn(permitted))
+            }
+        },
+        textStyle = MaterialTheme.typography.labelMedium,
+        label = { Text(text = label) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        shape = MaterialTheme.shapes.large
     )
 }

@@ -19,20 +19,17 @@
 package com.movtery.zalithlauncher.game.account.wardrobe
 
 import com.google.gson.JsonObject
-import com.movtery.zalithlauncher.path.createOkHttpClient
-import com.movtery.zalithlauncher.path.createRequestBuilder
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.network.downloadFile
 import com.movtery.zalithlauncher.utils.network.fetchStringFromUrl
 import com.movtery.zalithlauncher.utils.string.decodeBase64
+import kotlinx.coroutines.CancellationException
 import java.io.File
-import java.io.FileOutputStream
 
 private const val TAG = "WardrobeDownloader"
 
 abstract class WardrobeDownloader {
-    protected val mClient = createOkHttpClient()
-
     protected suspend fun yggdrasil(
         url: String,
         uuid: String
@@ -47,31 +44,18 @@ abstract class WardrobeDownloader {
         return GSON.fromJson(value, JsonObject::class.java)
     }
 
-    protected fun download(url: String, file: File) {
+    protected suspend fun download(url: String, file: File) {
         file.parentFile?.apply {
             if (!exists()) mkdirs()
         }
 
-        val request = createRequestBuilder(url).build()
-
-        mClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw RuntimeException("Unexpected code $response")
-            }
-
-            try {
-                response.body.byteStream().use { inputStream ->
-                    FileOutputStream(file).use { outputStream ->
-                        val buffer = ByteArray(4096)
-                        var bytesRead: Int
-                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                            outputStream.write(buffer, 0, bytesRead)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Logger.error(TAG, "Failed to download skin file", e)
-            }
+        try {
+            downloadFile(url = url, outputFile = file)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            //皮肤获取失败并不致命，保持既有语义：记录日志而不上抛
+            Logger.error(TAG, "Failed to download skin file", e)
         }
     }
 }

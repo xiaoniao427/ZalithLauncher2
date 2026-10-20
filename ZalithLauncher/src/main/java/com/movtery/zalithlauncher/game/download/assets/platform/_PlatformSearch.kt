@@ -19,14 +19,17 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
+import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
+import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.MCIM_CURSEFORGE_API
+import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeFile
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.MCIM_MODRINTH_API
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.ModrinthSearcher
+import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
 import com.movtery.zalithlauncher.game.download.assets.utils.localizedModSearchKeywords
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchAssetsState
 import com.movtery.zalithlauncher.utils.isChinaMainland
@@ -109,12 +112,11 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
-    val source = AllSettings.assetSearchSource.getValue()
+    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
     return when (source) {
-        MirrorSourceType.OFFICIAL_FIRST ->
-            listOfNotNull(curseForgeSearcher, mirrorSource)
-        MirrorSourceType.MIRROR_FIRST ->
+        MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher)
+        MirrorPriority.MIRROR_FIRST ->
             listOfNotNull(mirrorSource, curseForgeSearcher)
     }
 }
@@ -125,12 +127,11 @@ fun mirroredCurseForgeSource(
 fun mirroredModrinthSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<ModrinthSearcher> {
-    val source = AllSettings.assetSearchSource.getValue()
+    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorModrinthSearcher.takeIf { enabledMirror }
     return when (source) {
-        MirrorSourceType.OFFICIAL_FIRST ->
-            listOfNotNull(modrinthSearcher, mirrorSource)
-        MirrorSourceType.MIRROR_FIRST ->
+        MirrorPriority.OFFICIAL -> listOf(modrinthSearcher)
+        MirrorPriority.MIRROR_FIRST ->
             listOfNotNull(mirrorSource, modrinthSearcher)
     }
 }
@@ -146,11 +147,13 @@ suspend fun searchAssets(
         val (containsChinese, englishKeywords) = searchFilter.searchName.localizedModSearchKeywords(platformClasses)
         //参考源代码：[HMCL Github](https://github.com/HMCL-dev/HMCL/blob/d295e60/HMCL/src/main/java/org/jackhuang/hmcl/game/LocalizedRemoteModRepository.java#L56-L68)
         //逐个英文短语尝试搜索，取第一个有非空结果的
-        val queries = if (!englishKeywords.isNullOrEmpty()) {
-            englishKeywords.toList()
-        } else {
-            listOf(searchFilter.searchName)
-        }
+        val queries = englishKeywords?.takeIf { it.isNotEmpty() }?.toList()
+            ?: listOf(searchFilter.searchName)
+        //参考源代码：[HMCL Github](https://github.com/HMCL-dev/HMCL/blob/8767cc0e/HMCL/src/main/java/org/jackhuang/hmcl/game/LocalizedRemoteAddonRepository.java)
+        //翻译出的英文短语搜索固定使用相关性排序，避免所选的排序方式将目标资源挤出结果页
+        val searchFilterForQuery = englishKeywords?.takeIf { it.isNotEmpty() }
+            ?.let { searchFilter.copy(sortField = PlatformSortField.RELEVANCE) }
+            ?: searchFilter
 
         var lastResult: PlatformSearchResult? = null
         var lastException: Exception? = null
@@ -163,7 +166,7 @@ suspend fun searchAssets(
                     ) { searcher ->
                         searcher.searchAssets(
                             query = query,
-                            searchFilter = searchFilter,
+                            searchFilter = searchFilterForQuery,
                             platformClasses = platformClasses
                         )
                     }
@@ -173,7 +176,7 @@ suspend fun searchAssets(
                     ) { searcher ->
                         searcher.searchAssets(
                             query = query,
-                            searchFilter = searchFilter,
+                            searchFilter = searchFilterForQuery,
                             platformClasses = platformClasses
                         )
                     }
@@ -301,51 +304,104 @@ suspend fun getProjectByVersion(
     }
 }
 
-suspend fun getVersionByLocalFile(file: File, sha1: String): PlatformVersion? = coroutineScope {
-    val modrinthDeferred = async(Dispatchers.IO) {
-        runCatching {
-            mirroredPlatformSearcher(
-                searchers = mirroredModrinthSource(),
-                printLog = false
-            ) { searcher ->
-                searcher.getVersionByLocalFile(file, sha1)
-            }
-        }.getOrNull()
+/**
+ * 获取指定平台上的单个版本
+ * @param versionId 版本在平台上的Id
+ */
+suspend fun getVersionById(
+    versionId: String,
+    platform: Platform,
+    printLog: Boolean = true
+): PlatformVersion = withContext(Dispatchers.IO) {
+    when (platform) {
+        Platform.MODRINTH -> mirroredPlatformSearcher(
+            searchers = mirroredModrinthSource(),
+            printLog = printLog
+        ) { searcher ->
+            searcher.getVersion(versionId)
+        }
+        Platform.CURSEFORGE -> error("CurseForge dependencies do not carry a version id.")
     }
+}
 
-    val curseForgeDeferred = async(Dispatchers.IO) {
-        runCatching {
-            mirroredPlatformSearcher(
-                searchers = mirroredCurseForgeSource(),
-                printLog = false
-            ) { searcher ->
-                searcher.getVersionByLocalFile(file, sha1)
+suspend fun getVersionByLocalFile(file: File, sha1: String): PlatformVersion? = withContext(Dispatchers.IO) {
+    coroutineScope {
+        val modrinthDeferred = async(Dispatchers.IO) {
+            runCatching {
+                mirroredPlatformSearcher(
+                    searchers = mirroredModrinthSource(),
+                    printLog = false
+                ) { searcher ->
+                    searcher.getVersionByLocalFile(file, sha1)
+                }
+            }.getOrNull()
+        }
+
+        val curseForgeDeferred = async(Dispatchers.IO) {
+            runCatching {
+                mirroredPlatformSearcher(
+                    searchers = mirroredCurseForgeSource(),
+                    printLog = false
+                ) { searcher ->
+                    searcher.getVersionByLocalFile(file, sha1)
+                }
+            }.getOrNull()
+        }
+
+        val result = select {
+            modrinthDeferred.onAwait { result ->
+                if (result != null) {
+                    curseForgeDeferred.cancel()
+                    result
+                } else {
+                    null
+                }
             }
-        }.getOrNull()
-    }
-
-    val result = select {
-        modrinthDeferred.onAwait { result ->
-            if (result != null) {
-                curseForgeDeferred.cancel()
-                result
-            } else {
-                null
+            curseForgeDeferred.onAwait { result ->
+                if (result != null) {
+                    modrinthDeferred.cancel()
+                    result
+                } else {
+                    null
+                }
             }
         }
-        curseForgeDeferred.onAwait { result ->
-            if (result != null) {
-                modrinthDeferred.cancel()
-                result
-            } else {
-                null
-            }
+
+        result ?: run {
+            if (!modrinthDeferred.isCompleted) modrinthDeferred.await()
+            else if (!curseForgeDeferred.isCompleted) curseForgeDeferred.await()
+            else null
         }
     }
+}
 
-    result ?: run {
-        if (!modrinthDeferred.isCompleted) modrinthDeferred.await()
-        else if (!curseForgeDeferred.isCompleted) curseForgeDeferred.await()
-        else null
-    }
+/** 单次批量指纹匹配的指纹数量上限，防止单次请求数据量过大 */
+const val FINGERPRINT_BATCH_SIZE = 100
+
+/**
+ * 通过本地文件的 SHA-1 值批量获取 Modrinth 平台对应的版本
+ * @param sha1List SHA-1 值列表，长度不应超过 [FINGERPRINT_BATCH_SIZE]
+ * @return 键为 SHA-1 值，值为匹配到的版本，未命中的指纹不在结果中
+ */
+suspend fun getModrinthVersBySha1(
+    sha1List: List<String>
+): Map<String, ModrinthVersion> = mirroredPlatformSearcher(
+    searchers = mirroredModrinthSource(),
+    printLog = false
+) { searcher ->
+    searcher.getVersionFiles(sha1List = sha1List)
+}
+
+/**
+ * 通过本地文件的 CurseForge 指纹批量获取 CurseForge 平台对应的文件
+ * @param fingerprints 指纹列表，长度不应超过 [FINGERPRINT_BATCH_SIZE]
+ * @return 键为文件指纹，值为匹配到的文件，未命中的指纹不在结果中
+ */
+suspend fun getCFFilesByFingerprints(
+    fingerprints: List<Long>
+): Map<Long, CurseForgeFile> = mirroredPlatformSearcher(
+    searchers = mirroredCurseForgeSource(),
+    printLog = false
+) { searcher ->
+    searcher.getFilesByFingerprints(fingerprints = fingerprints)
 }

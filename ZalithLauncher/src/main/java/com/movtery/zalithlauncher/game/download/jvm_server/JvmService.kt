@@ -35,13 +35,11 @@ import com.movtery.zalithlauncher.game.launch.Launcher
 import com.movtery.zalithlauncher.notification.NOTIFICATION_ID_JVM_SERVICE
 import com.movtery.zalithlauncher.notification.NoticeProgress
 import com.movtery.zalithlauncher.notification.NotificationChannelData
-import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -88,10 +86,9 @@ class JvmService : Service() {
                     Logger.info(TAG, "Process exit with code $code")
                     //移除前台通知再停止服务，让系统知道这是正常关闭
                     stopForeground(STOP_FOREGROUND_REMOVE)
-                    scope.launch(Dispatchers.IO) {
-                        sendCode(code)
-                        stopSelf()
-                    }
+                    //必须同步发送退出码
+                    sendCode(code)
+                    stopSelf()
                 }
             )
         }
@@ -115,6 +112,7 @@ class JvmService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Thread.sleep(500)
         android.os.Process.killProcess(android.os.Process.myPid())
     }
 
@@ -187,7 +185,7 @@ class JvmService : Service() {
             }
 
             //开始记录日志
-            val logFile = File(PathManager.DIR_FILES_EXTERNAL, "latest_process.log")
+            val logFile = LATEST_PROCESS_LOG_FILE
             if (!logFile.exists() && !logFile.createNewFile()) throw IOException("Failed to create a new log file")
             LoggerBridge.start(logFile.absolutePath)
 
@@ -197,6 +195,10 @@ class JvmService : Service() {
                 screenSize = IntSize(1920, 1080) //fake
             )
         }.onFailure { e ->
+            runCatching {
+                LoggerBridge.appendTitle("JVM Service Crash")
+                LoggerBridge.append(e.stackTraceToString())
+            }
             Logger.warning(TAG, "jvm crashed!", e)
         }.getOrElse { 1 }
 

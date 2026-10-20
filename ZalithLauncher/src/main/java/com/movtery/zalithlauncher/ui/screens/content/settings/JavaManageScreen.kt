@@ -25,22 +25,27 @@ import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.scrollbar
+import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +61,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ZLApplication
 import com.movtery.zalithlauncher.context.getFileName
@@ -71,7 +78,9 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.IconTextButton
+import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -79,7 +88,9 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFile
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportSingleFileButton
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
+import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
+import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
@@ -119,12 +130,33 @@ fun JavaManageScreen(
 
         var runtimes by remember { mutableStateOf(getRuntimes()) }
         var runtimeOperation by remember { mutableStateOf<RuntimeOperation>(RuntimeOperation.None) }
+
+        var showSelectRuntimeDialog by remember { mutableStateOf(false) }
+        var selectedRuntimeForJar by remember { mutableStateOf<Runtime?>(null) }
+        var launchJarPicker by remember { mutableStateOf<(() -> Unit)?>(null) }
+
         RuntimeOperation(
             runtimeOperation = runtimeOperation,
             updateOperation = { runtimeOperation = it },
             callRefresh = { runtimes = getRuntimes(true) },
             submitError = submitError
         )
+
+        if (showSelectRuntimeDialog) {
+            SelectJavaRuntimeDialog(
+                runtimes = runtimes,
+                onDismissRequest = {
+                    showSelectRuntimeDialog = false
+                    launchJarPicker = null
+                },
+                onSelectRuntime = { selectedRuntime ->
+                    showSelectRuntimeDialog = false
+                    selectedRuntimeForJar = selectedRuntime
+                    launchJarPicker?.invoke()
+                    launchJarPicker = null
+                }
+            )
+        }
 
         SettingsCard(
             modifier = Modifier
@@ -161,15 +193,31 @@ fun JavaManageScreen(
                     )
                     ImportSingleFileButton(
                         extension = "jar",
+                        onClick = {
+                            selectedRuntimeForJar = null
+                        },
+                        onLongClick = { launch ->
+                            launchJarPicker = launch
+                            showSelectRuntimeDialog = true
+                        },
                         progressUris = { uris ->
-                            uris[0].let { uri ->
-                                RuntimesManager.getExactJreName(8) ?: run {
-                                    eventViewModel.sendToast(androidText(R.string.multirt_no_java_8), Toast.LENGTH_LONG)
-                                    return@ImportSingleFileButton
-                                }
-                                (context as? Activity)?.let { activity ->
-                                    val jreName = AllSettings.javaRuntime.takeIf { AllSettings.autoPickJavaRuntime.getValue() }?.getValue()
-                                    executeJarWithUri(activity, uri, jreName)
+                            uris.firstOrNull()?.let { uri ->
+                                val customRuntime = selectedRuntimeForJar
+                                selectedRuntimeForJar = null
+
+                                if (customRuntime != null) {
+                                    (context as? Activity)?.let { activity ->
+                                        executeJarWithUri(activity, uri, customRuntime.name)
+                                    }
+                                } else {
+                                    RuntimesManager.getExactJreName(8) ?: run {
+                                        eventViewModel.sendToast(androidText(R.string.multirt_no_java_8), Toast.LENGTH_LONG)
+                                        return@ImportSingleFileButton
+                                    }
+                                    (context as? Activity)?.let { activity ->
+                                        val jreName = AllSettings.javaRuntime.takeIf { AllSettings.autoPickJavaRuntime.getValue() }?.getValue()
+                                        executeJarWithUri(activity, uri, jreName)
+                                    }
                                 }
                             }
                         },
@@ -183,8 +231,8 @@ fun JavaManageScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .scrollbar(
-                        state = scrollState.scrollIndicatorState,
+                    .nonInteractiveScrollbar(
+                        state = scrollState.scrollIndicatorState!!,
                         orientation = Orientation.Vertical,
                     ),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -325,7 +373,7 @@ private fun JavaRuntimeItem(
     color: Color = itemColor(),
     contentColor: Color = onItemColor(),
     onClick: () -> Unit = {},
-    onDeleteClick: () -> Unit
+    onDeleteClick: (() -> Unit)? = null
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
@@ -387,16 +435,90 @@ private fun JavaRuntimeItem(
                     }
                 }
             }
-            IconButton(
-                //内置环境（未损坏）无法删除
-                enabled = !runtime.isProvidedByLauncher || !runtime.isCompatible(),
-                onClick = onDeleteClick
+            if (onDeleteClick != null) {
+                IconButton(
+                    //内置环境（未损坏）无法删除
+                    enabled = !runtime.isProvidedByLauncher || !runtime.isCompatible(),
+                    onClick = onDeleteClick
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(all = 8.dp),
+                        painter = painterResource(R.drawable.ic_delete_filled),
+                        contentDescription = stringResource(R.string.generic_delete)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectJavaRuntimeDialog(
+    runtimes: List<Runtime>,
+    onDismissRequest: () -> Unit,
+    onSelectRuntime: (Runtime) -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .padding(all = 16.dp)
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight()
+                .fillMaxWidth(0.55f),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(all = 6.dp)
+                    .fillMaxWidth()
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = cardColor(false),
+                contentColor = onCardColor(),
+                shadowElevation = 6.dp
             ) {
-                Icon(
-                    modifier = Modifier.padding(all = 8.dp),
-                    painter = painterResource(R.drawable.ic_delete_filled),
-                    contentDescription = stringResource(R.string.generic_delete)
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.execute_jar_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    val scrollState = rememberLazyListState()
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false)
+                            .nonInteractiveScrollbar(
+                                state = scrollState.scrollIndicatorState!!,
+                                orientation = Orientation.Vertical,
+                            ),
+                        state = scrollState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(runtimes) { runtime ->
+                            JavaRuntimeItem(
+                                runtime = runtime,
+                                onClick = { onSelectRuntime(runtime) },
+                                onDeleteClick = null
+                            )
+                        }
+                    }
+
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onDismissRequest
+                    ) {
+                        MarqueeText(text = stringResource(R.string.generic_cancel))
+                    }
+                }
             }
         }
     }

@@ -40,6 +40,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -64,6 +65,24 @@ class AuthServerApi(private var baseUrl: String) {
     }
 
     @Throws(IOException::class)
+    suspend fun authenticate(context: Context, userName: String, password: String): AuthResult {
+        requireBaseUrl(context)
+
+        val authRequest = AuthRequest(
+            username = userName,
+            password = password,
+            agent = AuthRequest.Agent(
+                name = "Minecraft",
+                version = 1
+            ),
+            requestUser = true,
+            clientToken = BuildKeys.LAUNCHER_NAME.toUuidStr().replace("-", "")
+        )
+
+        return requestAuth(Gson().toJson(authRequest), "/authserver/authenticate")
+    }
+
+    @Throws(IOException::class)
     suspend fun login(
         context: Context,
         userName: String,
@@ -71,40 +90,18 @@ class AuthServerApi(private var baseUrl: String) {
         onSuccess: suspend (AuthResult) -> Unit = {},
         onFailed: suspend (th: Throwable) -> Unit = {}
     ) {
-        if (Objects.isNull(baseUrl)) {
-            onFailed(ResponseException(context.getString(R.string.account_other_login_baseurl_not_set)))
-            return
+        try {
+            onSuccess(authenticate(context, userName, password))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            onFailed(e)
         }
-
-        val agent = AuthRequest.Agent(
-            name = "Minecraft",
-            version = 1
-        )
-
-        val authRequest = AuthRequest(
-            username = userName,
-            password = password,
-            agent = agent,
-            requestUser = true,
-            clientToken = BuildKeys.LAUNCHER_NAME.toUuidStr().replace("-", "")
-        )
-
-        val data = Gson().toJson(authRequest)
-        callLogin(data, "/authserver/authenticate", onSuccess, onFailed)
     }
 
     @Throws(IOException::class)
-    suspend fun refresh(
-        context: Context,
-        account: Account,
-        select: Boolean,
-        onSuccess: suspend (AuthResult) -> Unit = {},
-        onFailed: suspend (th: Throwable) -> Unit = {}
-    ) {
-        if (Objects.isNull(baseUrl)) {
-            onFailed(ResponseException(context.getString(R.string.account_other_login_baseurl_not_set)))
-            return
-        }
+    suspend fun refreshToken(context: Context, account: Account, select: Boolean): AuthResult {
+        requireBaseUrl(context)
 
         val refresh = Refresh(
             clientToken = account.clientToken,
@@ -118,40 +115,71 @@ class AuthServerApi(private var baseUrl: String) {
             )
         }
 
-        val json = Gson().toJson(refresh)
-        callLogin(json, "/authserver/refresh", onSuccess, onFailed)
+        return requestAuth(Gson().toJson(refresh), "/authserver/refresh")
     }
 
-    private suspend fun callLogin(
-        data: String,
-        url: String,
+    @Throws(IOException::class)
+    suspend fun refresh(
+        context: Context,
+        account: Account,
+        select: Boolean,
         onSuccess: suspend (AuthResult) -> Unit = {},
         onFailed: suspend (th: Throwable) -> Unit = {}
-    ) = withContext(Dispatchers.IO) {
+    ) {
         try {
-            val response: HttpResponse = GLOBAL_CLIENT.post(baseUrl + url) {
+            onSuccess(refreshToken(context, account, select))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            onFailed(e)
+        }
+    }
+
+    /**
+     * 校验缓存的 accessToken 是否仍被服务端接受
+     * @returm false 表示服务端已拒绝该凭据
+     */
+    @Throws(IOException::class)
+    suspend fun validate(context: Context, account: Account): Boolean {
+        requireBaseUrl(context)
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = GLOBAL_CLIENT.post("$baseUrl/authserver/validate") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        Gson().toJson(
+                            Refresh(
+                                clientToken = account.clientToken,
+                                accessToken = account.accessToken
+                            )
+                        )
+                    )
+                }
+                response.status.isSuccess()
+            } catch (e: ClientRequestException) {
+                if (e.response.status.value == 403) false
+                else throw ResponseException(e.response.getErrorMessage(), e.response.status.value)
+            }
+        }
+    }
+
+    private fun requireBaseUrl(context: Context) {
+        if (Objects.isNull(baseUrl)) {
+            throw ResponseException(context.getString(R.string.account_other_login_baseurl_not_set))
+        }
+    }
+
+    private suspend fun requestAuth(data: String, url: String): AuthResult = withContext(Dispatchers.IO) {
+        try {
+            val response = GLOBAL_CLIENT.post(baseUrl + url) {
                 contentType(ContentType.Application.Json)
                 setBody(data)
             }
-
-            if (response.status == HttpStatusCode.OK) {
-                val result: AuthResult = response.safeBodyAsJson()
-                onSuccess(result)
-            } else {
-                val errorMessage = response.getErrorMessage()
-                Logger.error(TAG, errorMessage)
-                onFailed(ResponseException(errorMessage))
-            }
+            if (response.status.isSuccess()) response.safeBodyAsJson()
+            else throw ResponseException(response.getErrorMessage(), response.status.value)
         } catch (e: ClientRequestException) {
-            val errorMessage = e.response.getErrorMessage()
-            Logger.error(TAG, errorMessage, e)
-            onFailed(ResponseException(errorMessage))
-        } catch (e: CancellationException) {
-            Logger.debug(TAG, "Login cancelled")
-            throw e
-        } catch (e: Exception) {
-            Logger.error(TAG, "Request failed", e)
-            onFailed(e)
+            throw ResponseException(e.response.getErrorMessage(), e.response.status.value)
         }
     }
 

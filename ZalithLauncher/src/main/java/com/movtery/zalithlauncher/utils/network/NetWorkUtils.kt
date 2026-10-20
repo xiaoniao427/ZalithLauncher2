@@ -27,13 +27,13 @@ import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
+import com.movtery.zalithlauncher.game.download.engine.DownloadEngine
+import com.movtery.zalithlauncher.game.download.engine.DownloadRequest
 import com.movtery.zalithlauncher.path.DOWNLOAD_OKHTTP_CLIENT
-import com.movtery.zalithlauncher.path.createOkHttpClient
+import com.movtery.zalithlauncher.path.TIME_OUT
 import com.movtery.zalithlauncher.path.createRequestBuilder
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.copyText
-import com.movtery.zalithlauncher.utils.file.compareSHA1
-import com.movtery.zalithlauncher.utils.file.ensureParentDirectory
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
 import kotlinx.coroutines.CancellationException
@@ -48,12 +48,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import okhttp3.Call
-import org.apache.commons.io.FileUtils
-import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.SocketTimeoutException
@@ -63,11 +58,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "NetWorkUtils"
 
-/** 单个文件下载的最大允许时间*/
+/** 单个文件下载的最大允许时间 */
 private const val DOWNLOAD_PER_FILE_TIMEOUT = 3 * 60 * 1000L
 
-/** 镜像列表下载的最大允许时间 */
-private const val DOWNLOAD_MIRROR_LIST_TIMEOUT = 5 * 60 * 1000L
+/** 多候选源下载的最大允许时间 */
+private const val DOWNLOAD_SOURCES_TIMEOUT = 5 * 60 * 1000L
 
 /**
  * @return 当前网络是否可用
@@ -92,237 +87,29 @@ fun isUsingMobileData(context: Context): Boolean {
 }
 
 /**
- * 同步下载文件到本地
- * @param url 要下载的文件URL
- * @param outputFile 要保存的目标文件
- * @param bufferSize 缓冲区大小
- * @param sha1 文件SHA1验证值
- * @param sizeCallback 正在下载的大小回调
+ * 下载单个文件到本地（动态分块、自动换源、降级重试）
+ * @throws TimeoutException 整体超时
  */
-fun downloadFileWithHttp(
+suspend fun downloadFile(
     url: String,
     outputFile: File,
-    bufferSize: Int = 65536,
     sha1: String? = null,
     sizeCallback: (Long) -> Unit = {}
-) {
-    val maxAttempts = if (sha1 != null) 2 else 1
-    var attempt = 0
-    var totalReportedBytes = 0L
-
-    while (true) {
-        attempt++
-        //本次尝试中已回调的大小
-        var attemptReportedBytes = 0L
-
-        try {
-            outputFile.ensureParentDirectory()
-
-            val request = createRequestBuilder(url).build()
-
-            DOWNLOAD_OKHTTP_CLIENT
-                .newCall(request)
-                .execute()
-                .use { response ->
-                    if (!response.isSuccessful) {
-                        if (response.code == 404) throw FileNotFoundException("HTTP ${response.code} - ${response.message}")
-                        throw IOException("HTTP ${response.code} - ${response.message}")
-                    }
-
-                    val body = response.body
-                    val contentLength = body.contentLength()
-
-                    body.byteStream().use { inputStream ->
-                        BufferedOutputStream(FileOutputStream(outputFile)).use { fos ->
-                            val buffer = ByteArray(bufferSize)
-                            var totalBytesRead = 0L
-                            var bytesRead: Int
-
-                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                                fos.write(buffer, 0, bytesRead)
-                                totalBytesRead += bytesRead
-
-                                sizeCallback(bytesRead.toLong())
-                                attemptReportedBytes += bytesRead
-                                totalReportedBytes += bytesRead
-                            }
-
-                            if (contentLength != -1L && totalBytesRead != contentLength) {
-                                throw IOException("Download incomplete. Expected $contentLength bytes, received $totalBytesRead bytes.")
-                            }
-                        }
-                    }
-                }
-
-            sha1?.let {
-                if (!compareSHA1(outputFile, it)) {
-                    throw IOException("SHA1 verification failed for $url")
-                }
-            }
-
-            return //下载并验证成功
-        } catch (e: Exception) {
-            FileUtils.deleteQuietly(outputFile)
-
-            if (attemptReportedBytes > 0) {
-                //回退本次尝试的下载量
-                sizeCallback(-attemptReportedBytes)
-                totalReportedBytes -= attemptReportedBytes
-            }
-
-            if (e.isInterruptedIOException()) {
-                Logger.debug(TAG, "Download task cancelled. url: $url")
-                return //取消了，不需要抛出异常
-            } else if (e is FileNotFoundException) {
-                if (attempt >= maxAttempts) throw e //目标不存在
-            } else {
-                if (attempt >= maxAttempts) {
-                    throw IOException("Download failed after $maxAttempts attempts: $url", e)
-                }
-            }
-        }
-    }
+): Unit = withTimeout(DOWNLOAD_PER_FILE_TIMEOUT.milliseconds) {
+    DownloadEngine.download(DownloadRequest(listOf(url), outputFile, sha1), sizeCallback = sizeCallback)
 }
 
 /**
- * 同步下载文件到本地
- * @param url 要下载的文件URL
- * @param outputFile 要保存的目标文件
- * @param bufferSize 缓冲区大小
- * @param sha1 文件SHA1验证值
- * @param sizeCallback 正在下载的大小回调
+ * 按优先级从多个候选源下载单个文件，失败时自动沿源列表轮转
+ * @throws TimeoutException 整体超时
  */
-suspend fun downloadFileSuspend(
-    url: String,
-    outputFile: File,
-    bufferSize: Int = 65536,
-    sha1: String? = null,
-    sizeCallback: (Long) -> Unit = {}
-) = withContext(Dispatchers.IO) {
-    try {
-        withTimeout(DOWNLOAD_PER_FILE_TIMEOUT.milliseconds) { //整体超时保护
-            runInterruptible {
-                downloadFileWithHttp(
-                    url = url,
-                    outputFile = outputFile,
-                    bufferSize = bufferSize,
-                    sha1 = sha1,
-                    sizeCallback = sizeCallback
-                )
-            }
-        }
-    } catch (_: TimeoutCancellationException) {
-        throw TimeoutException("Download timed out after ${DOWNLOAD_PER_FILE_TIMEOUT}ms: $url")
-    }
-}
-
-/**
- * 从多个下载地址中尝试下载
- * @param urls 要下载的文件链接列表
- * @param outputFile 要保存的目标文件
- * @param bufferSize 缓冲区大小
- * @param sha1 文件SHA1验证值
- * @param sizeCallback 正在下载的大小回调
- */
-fun downloadFromMirrorList(
+suspend fun downloadFileFromSources(
     urls: List<String>,
     outputFile: File,
-    bufferSize: Int = 65536,
     sha1: String? = null,
     sizeCallback: (Long) -> Unit = {}
-) {
-    require(urls.isNotEmpty()) { "URL list must not be empty." }
-
-    val errors = mutableListOf<Exception>()
-    var lastException: Exception? = null
-    var totalReportedBytes = 0L
-
-    for (url in urls) {
-        var attempt = 0
-        val maxAttempts = if (sha1 != null) 2 else 1
-
-        while (attempt < maxAttempts) {
-            attempt++
-            //本次镜像尝试中已回调的大小
-            var mirrorAttemptReported = 0L
-
-            try {
-                val mirrorCallback = { bytes: Long ->
-                    if (bytes > 0) {
-                        mirrorAttemptReported += bytes
-                        totalReportedBytes += bytes
-                    }
-                    sizeCallback(bytes)
-                }
-
-                downloadFileWithHttp(
-                    url = url,
-                    outputFile = outputFile,
-                    bufferSize = bufferSize,
-                    sha1 = sha1,
-                    sizeCallback = mirrorCallback
-                )
-                return //下载成功
-            } catch (e: Exception) {
-                FileUtils.deleteQuietly(outputFile)
-                lastException = e
-
-                if (mirrorAttemptReported > 0) {
-                    //回退本次镜像尝试的下载量
-                    sizeCallback(-mirrorAttemptReported)
-                    totalReportedBytes -= mirrorAttemptReported
-                }
-
-                if (e.isInterruptedIOException()) {
-                    throw e
-                } else if (e is FileNotFoundException) {
-                    errors.add(e)
-                    break
-                } else {
-                    errors.add(e)
-                }
-            }
-        }
-    }
-
-    val errorMessage = errors.mapNotNull { it.message }.joinToString("\n")
-    throw IOException("Failed to download file from all mirrors (${errors.size} errors)\n$errorMessage", lastException).apply {
-        errors.forEachIndexed { i, e ->
-            addSuppressed(Exception("Mirror error #${i + 1}: ${e.message}"))
-        }
-    }
-}
-
-/**
- * 从多个下载地址中尝试下载
- * @param urls 要下载的文件链接列表
- * @param outputFile 要保存的目标文件
- * @param bufferSize 缓冲区大小
- * @param sha1 文件SHA1验证值
- * @param sizeCallback 正在下载的大小回调
- */
-suspend fun downloadFromMirrorListSuspend(
-    urls: List<String>,
-    outputFile: File,
-    bufferSize: Int = 65536,
-    sha1: String? = null,
-    sizeCallback: (Long) -> Unit = {}
-) = withContext(Dispatchers.IO) {
-    try {
-        withTimeout(DOWNLOAD_MIRROR_LIST_TIMEOUT.milliseconds) { //整体超时保护
-            runInterruptible {
-                downloadFromMirrorList(
-                    urls = urls,
-                    outputFile = outputFile,
-                    bufferSize = bufferSize,
-                    sha1 = sha1,
-                    sizeCallback = sizeCallback
-                )
-            }
-        }
-    } catch (_: TimeoutCancellationException) {
-        throw TimeoutException("Mirror list download timed out after ${DOWNLOAD_MIRROR_LIST_TIMEOUT}ms: ${urls.firstOrNull()}")
-    }
+): Unit = withTimeout(DOWNLOAD_SOURCES_TIMEOUT.milliseconds) {
+    DownloadEngine.download(DownloadRequest(urls, outputFile, sha1), sizeCallback = sizeCallback)
 }
 
 /**
@@ -339,7 +126,8 @@ suspend fun <T> withSpeedReport(
     withSpeedReport(
         onTimeReport = {
             val currentBytes = bytesWritten.getAndSet(0L)
-            onSpeedReport(currentBytes)
+            //下载引擎的回滚增量可能使单秒采样为负，速率不应为负
+            onSpeedReport(currentBytes.coerceAtLeast(0L))
         },
         onClear = {
             bytesWritten.set(0L)
@@ -389,16 +177,20 @@ suspend fun <T> withSpeedReport(
  */
 @Throws(IOException::class, IllegalArgumentException::class)
 suspend fun fetchStringFromUrl(url: String): String = withContext(Dispatchers.IO) {
-    runInterruptible {
-        call(url) { call ->
-            call.execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw IOException("HTTP ${response.code} - ${response.message}")
-                }
+    try {
+        withTimeout(TIME_OUT.milliseconds) {
+            runInterruptible {
+                DOWNLOAD_OKHTTP_CLIENT.newCall(createRequestBuilder(url).build()).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        throw IOException("HTTP ${response.code} - ${response.message}")
+                    }
 
-                return@call response.body.use { it.string() }
+                    response.body.use { it.string() }
+                }
             }
         }
+    } catch (_: TimeoutCancellationException) {
+        throw TimeoutException("Request timed out after ${TIME_OUT}ms: $url")
     }
 }
 
@@ -430,13 +222,6 @@ suspend fun fetchStringFromUrls(urls: List<String>): String = withContext(Dispat
     if (!succeed || result == null) throw lastException ?: IOException("Failed to retrieve information from the source!")
 
     result
-}
-
-private fun <T> call(url: String, call: (Call) -> T): T {
-    val client = createOkHttpClient()
-    val request = createRequestBuilder(url).build()
-
-    return call(client.newCall(request))
 }
 
 /**

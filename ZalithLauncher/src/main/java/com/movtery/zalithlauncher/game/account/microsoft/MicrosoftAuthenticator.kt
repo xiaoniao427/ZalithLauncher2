@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.CredentialsExpiredException
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException.ExceptionStatus.BLOCKED_IP
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException.ExceptionStatus.FREQUENT
 import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException.ExceptionStatus.BANNED
@@ -242,6 +243,22 @@ suspend fun microsoftAuthAsync(
     return@coroutineScope createAccount(authResponse, newRefreshToken, xblToken.second, statusUpdate)
 }
 
+/**
+ * 校验缓存的 accessToken 是否仍被服务端接受
+ * @return false 表示服务端已拒绝该凭据
+ */
+suspend fun validateAccessToken(account: Account): Boolean = try {
+    getPlayerProfile(MINECRAFT_SERVICES_URL, account.accessToken)
+    true
+} catch (e: MinecraftProfileException) {
+    false
+} catch (e: ResponseException) {
+    when (e.response.status.value) {
+        401, 403 -> false
+        else -> throw e
+    }
+}
+
 private suspend fun refreshAccessToken(
     refreshToken: String,
     update: (AsyncStatus) -> Unit,
@@ -250,19 +267,25 @@ private suspend fun refreshAccessToken(
     update(AsyncStatus.GETTING_ACCESS_TOKEN)
 
     return withRetry {
-        val response = submitForm<JsonObject>(
-            url = "$LIVE_AUTH_URL/oauth20_token.srf",
-            parameters = Parameters.build {
-                append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                append("refresh_token", refreshToken)
-                append("grant_type", "refresh_token")
-            },
-            context = context
-        )
-        Pair(
-            response["access_token"].text(),
-            response["refresh_token"]?.jsonPrimitive?.content ?: refreshToken
-        )
+        try {
+            val response = submitForm<JsonObject>(
+                url = "$LIVE_AUTH_URL/oauth20_token.srf",
+                parameters = Parameters.build {
+                    append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                    append("refresh_token", refreshToken)
+                    append("grant_type", "refresh_token")
+                },
+                context = context
+            )
+            Pair(
+                response["access_token"].text(),
+                response["refresh_token"]?.jsonPrimitive?.content ?: refreshToken
+            )
+        } catch (e: ClientRequestException) {
+            //刷新令牌已被撤销或失效，无法自动恢复
+            if (e.errorCode() == "invalid_grant") throw CredentialsExpiredException()
+            throw e
+        }
     }
 }
 

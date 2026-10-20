@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.game.addons.mirror
 
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://bmclapi2.bangbang93.com"
@@ -58,30 +57,23 @@ private val REPLACE_MIRROR_HOLDERS = mapOf(
 )
 
 /**
- * 替换为 BMCL API 镜像源链接，若如匹配的链接，则仅返回官方链接集合
+ * 替换为镜像源链接并按用户偏好排序；非中国大陆不注入任何镜像。
  */
 fun String.mapBMCLMirrorUrls(): List<String> {
-    var isAssetsFile = false
+    if (!isChinaMainland()) return listOf(this)
 
-    val mirrorUrl = REPLACE_MIRROR_HOLDERS.entries.find { (key, mirror) ->
-        isAssetsFile = mirror == BMCLAPI.ASSETS.url
-        this.startsWith(key)
+    val mirrorUrl = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
+        this.startsWith(origin)
     }?.let { (origin, mirror) ->
-        this.replaceFirst(origin, mirror)
+        replaceFirst(origin, mirror)
     }
 
-    return if (isChinaMainland()) {
-        val type = if (!isAssetsFile) {
-            AllSettings.fileDownloadSource.getValue()
-        } else {
-            //资源文件数量过多，请求量大，应先尝试官方源，减轻 BMCL API 源压力
-            MirrorSourceType.OFFICIAL_FIRST
-        }
-        when (type) {
-            MirrorSourceType.OFFICIAL_FIRST -> listOfNotNull(this, mirrorUrl)
-            MirrorSourceType.MIRROR_FIRST -> listOfNotNull(mirrorUrl, this)
-        }
-    } else {
-        listOf(this)
-    }
+    return orderCandidates(
+        official = this,
+        mirror = mirrorUrl,
+        priority = resolveMirrorPriority(
+            source = AllSettings.gameDownloadSource.getValue(),
+            mainland = true
+        )
+    )
 }

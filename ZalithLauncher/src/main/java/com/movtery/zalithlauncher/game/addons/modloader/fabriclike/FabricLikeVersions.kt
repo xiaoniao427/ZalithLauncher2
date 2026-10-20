@@ -20,12 +20,11 @@ package com.movtery.zalithlauncher.game.addons.modloader.fabriclike
 
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.fabriclike.models.FabricLikeLoader
 import com.movtery.zalithlauncher.game.addons.modloader.fabriclike.models.FabricLikeVersionsJson
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
@@ -54,16 +53,10 @@ abstract class FabricLikeVersions(
     ): List<FabricLikeLoader>? = withContext(Dispatchers.Default) {
         mirrorUrl?.takeIf { isChinaMainland() }?.let {
             runMirrorable(
-                when (AllSettings.fetchModLoaderSource.getValue()) {
-                    MirrorSourceType.OFFICIAL_FIRST -> listOf(
-                        fetchListWithOfficial(force, tag, mcVersion, 5),
-                        fetchListWithBMCLAPI(force, tag, mcVersion, 5 + 30)
-                    )
-                    MirrorSourceType.MIRROR_FIRST -> listOf(
-                        fetchListWithBMCLAPI(force, tag, mcVersion, 30),
-                        fetchListWithOfficial(force, tag, mcVersion, 30 + 60)
-                    )
-                }
+                listOf(
+                    fetchListFromMirrorSource(SourceType.OFFICIAL, force, tag, mcVersion, officialUrl),
+                    fetchListFromMirrorSource(SourceType.BMCLAPI, force, tag, mcVersion, it)
+                ).orderedByGameSourcePreference()
             )
         } ?: run {
             //不支持镜像源，只使用官方源
@@ -71,34 +64,14 @@ abstract class FabricLikeVersions(
         }
     }
 
-    /**
-     * 在官方源获取版本列表
-     */
-    private fun fetchListWithOfficial(
+    private fun fetchListFromMirrorSource(
+        type: SourceType,
         force: Boolean,
         tag: String,
         mcVersion: String,
-        delayMillis: Long
-    ): MirrorSource<List<FabricLikeLoader>?> = MirrorSource(
-        delayMillis = delayMillis,
-        type = SourceType.OFFICIAL
-    ) {
-        fetchListWithSource(force, tag, mcVersion, officialUrl)
-    }
-
-    /**
-     * 在BMCL API源获取版本列表
-     */
-    private fun fetchListWithBMCLAPI(
-        force: Boolean,
-        tag: String,
-        mcVersion: String,
-        delayMillis: Long
-    ): MirrorSource<List<FabricLikeLoader>?> = MirrorSource(
-        delayMillis = delayMillis,
-        type = SourceType.BMCLAPI
-    ) {
-        fetchListWithSource(force, tag, mcVersion, mirrorUrl ?: officialUrl)
+        sourceUrl: String
+    ): MirrorSource<List<FabricLikeLoader>?> = MirrorSource(type) {
+        fetchListWithSource(force, tag, mcVersion, sourceUrl)
     }
 
     /**

@@ -35,7 +35,6 @@ import com.movtery.zalithlauncher.game.version.download.filterLibrary
 import com.movtery.zalithlauncher.game.version.download.getLibraryReplacement
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfo
-import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -47,6 +46,7 @@ import com.movtery.zalithlauncher.utils.string.insertJSONValueList
 import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
 import com.movtery.zalithlauncher.utils.string.isLowerTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
+import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.movtery.zalithlauncher.utils.string.toUnicodeEscaped
 import java.io.File
 
@@ -60,6 +60,7 @@ class LaunchArgs(
     private val version: Version,
     private val clientJar: File,
     private val gameManifest: GameManifest,
+    private val lwjglVersion: Int,
     private val runtime: Runtime,
     private val readAssetsFile: (path: String) -> String,
     private val getCacioJavaArgs: (isJava8: Boolean) -> List<String>
@@ -77,6 +78,7 @@ class LaunchArgs(
             argsList.add("$pkg/$pkg=ALL-UNNAMED")
         }
 
+        argsList.add("mio.Wrapper")
         argsList.add(gameManifest.mainClass)
         argsList.addAll(getMinecraftClientArgs())
 
@@ -117,6 +119,9 @@ class LaunchArgs(
             }
         }
 
+        //追加版本配置的游戏参数，置于参数列表末尾
+        argsList.addAll(version.getGameArgs().splitPreservingQuotes())
+
         return argsList
     }
 
@@ -151,11 +156,29 @@ class LaunchArgs(
         }
     }
 
-    private fun getLWJGL3ClassPath(): String =
-        File(PathManager.DIR_COMPONENTS, "lwjgl3")
-            .listFiles { file -> file.name.endsWith(".jar") }
+    /**
+     * 组装 LWJGL 组件 classpath
+     * 版本 >= 3.4.1 -> 使用 3.4.1 组件；否则使用 3.3.3 组件。
+     * LWJGL2 时代（版本 <= 299）额外加入 lwjgl-lwjglx.jar 桥接层。
+     * lwjgl.jar 核心优先 -> merged-modules -> 其余模块。
+     */
+    private fun getLWJGL3ClassPath(): String {
+        val versionDir = lwjglVersionDir(lwjglVersion)
+        val dir = File(PathManager.DIR_COMPONENTS, "lwjgl/$versionDir")
+        val isLwjgl2 = lwjglVersion in 1..299
+        return dir.listFiles { file -> file.name.endsWith(".jar") }
+            ?.sortedBy { file -> lwjglJarOrder(file.name, versionDir, isLwjgl2) }
+            ?.filter { file -> isLwjgl2 || file.name != "lwjgl-lwjglx.jar" }
             ?.joinToString(":") { it.absolutePath }
             ?: ""
+    }
+
+    private fun lwjglJarOrder(name: String, versionDir: String, isLwjgl2: Boolean): Int = when (name) {
+        "lwjgl.jar" -> 0
+        "lwjgl-$versionDir-merged-modules.jar" -> 1
+        "lwjgl-lwjglx.jar" -> 3 // 桥接层放最后，仅 LWJGL2 使用
+        else -> 2
+    }
 
     private fun getJavaArgs(): List<String> {
         val argsList: MutableList<String> = ArrayList()
@@ -192,6 +215,9 @@ class LaunchArgs(
 
         argsList.addAll(getCacioJavaArgs(runtime.javaVersion == 8))
 
+        //MioLibPatcher 需作为 JVM 选项注册在 cacio agent 之后、-cp 之前
+        argsList.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
+
         val configFilePath = version.getVersionPath().child("log4j2.xml")
         if (!configFilePath.exists()) {
             val is7 = (version.getVersionInfo()?.minecraftVersion ?: "0.0").isLowerTo("1.12")
@@ -215,20 +241,22 @@ class LaunchArgs(
     }
 
     private fun getMinecraftJVMArgs(): Array<String> {
-        val gameManifest1 = VersionInfoParser(version).build()
-
 //        // Parse Forge 1.17+ additional JVM Arguments
 //        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {
 //            return emptyArray()
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
+        val launchClassPath = buildList {
+            add(getLWJGL3ClassPath())
+            add(LibPath.MIO_LAUNCH_WRAPPER.absolutePath)
+            putLaunchClassPath(gameManifest)
+        }.joinToString(":")
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
-        varArgMap["library_directory"] = getLibrariesHome()
-        varArgMap["version_name"] = gameManifest1.id
+        varArgMap["library_directory"] = getLibrariesHome(version.getGameHome())
+        varArgMap["version_name"] = gameManifest.id
         varArgMap["natives_directory"] = runtimeLibraryPath
         setLauncherInfo(varArgMap)
 
@@ -255,7 +283,7 @@ class LaunchArgs(
             }
         }
 
-        val jvmArgs = gameManifest1.arguments?.jvm
+        val jvmArgs = gameManifest.arguments?.jvm
             ?.mapNotNull { it.processJvmArg() }
             ?.toTypedArray()
             ?: emptyArray()
@@ -272,8 +300,7 @@ class LaunchArgs(
     /**
      * [Modified from PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/a6f3fc0/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/Tools.java#L572-L592)
      */
-    private fun generateLaunchClassPath(gameManifest: GameManifest): String {
-        val classpathList = mutableListOf<String>()
+    private fun MutableList<String>.putLaunchClassPath(gameManifest: GameManifest) {
         val classpath: Array<String> = generateLibClasspath(gameManifest)
 
         for (jarFile in classpath) {
@@ -282,13 +309,11 @@ class LaunchArgs(
                 Logger.debug(TAG, "Ignored non-exists file: $jarFile")
                 continue
             }
-            classpathList.add(jarFile)
+            add(jarFile)
         }
         if (clientJar.exists()) {
-            classpathList.add(clientJar.absolutePath)
+            add(clientJar.absolutePath)
         }
-
-        return classpathList.joinToString(":")
     }
 
     /**
@@ -302,7 +327,7 @@ class LaunchArgs(
             if (!(GameManifest.Rule.checkRules(libItem.rules) && !libItem.isNative)) continue
             val path = libItem.progressLibrary() ?: continue
             with(libSortFix) {
-                libs.insertLib(libItem, getLibrariesHome() + "/" + path)
+                libs.insertLib(libItem, getLibrariesHome(version.getGameHome()) + "/" + path)
             }
         }
 
@@ -336,9 +361,9 @@ class LaunchArgs(
         varArgMap["auth_player_name"] = account.username
         varArgMap["auth_uuid"] = account.profileId.replace("-", "")
         varArgMap["auth_xuid"] = account.xUid ?: ""
-        varArgMap["assets_root"] = getAssetsHome()
+        varArgMap["assets_root"] = getAssetsHome(version.getGameHome())
         varArgMap["assets_index_name"] = gameManifest.assetIndex.id
-        varArgMap["game_assets"] = getAssetsHome()
+        varArgMap["game_assets"] = getAssetsHome(version.getGameHome())
         varArgMap["game_directory"] = gameDirPath.absolutePath
         varArgMap["user_properties"] = "{}"
         varArgMap["user_type"] = "msa"
@@ -376,3 +401,32 @@ class LaunchArgs(
         return list.toTypedArray()
     }
 }
+
+/**
+ * 从版本清单中探测要求的 LWJGL 主版本
+ * 解析 `org.lwjgl:lwjgl:X.Y.Z` / `org.lwjgl.lwjgl:lwjgl:X.Y.Z` 坐标，
+ * 返回去掉句点后的整数（如 3.3.3→333、3.4.1→341、2.9.9→299）
+ * @return 无法确定时返回 0（默认按 LWJGL3 处理）
+ */
+fun detectLwjglVersion(manifest: GameManifest): Int {
+    for (lib in manifest.libraries) {
+        val name = lib.name ?: continue
+        val versionPrefix = when {
+            name.startsWith("org.lwjgl.lwjgl:lwjgl:") -> "org.lwjgl.lwjgl:lwjgl:"
+            name.startsWith("org.lwjgl:lwjgl:") -> "org.lwjgl:lwjgl:"
+            else -> continue
+        }
+        val intVersion = name.substring(versionPrefix.length)
+            .takeWhile { it.isDigit() || it == '.' }
+            .filter { it != '.' }
+            .toIntOrNull()
+        if (intVersion != null && intVersion in 200..999) return intVersion
+    }
+    return 0
+}
+
+/**
+ * LWJGL 版本整数 -> 组件目录名。
+ * 版本 >= 3.4.1 -> 3.4.1 组件；否则（含 LWJGL2 桥接场景）-> 3.3.3 组件
+ */
+fun lwjglVersionDir(lwjglVersion: Int): String = if (lwjglVersion >= 341) "3.4.1" else "3.3.3"

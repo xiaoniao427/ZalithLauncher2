@@ -19,9 +19,15 @@
 package com.movtery.zalithlauncher.ui.screens.game.elements
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +45,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,13 +56,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
+import com.movtery.zalithlauncher.ui.components.IntInputField
 import com.movtery.zalithlauncher.ui.components.MenuListLayout
 import com.movtery.zalithlauncher.ui.components.MenuSliderLayout
 import com.movtery.zalithlauncher.ui.components.MenuState
@@ -66,6 +80,10 @@ import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
+import com.movtery.zalithlauncher.utils.animation.getAnimateTween
+import com.movtery.zalithlauncher.utils.customResolutionRange
+import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
+import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 
 private data class IconTab(val iconRes: Int, val iconSize: Dp = 18.dp)
@@ -98,7 +116,6 @@ fun GameMenuSubscreen(
     onInputMethod: () -> Unit,
     onSendKeycode: () -> Unit,
     onReplacementControl: () -> Unit,
-    onManageJoystick: () -> Unit,
     onEditLayout: () -> Unit,
     onShowToast: (AndroidStringText, Int) -> Unit
 ) {
@@ -152,7 +169,6 @@ fun GameMenuSubscreen(
                                 onInputMethod = onInputMethod,
                                 onSendKeycode = onSendKeycode,
                                 onReplacementControl = onReplacementControl,
-                                onManageJoystick = onManageJoystick,
                                 onEditLayout = onEditLayout
                             )
                         }
@@ -200,6 +216,7 @@ private fun GameActionContent(
     color: Color = cardColor(false),
     contentColor: Color = onCardColor(),
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     LazyColumn(
         modifier = modifier.lazyScrollWithBar(listState),
@@ -300,6 +317,22 @@ private fun GameActionContent(
                 enabled = AllSettings.showMenuBall.state
             )
         }
+        //帧率显示模式
+        item {
+            MenuListLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_fps_display_mode),
+                items = FpsDisplayMode.entries,
+                currentItem = AllSettings.fpsDisplayMode.state,
+                onItemChange = { mode ->
+                    AllSettings.fpsDisplayMode.save(mode)
+                },
+                getItemText = { stringResource(it.nameRes) },
+                color = color,
+                contentColor = contentColor,
+                enabled = AllSettings.showMenuBall.state && AllSettings.showFPS.state
+            )
+        }
         //内存显示
         item {
             MenuSwitchButton(
@@ -312,25 +345,150 @@ private fun GameActionContent(
                 enabled = AllSettings.showMenuBall.state
             )
         }
-        //游戏窗口分辨率
+        //请求最高刷新率
         item {
-            MenuSliderLayout(
+            MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.settings_renderer_resolution_scale_title),
-                value = AllSettings.resolutionRatio.state,
-                valueRange = AllSettings.resolutionRatio.floatRange,
-                onValueChange = { value ->
-                    AllSettings.resolutionRatio.updateState(value)
-//                        onRefreshWindowSize()
-                },
-                onValueChangeFinished = { value ->
-                    AllSettings.resolutionRatio.save(value)
-                    onRefreshWindowSize()
-                },
-                suffix = "%",
+                text = stringResource(R.string.settings_renderer_max_refresh_rate_title),
+                switch = AllSettings.requestMaxRefreshRate.state,
+                onSwitch = { AllSettings.requestMaxRefreshRate.save(it) },
                 color = color,
                 contentColor = contentColor,
             )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // 分辨率规则与游戏窗口分辨率
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 分辨率规则
+                MenuListLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.settings_renderer_resolution_rule_title),
+                    items = ResolutionRule.entries,
+                    currentItem = AllSettings.resolutionRule.state,
+                    onItemChange = { rule ->
+                        AllSettings.resolutionRule.save(rule)
+                        // 自定义分辨率尚未初始化时，以屏幕真实宽高填充
+                        if (rule == ResolutionRule.CUSTOM) {
+                            ensureCustomResolutionInitialized(context)
+                        }
+                        onRefreshWindowSize()
+                    },
+                    getItemText = { stringResource(it.nameRes) },
+                    color = color,
+                    contentColor = contentColor,
+                )
+
+                // 百分比分辨率
+                AnimatedVisibility(
+                    visible = AllSettings.resolutionRule.state == ResolutionRule.PERCENTAGE,
+                    enter = fadeIn(animationSpec = getAnimateTween()) +
+                            expandVertically(animationSpec = getAnimateTween()),
+                    exit = fadeOut(animationSpec = getAnimateTween()) +
+                            shrinkVertically(animationSpec = getAnimateTween())
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        MenuSliderLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = stringResource(R.string.settings_renderer_resolution_scale_title),
+                            value = AllSettings.resolutionRatio.state,
+                            valueRange = AllSettings.resolutionRatio.floatRange,
+                            onValueChange = { value ->
+                                AllSettings.resolutionRatio.updateState(value)
+                            },
+                            onValueChangeFinished = { value ->
+                                AllSettings.resolutionRatio.save(value)
+                                onRefreshWindowSize()
+                            },
+                            suffix = "%",
+                            color = color,
+                            contentColor = contentColor,
+                        )
+                    }
+                }
+
+                // 自定义分辨率
+                AnimatedVisibility(
+                    visible = AllSettings.resolutionRule.state == ResolutionRule.CUSTOM,
+                    enter = fadeIn(animationSpec = getAnimateTween()) +
+                            expandVertically(animationSpec = getAnimateTween()),
+                    exit = fadeOut(animationSpec = getAnimateTween()) +
+                            shrinkVertically(animationSpec = getAnimateTween())
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        CustomResolutionContent(onValueCommitted = onRefreshWindowSize)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 自定义分辨率的宽高输入卡片
+ */
+@Composable
+private fun CustomResolutionContent(
+    onValueCommitted: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val screenSize = remember(context) { getRealScreenSize(context) }
+
+    BackgroundCard(
+        modifier = modifier.fillMaxWidth(),
+        influencedByBackground = false,
+        shape = MaterialTheme.shapes.large
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_renderer_resolution_scale_title),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IntInputField(
+                    modifier = Modifier.weight(1f),
+                    value = AllSettings.customResolutionWidth.state,
+                    permitted = customResolutionRange(screenSize.width),
+                    label = stringResource(R.string.settings_renderer_resolution_custom_width),
+                    onValueChange = { value ->
+                        AllSettings.customResolutionWidth.save(value)
+                        onValueCommitted()
+                    }
+                )
+                IntInputField(
+                    modifier = Modifier.weight(1f),
+                    value = AllSettings.customResolutionHeight.state,
+                    permitted = customResolutionRange(screenSize.height),
+                    label = stringResource(R.string.settings_renderer_resolution_custom_height),
+                    onValueChange = { value ->
+                        AllSettings.customResolutionHeight.save(value)
+                        onValueCommitted()
+                    }
+                )
+            }
         }
     }
 }
@@ -344,10 +502,11 @@ private fun ControlOverview(
     onInputMethod: () -> Unit,
     onSendKeycode: () -> Unit,
     onReplacementControl: () -> Unit,
-    onManageJoystick: () -> Unit,
     onEditLayout: () -> Unit
 ) {
     val listState = rememberLazyListState()
+    val sdlEnabled by SdlBridge.enabled.collectAsState()
+
     LazyColumn(
         modifier = modifier.lazyScrollWithBar(listState),
         state = listState,
@@ -367,6 +526,23 @@ private fun ControlOverview(
                 contentColor = contentColor,
             )
         }
+        //自动唤起输入法（SDL）
+        item {
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_option_auto_show_ime),
+                switch = AllSettings.sdlAutoShowIme.state,
+                onSwitch = { AllSettings.sdlAutoShowIme.save(it) },
+                enabled = sdlEnabled,
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         //发送键值
         item {
             MenuTextButton(
@@ -416,20 +592,6 @@ private fun ControlOverview(
                 onValueChange = { AllSettings.controlsOpacity.updateState(it) },
                 onValueChangeFinished = { AllSettings.controlsOpacity.save(it) },
                 suffix = "%",
-                color = color,
-                contentColor = contentColor,
-            )
-        }
-
-        //管理摇杆
-        item {
-            MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.game_styles_joystick),
-                onClick = {
-                    onManageJoystick()
-                    closeScreen()
-                },
                 color = color,
                 contentColor = contentColor,
             )
@@ -554,6 +716,9 @@ private fun ControlGamepad(
     contentColor: Color = onCardColor(),
 ) {
     val listState = rememberLazyListState()
+    //重映射相关设置仅在映射模式下可用
+    val remapEnabled = AllSettings.gamepadControl.state &&
+        AllSettings.gamepadInputMode.state == GamepadInputMode.Mapped
     LazyColumn(
         modifier = modifier.lazyScrollWithBar(listState),
         state = listState,
@@ -572,6 +737,29 @@ private fun ControlGamepad(
             )
         }
 
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        //手柄输入模式
+        item {
+            MenuListLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.settings_gamepad_input_mode_title),
+                items = GamepadInputMode.entries,
+                currentItem = AllSettings.gamepadInputMode.state,
+                onItemChange = { AllSettings.gamepadInputMode.save(it) },
+                getItemText = { stringResource(it.titleRes) },
+                color = color,
+                contentColor = contentColor,
+                enabled = AllSettings.gamepadControl.state,
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         //手柄死区缩放
         item {
             MenuSliderLayout(
@@ -579,7 +767,7 @@ private fun ControlGamepad(
                 title = stringResource(R.string.settings_gamepad_deadzone_title),
                 value = AllSettings.gamepadDeadZoneScale.state,
                 valueRange = AllSettings.gamepadDeadZoneScale.floatRange,
-                enabled = AllSettings.gamepadControl.state,
+                enabled = remapEnabled,
                 onValueChange = { AllSettings.gamepadDeadZoneScale.updateState(it) },
                 onValueChangeFinished = { AllSettings.gamepadDeadZoneScale.save(it) },
                 suffix = "%",
@@ -595,7 +783,7 @@ private fun ControlGamepad(
                 title = stringResource(R.string.settings_gamepad_cursor_sensitivity_title),
                 value = AllSettings.gamepadCursorSensitivity.state,
                 valueRange = AllSettings.gamepadCursorSensitivity.floatRange,
-                enabled = AllSettings.gamepadControl.state,
+                enabled = remapEnabled,
                 onValueChange = { AllSettings.gamepadCursorSensitivity.updateState(it) },
                 onValueChangeFinished = { AllSettings.gamepadCursorSensitivity.save(it) },
                 suffix = "%",
@@ -611,7 +799,7 @@ private fun ControlGamepad(
                 title = stringResource(R.string.settings_gamepad_camera_sensitivity_title),
                 value = AllSettings.gamepadCameraSensitivity.state,
                 valueRange = AllSettings.gamepadCameraSensitivity.floatRange,
-                enabled = AllSettings.gamepadControl.state,
+                enabled = remapEnabled,
                 onValueChange = { AllSettings.gamepadCameraSensitivity.updateState(it) },
                 onValueChangeFinished = { AllSettings.gamepadCameraSensitivity.save(it) },
                 suffix = "%",
@@ -639,7 +827,7 @@ private fun ControlGamepad(
                     getItemText = { it },
                     color = color,
                     contentColor = contentColor,
-                    enabled = AllSettings.gamepadControl.state,
+                    enabled = remapEnabled,
                 )
             } else {
                 MenuTextButton(

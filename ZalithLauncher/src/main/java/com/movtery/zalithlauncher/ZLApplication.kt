@@ -40,6 +40,7 @@ import com.movtery.zalithlauncher.context.refreshContext
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
+import com.movtery.zalithlauncher.keepalive.TaskKeepAlive
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.loadAllSettings
@@ -181,9 +182,15 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
     }
 
     override fun onCreate() {
+<<<<<<< HEAD
+        GlobalContext = this
+=======
         instance = this
 
+>>>>>>> origin/main
         refreshContext(this)
+        //初始化任务保活控制器，需在任何任务开始前完成初始化
+        TaskKeepAlive.initialize(this)
 
         // 友盟预初始化（合规要求：必须在 super.onCreate 之前，不采集设备信息）
         UMConfigure.preInit(this, UMENG_APPKEY, UMENG_CHANNEL)

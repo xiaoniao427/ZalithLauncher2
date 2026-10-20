@@ -44,10 +44,6 @@ sealed interface NormalNavKey : TitledNavKey {
     ) : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.page_title_account_list)
     }
-    /** 自定义主页编辑器屏幕 */
-    @Serializable data object HomePageEditor : NormalNavKey {
-        @Contextual override val title: AndroidStringText = androidText(R.string.page_title_home_page_editor)
-    }
     /** Web屏幕 */
     @Serializable data class WebScreen(val url: String) : NormalNavKey
     /** 版本管理屏幕 */
@@ -121,9 +117,13 @@ sealed interface NormalNavKey : TitledNavKey {
         @Serializable data object Config : Versions {
             @Contextual override val title: AndroidStringText = androidText(R.string.versions_settings_config)
         }
-        /** 更新版本的模组加载器 */
-        @Serializable data object UpdateLoader : Versions {
-            @Contextual override var title: AndroidStringText = androidText(R.string.versions_update_loader)
+        /** 修改版本屏幕 */
+        @Serializable data object ModifyVersion : Versions {
+            @Contextual override val title: AndroidStringText = androidText(R.string.versions_modify_version)
+        }
+        /** 选择要修改的 Minecraft 版本屏幕 */
+        @Serializable data object SelectGameVersion : Versions {
+            @Contextual override val title: AndroidStringText = androidText(R.string.versions_modify_select_mc)
         }
         /** 模组管理屏幕 */
         @Serializable data object ModsManager : Versions {
@@ -182,6 +182,10 @@ sealed interface NormalNavKey : TitledNavKey {
     /** 搜索ID屏幕 */
     @Serializable data object SearchId : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.download_category_by_id)
+    }
+    /** 收藏屏幕 */
+    @Serializable data object Favorites : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.download_category_favorites)
     }
 
     /** 下载资源屏幕 */

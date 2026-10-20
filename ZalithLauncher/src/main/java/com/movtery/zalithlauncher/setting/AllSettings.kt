@@ -23,19 +23,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.PaletteStyle
-import com.movtery.layer_controller.data.POSITION_RANGE
 import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
+import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
+import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
+import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
-import com.movtery.zalithlauncher.setting.enums.HomePageType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.ui.control.HotbarRule
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickMode
 import com.movtery.zalithlauncher.ui.control.mouse.CENTER_HOTSPOT
@@ -67,6 +69,21 @@ object AllSettings : SettingsRegistry() {
     val resolutionRatio = intSetting("resolutionRatio", 100, 25..300)
 
     /**
+     * 分辨率规则
+     */
+    val resolutionRule = enumSetting("resolutionRule", ResolutionRule.PERCENTAGE)
+
+    /**
+     * 自定义分辨率宽度，0 表示尚未初始化
+     */
+    val customResolutionWidth = intSetting("customResolutionWidth", 0)
+
+    /**
+     * 自定义分辨率高度，0 表示尚未初始化
+     */
+    val customResolutionHeight = intSetting("customResolutionHeight", 0)
+
+    /**
      * 游戏页面全屏化
      */
     val gameFullScreen = boolSetting("gameFullScreen", true)
@@ -82,6 +99,11 @@ object AllSettings : SettingsRegistry() {
     val sustainedPerformance = boolSetting("sustainedPerformance", false)
 
     /**
+     * 游戏运行时请求系统切换到同分辨率最高刷新率档位（关闭则回落系统自适应刷新）
+     */
+    val requestMaxRefreshRate = boolSetting("requestMaxRefreshRate", true)
+
+    /**
      * 使用系统的 Vulkan 驱动
      */
     val zinkPreferSystemDriver = boolSetting("zinkPreferSystemDriver", false)
@@ -90,11 +112,6 @@ object AllSettings : SettingsRegistry() {
      * Zink 垂直同步
      */
     val vsyncInZink = boolSetting("vsyncInZink", false)
-
-    /**
-     * 强制在高性能核心运行
-     */
-    val bigCoreAffinity = boolSetting("bigCoreAffinity", false)
 
     /**
      * 启用着色器日志输出
@@ -249,6 +266,21 @@ object AllSettings : SettingsRegistry() {
     val gamepadControl = boolSetting("gamepadControl", true)
 
     /**
+     * SDL 下是否允许自动唤起输入法
+     */
+    val sdlAutoShowIme = boolSetting("sdlAutoShowIme", true)
+
+    /**
+     * 手柄输入模式（映射虚拟按键 / SDL 直通）
+     */
+    val gamepadInputMode = enumSetting("gamepadInputMode", GamepadInputMode.Mapped)
+
+    /**
+     * 是否已完成手柄输入模式的选择询问
+     */
+    val gamepadInputModePrompted = boolSetting("gamepadInputModePrompted", false)
+
+    /**
      * 摇杆死区缩放
      */
     val gamepadDeadZoneScale = intSetting("gamepadDeadZoneScale", 100, 50..200)
@@ -385,6 +417,11 @@ object AllSettings : SettingsRegistry() {
     val launcherSwapAnimateType = enumSetting("launcherSwapAnimateType", TransitionAnimationType.JELLY_BOUNCE)
 
     /**
+     * 主界面操作菜单的停泊侧
+     */
+    val launcherActionMenuSide = enumSetting("launcherActionMenuSide", ActionMenuSide.END)
+
+    /**
      * 启动器背景元素不透明度
      */
     val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 80, 20..100)
@@ -405,16 +442,6 @@ object AllSettings : SettingsRegistry() {
     val backgroundBlurType = enumSetting("backgroundBlurType", BackgroundBlur.Background)
 
     /**
-     * 启动器主页类型
-     */
-    val homePageType = enumSetting("homePageType", HomePageType.Blank)
-
-    /**
-     * 启动器网络主页下载地址
-     */
-    val homePageURL = stringSetting("homePageURL", "")
-
-    /**
      * 启动器上次检查更新时，用户选择忽略的版本号
      */
     val lastIgnoredVersion = intSetting("lastIgnoredVersion", null)
@@ -425,24 +452,22 @@ object AllSettings : SettingsRegistry() {
     val launcherLogRetentionDays = intSetting("launcherLogRetentionDays", 7, 1..14)
 
     /**
-     * 下载版本附加内容镜像源类型
+     * 游戏内容下载源
      */
-    val fetchModLoaderSource = enumSetting("fetchModLoaderSource", MirrorSourceType.OFFICIAL_FIRST)
+    val gameDownloadSource = enumSetting(
+        "gameDownloadSource",
+        MirrorSourceType.AUTO,
+        MirrorSourceType.LEGACY_NAMES
+    )
 
     /**
-     * 文件下载镜像源类型
+     * 资源平台下载源
      */
-    val fileDownloadSource = enumSetting("fileDownloadSource", MirrorSourceType.OFFICIAL_FIRST)
-
-    /**
-     * 资源搜索镜像源类型
-     */
-    val assetSearchSource = enumSetting("assetSearchSource", MirrorSourceType.OFFICIAL_FIRST)
-
-    /**
-     * 资源下载镜像源类型
-     */
-    val assetDownloadSource = enumSetting("assetDownloadSource", MirrorSourceType.OFFICIAL_FIRST)
+    val assetPlatformSource = enumSetting(
+        "assetPlatformSource",
+        MirrorSourceType.AUTO,
+        MirrorSourceType.LEGACY_NAMES
+    )
 
     //Control
     /**
@@ -470,6 +495,11 @@ object AllSettings : SettingsRegistry() {
      * 在游戏菜单悬浮窗上显示帧率
      */
     val showFPS = boolSetting("showFPS", true)
+
+    /**
+     * 游戏内帧率的展示模式
+     */
+    val fpsDisplayMode = enumSetting("fpsDisplayMode", FpsDisplayMode.NUMBER)
 
     /**
      * 在游戏菜单悬浮窗上显示内存
@@ -561,62 +591,6 @@ object AllSettings : SettingsRegistry() {
      */
     val terracottaNoticeVer = intSetting("terracottaNoticeVer", -1)
 
-    //特殊样式
-    /**
-     * 是否在游戏中启用摇杆移动组件
-     */
-    val enableJoystickControl = boolSetting("enableJoystickControl", false)
-
-    /**
-     * 游戏中摇杆移动组件的 X 坐标 0~10000
-     */
-    val joystickControlX = intSetting("joystickControlX", 5000, POSITION_RANGE)
-
-    /**
-     * 游戏中摇杆移动组件的 Y 坐标 0~10000
-     */
-    val joystickControlY = intSetting("joystickControlY", 5000, POSITION_RANGE)
-
-    /**
-     * 游戏中摇杆移动组件的大小 Dp
-     */
-    val joystickControlSize = intSetting("joystickControlSize", 120, 80..180)
-
-    /**
-     * 游戏中摇杆移动组件是否使用控制布局提供的样式
-     */
-    val joystickUseStyleByLayout = boolSetting("joystickUseStyleByLayout", true)
-
-    /**
-     * 游戏中摇杆移动组件是否在使用实体鼠标时隐藏
-     */
-    val joystickHideWhenMouse = boolSetting("joystickHideWhenMouse", true)
-
-    /**
-     * 游戏中摇杆移动组件是否在使用手柄时隐藏
-     */
-    val joystickHideWhenGamepad = boolSetting("joystickHideWhenGamepad", true)
-
-    /**
-     * 摇杆组件死区缩放
-     */
-    val joystickDeadZoneRatio = intSetting("joystickDeadZoneRatio", 30, 10..50)
-
-    /**
-     * 摇杆前进锁判定范围
-     */
-    val joystickLockThreshold = intSetting("joystickLockThreshold", 30, 5..100)
-
-    /**
-     * 游戏中摇杆移动组件是否可锁定
-     */
-    val joystickControlCanLock = boolSetting("joystickControlCanLock", true)
-
-    /**
-     * 游戏中摇杆移动组件在前进锁定时，是否强制疾跑
-     */
-    val joystickControlLockSpring = boolSetting("joystickControlLockSpring", true)
-
     /**
      * 上次检查更新的时间戳
      */
@@ -640,25 +614,20 @@ object AllSettings : SettingsRegistry() {
     /**
      * 搜索模组的初始搜索平台
      */
-    val searchModPlatform = enumSetting("searchModPlatform", Platform.MODRINTH)
+    val searchModPlatform = enumSetting("searchModPlatform", Platform.CURSEFORGE)
 
     /**
      * 搜索整合包的初始搜索平台
      */
-    val searchModpackPlatform = enumSetting("searchModpackPlatform", Platform.MODRINTH)
+    val searchModpackPlatform = enumSetting("searchModpackPlatform", Platform.CURSEFORGE)
 
     /**
      * 搜索资源包的初始搜索平台
      */
-    val searchResourcePackPlatform = enumSetting("searchResourcePackPlatform", Platform.MODRINTH)
+    val searchResourcePackPlatform = enumSetting("searchResourcePackPlatform", Platform.CURSEFORGE)
 
     /**
      * 搜索光影的初始搜索平台
      */
-    val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.MODRINTH)
-
-    /**
-     * 启动 MC26.2+ 时，自动检查 Vulkan
-     */
-    val autoVulkanChecker = boolSetting("autoVulkanChecker", true)
+    val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)
 }

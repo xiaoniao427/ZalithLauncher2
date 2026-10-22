@@ -24,8 +24,10 @@ jobs:
     needs: Build
     runs-on: ubuntu-latest
     if: success()
-
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download Files
         uses: actions/download-artifact@v8
         with:
@@ -34,11 +36,8 @@ jobs:
       - name: Organize Artifacts
         run: |
           mkdir -p ./apks
-
           find ./artifacts -name "*.apk" -type f -exec cp {} ./apks/ \;
-
           echo "Found $(ls ./apks/ | wc -l) APK file(s)"
-
           mkdir -p ./mappings
           version="${GITHUB_REF_NAME#v}"
           for dir in ./artifacts/mapping*; do
@@ -53,9 +52,7 @@ jobs:
             esac
             cp "$dir/mapping.txt" "./mappings/ZalithLauncher-mapping-${version}${abi:+-$abi}.txt"
           done
-
           echo "Found $(ls ./mappings/ | wc -l) mapping file(s)"
-
 
       - name: Upload To Release
         uses: softprops/action-gh-release@v3
@@ -64,3 +61,88 @@ jobs:
             ./apks/*.apk
             ./mappings/*.txt
           fail_on_unmatched_files: true
+
+      # ---------- 本地生成 latest_version_md.json ----------
+      - name: Generate latest_version_md.json
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          PROPS="ZalithLauncher/gradle.properties"
+          if [ ! -f "$PROPS" ]; then
+            echo "::error::$PROPS not found"; exit 1
+          fi
+
+          read_prop() {
+            local key="$1" file="$2" val
+            val=$(grep -E "^\s*${key}\s*=" "$file" | head -1 | cut -d'=' -f2- \
+                  | sed 's/^\s*//;s/\s*$//' | tr -d '"' | tr -d "'" | tr -d '\r')
+            echo "$val"
+          }
+
+          version=$(read_prop launcher_version_name "$PROPS")
+          code=$(read_prop launcher_version_code "$PROPS")
+
+          if [ -z "$version" ]; then
+            echo "::error::launcher_version_name not found in $PROPS"; exit 1
+          fi
+          if ! [[ "$code" =~ ^[0-9]+$ ]]; then
+            echo "::error::launcher_version_code is not a number in $PROPS: '$code'"; exit 1
+          fi
+          echo "gradle.properties => version=$version, code=$code"
+
+          tag_stripped="${TAG_NAME#v}"
+          if [ "$tag_stripped" != "$version" ]; then
+            echo "::warning::Release tag '$TAG_NAME' 与 launcher_version_name '$version' 不一致"
+          fi
+
+          files_json="[]"
+          for f in ./apks/*.apk; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            size=$(stat -c%s "$f")
+            case "$name" in
+              *-arm64-v8a.apk)   arch="arm64"  ;;
+              *-armeabi-v7a.apk) arch="arm"    ;;
+              *-x86_64.apk)      arch="x86_64" ;;
+              *-x86.apk)         arch="x86"    ;;
+              *)                 arch="all"    ;;
+            esac
+            uri="https://github.com/${REPO}/releases/download/${TAG_NAME}/${name}"
+            files_json=$(jq -c \
+              --arg n "$name" \
+              --arg u "$uri" \
+              --arg a "$arch" \
+              --argjson s "$size" \
+              '. + [{file_name: $n, uri: $u, arch: $a, size: $s}]' \
+              <<< "$files_json")
+          done
+
+          jq -n \
+            --argjson code "$code" \
+            --arg version "$version" \
+            --arg created_at "$PUBLISHED_AT" \
+            --argjson files "$files_json" \
+            --arg body "$RELEASE_BODY" \
+            '{
+              code: $code,
+              version: $version,
+              created_at: $created_at,
+              files: $files,
+              default_body: { markdown: $body }
+            }' > latest_version_md.json
+
+          jq empty latest_version_md.json
+          echo "----- latest_version_md.json -----"
+          jq . latest_version_md.json
+
+      - name: Commit and push latest_version_md.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update latest_version_md.json (${{ github.event.release.tag_name }})"
+          file_pattern: latest_version_md.json
+          branch: main

@@ -182,12 +182,8 @@ class ZLApplication : Application(), SingletonImageLoader.Factory, Application.A
     }
 
     override fun onCreate() {
-<<<<<<< HEAD
-        GlobalContext = this
-=======
         instance = this
 
->>>>>>> origin/main
         refreshContext(this)
         //初始化任务保活控制器，需在任何任务开始前完成初始化
         TaskKeepAlive.initialize(this)

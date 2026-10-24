@@ -1,0 +1,40 @@
+{
+  "code": 200046,
+  "version": "2.7.2.1",
+  "created_at": "2026-10-24T11:38:15Z",
+  "files": [
+    {
+      "file_name": "PBlossom-2.7.2.1-arm64-v8a.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.1/PBlossom-2.7.2.1-arm64-v8a.apk",
+      "arch": "arm64",
+      "size": 336416611
+    },
+    {
+      "file_name": "PBlossom-2.7.2.1-armeabi-v7a.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.1/PBlossom-2.7.2.1-armeabi-v7a.apk",
+      "arch": "arm",
+      "size": 328273938
+    },
+    {
+      "file_name": "PBlossom-2.7.2.1-x86.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.1/PBlossom-2.7.2.1-x86.apk",
+      "arch": "x86",
+      "size": 316878392
+    },
+    {
+      "file_name": "PBlossom-2.7.2.1-x86_64.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.1/PBlossom-2.7.2.1-x86_64.apk",
+      "arch": "x86_64",
+      "size": 342106262
+    },
+    {
+      "file_name": "PBlossom-2.7.2.1.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.1/PBlossom-2.7.2.1.apk",
+      "arch": "all",
+      "size": 510428279
+    }
+  ],
+  "default_body": {
+    "markdown": "# 变化\r\n- 拉取合并主干\r\n- 支持软件内检测更新"
+  }
+}

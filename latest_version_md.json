@@ -1,40 +1,40 @@
 {
-  "code": 200047,
-  "version": "2.7.2.2",
-  "created_at": "2026-11-22T10:53:45Z",
+  "code": 200048,
+  "version": "2.7.2.3",
+  "created_at": "2026-11-27T12:07:04Z",
   "files": [
     {
-      "file_name": "PBlossom-2.7.2.2-arm64-v8a.apk",
-      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.2/PBlossom-2.7.2.2-arm64-v8a.apk",
+      "file_name": "PBlossom-2.7.2.3-arm64-v8a.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.3/PBlossom-2.7.2.3-arm64-v8a.apk",
       "arch": "arm64",
-      "size": 340378842
+      "size": 340378834
     },
     {
-      "file_name": "PBlossom-2.7.2.2-armeabi-v7a.apk",
-      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.2/PBlossom-2.7.2.2-armeabi-v7a.apk",
+      "file_name": "PBlossom-2.7.2.3-armeabi-v7a.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.3/PBlossom-2.7.2.3-armeabi-v7a.apk",
       "arch": "arm",
-      "size": 332220977
+      "size": 332220981
     },
     {
-      "file_name": "PBlossom-2.7.2.2-x86.apk",
-      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.2/PBlossom-2.7.2.2-x86.apk",
+      "file_name": "PBlossom-2.7.2.3-x86.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.3/PBlossom-2.7.2.3-x86.apk",
       "arch": "x86",
       "size": 320857039
     },
     {
-      "file_name": "PBlossom-2.7.2.2-x86_64.apk",
-      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.2/PBlossom-2.7.2.2-x86_64.apk",
+      "file_name": "PBlossom-2.7.2.3-x86_64.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.3/PBlossom-2.7.2.3-x86_64.apk",
       "arch": "x86_64",
-      "size": 346095277
+      "size": 346095273
     },
     {
-      "file_name": "PBlossom-2.7.2.2.apk",
-      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.2/PBlossom-2.7.2.2.apk",
+      "file_name": "PBlossom-2.7.2.3.apk",
+      "uri": "https://github.com/xiaoniao427/ZalithLauncher2/releases/download/2.7.2.3/PBlossom-2.7.2.3.apk",
       "arch": "all",
       "size": 514520860
     }
   ],
   "default_body": {
-    "markdown": "## 变化\r\n- 更新模组"
+    "markdown": "## 变化\r\n由于近期变故将不再维护pblossom安卓端\r\n这是停止维护前的最后一个版本"
   }
 }
